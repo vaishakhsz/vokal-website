@@ -1,0 +1,40 @@
+# OS generated files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+.DS_Store
+.Spotlight-V100
+.Trashes
+
+# Editor & IDE directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Local configuration overrides (keep config.php in repo with defaults)
+api/config.local.php
+.env
+
+# User uploaded media (keep folders via .gitkeep, ignore live uploaded media)
+uploads/photos/*
+!uploads/photos/.gitkeep
+uploads/documents/*
+!uploads/documents/.gitkeep
+uploads/videos/*
+!uploads/videos/.gitkeep
+
+# Temporary archives
+*.zip
+*.tar.gz
+*.rar

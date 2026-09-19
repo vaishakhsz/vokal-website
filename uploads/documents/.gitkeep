@@ -1,0 +1,3 @@
+# Keeps uploads/documents directory in git repo
+*
+!.gitkeep

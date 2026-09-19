@@ -1,0 +1,969 @@
+/**
+ * VOKAL - Voice of Kerala for Animal Legit (vokal.org.in)
+ * Main Application Logic, Dynamic Renderers & Secure Admin Login / Log Off
+ */
+
+document.addEventListener("DOMContentLoaded", function () {
+  // 1. Render all dynamic content
+  renderSpiritualMastersSlider();
+  renderEvents();
+  renderVideos();
+  renderLetters();
+  
+  // 2. Setup upload forms and contact inquiries
+  setupUploadForms();
+  setupContactForm();
+  setupVideoPlayerModal();
+
+  // 3. Initialize In-Page Admin Portal with Login / Log Off
+  initAdminAuthSystem();
+});
+
+// ==========================================
+// 1. SPIRITUAL MASTERS SLIDER (Buddha, Jesus, Muhammad, Amma)
+// ==========================================
+function renderSpiritualMastersSlider() {
+  const masters = VOKAL_DEFAULT_DATA.spiritualMasters;
+  const carouselInner = document.getElementById("mastersCarouselInner");
+  const navContainer = document.getElementById("mastersNavRow");
+  const dotsContainer = document.getElementById("mastersIndicatorDots");
+  const counterBadge = document.getElementById("masterCounterBadge");
+  const carouselEl = document.getElementById("spiritualMastersCarousel");
+
+  if (!carouselInner || !navContainer || !carouselEl) return;
+
+  carouselInner.innerHTML = "";
+  navContainer.innerHTML = "";
+  if (dotsContainer) dotsContainer.innerHTML = "";
+
+  masters.forEach((master, index) => {
+    const isActive = index === 0 ? "active" : "";
+
+    // 1. Carousel Slide Item
+    const slide = document.createElement("div");
+    slide.className = `carousel-item ${isActive}`;
+    slide.setAttribute("data-master-index", index);
+    slide.innerHTML = `
+      <div class="master-slide-grid">
+        <div class="master-portrait-wrap">
+          <img src="${master.image}" alt="${master.name}" loading="lazy">
+          <div class="master-tradition-tag">
+            <i class="bi bi-flower1 text-warning"></i>
+            <span>${master.tradition}</span>
+          </div>
+        </div>
+        <div class="master-content-wrap">
+          <div class="master-quote-symbol">“</div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge bg-light text-success border small">Teaching ${index + 1} of ${masters.length}</span>
+          </div>
+          <h3 class="master-name">${master.name}</h3>
+          <p class="master-title">${master.title}</p>
+          <p class="master-quote-text serif-quote">${master.quote}</p>
+          <div class="master-teaching-box">
+            <strong class="d-block text-dark mb-1"><i class="bi bi-lightbulb-fill text-warning me-1"></i> Essence of Teaching:</strong>
+            ${master.teaching}
+          </div>
+        </div>
+      </div>
+    `;
+    carouselInner.appendChild(slide);
+
+    // 2. Bottom Nav Pill Button
+    const navBtn = document.createElement("button");
+    navBtn.type = "button";
+    navBtn.className = `master-nav-btn ${isActive}`;
+    navBtn.innerHTML = `
+      <img src="${master.portrait || master.image}" alt="${master.name}">
+      <span>${master.name}</span>
+    `;
+    navBtn.addEventListener("click", () => {
+      carouselInstance.to(index);
+      resetAutoTimer();
+    });
+    navContainer.appendChild(navBtn);
+
+    // 3. Indicator Dots
+    if (dotsContainer) {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = `master-dot ${isActive}`;
+      dot.setAttribute("aria-label", `Slide to ${master.name}`);
+      dot.addEventListener("click", () => {
+        carouselInstance.to(index);
+        resetAutoTimer();
+      });
+      dotsContainer.appendChild(dot);
+    }
+  });
+
+  // 4. Initialize Bootstrap Carousel with 10-Second Interval
+  const carouselInstance = new bootstrap.Carousel(carouselEl, {
+    interval: 10000,
+    ride: 'carousel',
+    wrap: true,
+    pause: 'hover',
+    touch: true
+  });
+  carouselInstance.cycle();
+
+  // 5. Dedicated 10-Second Auto-Switch Timer & Pause / Resume Control
+  let isPaused = false;
+  let autoSlideTimer = null;
+
+  function startAutoTimer() {
+    clearInterval(autoSlideTimer);
+    autoSlideTimer = setInterval(() => {
+      if (!isPaused) {
+        carouselInstance.next();
+      }
+    }, 10000);
+  }
+
+  function resetAutoTimer() {
+    if (isPaused) return;
+    startAutoTimer();
+  }
+
+  // Start initial 10-second timer
+  startAutoTimer();
+
+  // Pause / Resume Toggle Button
+  const pausePlayBtn = document.getElementById("masterPausePlayBtn");
+  const pausePlayIcon = document.getElementById("pausePlayIcon");
+  const pausePlayText = document.getElementById("pausePlayText");
+
+  if (pausePlayBtn) {
+    pausePlayBtn.addEventListener("click", () => {
+      if (isPaused) {
+        // Resume
+        isPaused = false;
+        carouselInstance.cycle();
+        startAutoTimer();
+        if (pausePlayIcon) pausePlayIcon.className = "bi bi-pause-fill fs-6";
+        if (pausePlayText) pausePlayText.textContent = "Pause (10s)";
+        pausePlayBtn.className = "btn btn-sm btn-outline-dark py-1 px-3 rounded-pill d-flex align-items-center gap-1 shadow-sm";
+        showToast("Auto-slide resumed (10-second timer)", "info");
+      } else {
+        // Pause
+        isPaused = true;
+        carouselInstance.pause();
+        clearInterval(autoSlideTimer);
+        if (pausePlayIcon) pausePlayIcon.className = "bi bi-play-fill fs-6";
+        if (pausePlayText) pausePlayText.textContent = "Resume";
+        pausePlayBtn.className = "btn btn-sm btn-warning text-dark py-1 px-3 rounded-pill d-flex align-items-center gap-1 shadow-sm fw-bold";
+        showToast("Teachings slide paused. Click Resume anytime.", "info");
+      }
+    });
+  }
+
+  // 6. Connect Floating & Header Arrow Buttons
+  const prevBtns = [
+    document.getElementById("masterPrevBtn"),
+    document.getElementById("masterFloatPrevBtn")
+  ];
+  const nextBtns = [
+    document.getElementById("masterNextBtn"),
+    document.getElementById("masterFloatNextBtn")
+  ];
+
+  prevBtns.forEach(btn => {
+    if (btn) {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        carouselInstance.prev();
+        resetAutoTimer();
+      });
+    }
+  });
+
+  nextBtns.forEach(btn => {
+    if (btn) {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        carouselInstance.next();
+        resetAutoTimer();
+      });
+    }
+  });
+
+  // 7. Synchronize Carousel Events (slide change)
+  carouselEl.addEventListener("slide.bs.carousel", (e) => {
+    const targetIndex = e.to;
+    const currentMaster = masters[targetIndex];
+
+    // Update Counter Badge
+    if (counterBadge && currentMaster) {
+      counterBadge.textContent = `Master ${targetIndex + 1} of ${masters.length}: ${currentMaster.name}`;
+    }
+
+    // Update Nav Pills
+    const navButtons = navContainer.querySelectorAll(".master-nav-btn");
+    navButtons.forEach((btn, idx) => {
+      btn.classList.toggle("active", idx === targetIndex);
+    });
+
+    // Update Indicator Dots
+    if (dotsContainer) {
+      const dots = dotsContainer.querySelectorAll(".master-dot");
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle("active", idx === targetIndex);
+      });
+    }
+  });
+
+  // 8. Mobile Touch Swipe Gesture Support
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  carouselEl.addEventListener("touchstart", (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  carouselEl.addEventListener("touchend", (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchEndX < touchStartX - 40) {
+      carouselInstance.next();
+      resetAutoTimer();
+    } else if (touchEndX > touchStartX + 40) {
+      carouselInstance.prev();
+      resetAutoTimer();
+    }
+  }, { passive: true });
+}
+
+// ==========================================
+// 2. EVENTS & PHOTO GALLERY
+// ==========================================
+let currentEventFilter = "all";
+
+function renderEvents() {
+  const container = document.getElementById("eventsGrid");
+  if (!container) return;
+
+  const events = window.vokalStorage.getEvents();
+  container.innerHTML = "";
+
+  const filtered = currentEventFilter === "all" 
+    ? events 
+    : events.filter(e => e.category.toLowerCase().includes(currentEventFilter.toLowerCase()));
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-camera-fill display-4 text-muted d-block mb-3"></i>
+        <h5>No photos found in this category</h5>
+        <p class="small text-secondary">New photos and ground intervention updates will be added soon.</p>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach((event) => {
+    const cardCol = document.createElement("div");
+    cardCol.className = "col-md-6 col-lg-4";
+    cardCol.innerHTML = `
+      <div class="vk-card">
+        <div class="event-card-img-wrap" style="cursor: pointer;" onclick="openPhotoLightbox('${event.image}', '${escapeHtml(event.title)}', '${escapeHtml(event.description)}', '${escapeHtml(event.date)}')">
+          <img src="${event.image}" alt="${escapeHtml(event.title)}" loading="lazy">
+          <span class="event-category-badge">${event.category}</span>
+          ${event.isUserUploaded ? '<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
+        </div>
+        <div class="event-body">
+          <div class="event-meta">
+            <span><i class="bi bi-calendar3 me-1 text-primary"></i> ${event.date}</span>
+            <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i> ${event.location}</span>
+          </div>
+          <h5 class="fw-bold mb-2 text-dark">${event.title}</h5>
+          <p class="text-muted small mb-3">${event.description.length > 120 ? event.description.substring(0, 117) + "..." : event.description}</p>
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+            <button class="btn btn-link text-decoration-none p-0 text-success fw-bold small" onclick="openPhotoLightbox('${event.image}', '${escapeHtml(event.title)}', '${escapeHtml(event.description)}', '${escapeHtml(event.date)}')">
+              <i class="bi bi-arrows-fullscreen me-1"></i> View Full Photo
+            </button>
+            ${event.isUserUploaded ? `
+              <button class="btn btn-outline-danger btn-sm p-1 px-2" title="Delete Photo" onclick="deleteUserEvent('${event.id}')">
+                <i class="bi bi-trash3"></i>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(cardCol);
+  });
+}
+
+function filterEvents(category, btnElement) {
+  currentEventFilter = category;
+  document.querySelectorAll(".event-filter-pill").forEach(p => p.classList.remove("active"));
+  if (btnElement) btnElement.classList.add("active");
+  renderEvents();
+}
+
+function deleteUserEvent(id) {
+  if (!isAdminLoggedIn()) {
+    showToast("Please log in as Admin first to delete content.", "danger");
+    location.hash = "#admin-portal";
+    return;
+  }
+  if (confirm("Are you sure you want to delete this photo?")) {
+    window.vokalStorage.deleteEvent(id);
+    renderEvents();
+    renderInPageAdmin();
+    showToast("Photo removed successfully", "info");
+  }
+}
+
+function openPhotoLightbox(src, title, desc, date) {
+  const modalEl = document.getElementById("photoLightboxModal");
+  if (!modalEl) return;
+
+  document.getElementById("lightboxImage").src = src;
+  document.getElementById("lightboxTitle").textContent = title;
+  document.getElementById("lightboxDesc").textContent = desc;
+  document.getElementById("lightboxDate").textContent = date;
+
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+
+// ==========================================
+// 3. VIDEOS & MEDIA LINKS
+// ==========================================
+function renderVideos() {
+  const container = document.getElementById("videosGrid");
+  if (!container) return;
+
+  const videos = window.vokalStorage.getVideos();
+  container.innerHTML = "";
+
+  videos.forEach(video => {
+    const cardCol = document.createElement("div");
+    cardCol.className = "col-md-6 col-lg-6";
+    cardCol.innerHTML = `
+      <div class="vk-card">
+        <div class="video-card-thumb" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
+          <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}" loading="lazy">
+          <div class="video-play-btn">
+            <i class="bi bi-play-fill ms-1"></i>
+          </div>
+          <span class="video-duration-badge"><i class="bi bi-clock me-1"></i>${video.duration}</span>
+        </div>
+        <div class="p-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-light text-dark border px-2 py-1">${video.category}</span>
+            ${video.isUserUploaded ? '<span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> Uploaded Link</span>' : ''}
+          </div>
+          <h5 class="fw-bold mb-2">${video.title}</h5>
+          <p class="text-muted small mb-3">${video.description}</p>
+          <div class="d-flex justify-content-between align-items-center">
+            <button class="btn btn-vokal-outline btn-sm" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
+              <i class="bi bi-play-circle-fill me-1"></i> Watch Video
+            </button>
+            ${video.isUserUploaded ? `
+              <button class="btn btn-outline-danger btn-sm p-1 px-2" title="Remove Video" onclick="deleteUserVideo('${video.id}')">
+                <i class="bi bi-trash3"></i>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(cardCol);
+  });
+}
+
+function playVideoModal(url, title, desc) {
+  const modalEl = document.getElementById("videoPlayerModal");
+  const iframe = document.getElementById("videoPlayerIframe");
+  const titleEl = document.getElementById("videoPlayerTitle");
+  const descEl = document.getElementById("videoPlayerDesc");
+
+  if (!modalEl || !iframe) return;
+
+  iframe.src = url;
+  titleEl.textContent = title;
+  descEl.textContent = desc;
+
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+
+function setupVideoPlayerModal() {
+  const modalEl = document.getElementById("videoPlayerModal");
+  if (!modalEl) return;
+  modalEl.addEventListener("hidden.bs.modal", () => {
+    const iframe = document.getElementById("videoPlayerIframe");
+    if (iframe) iframe.src = "";
+  });
+}
+
+function deleteUserVideo(id) {
+  if (!isAdminLoggedIn()) {
+    showToast("Please log in as Admin first to delete content.", "danger");
+    location.hash = "#admin-portal";
+    return;
+  }
+  if (confirm("Delete this video link?")) {
+    window.vokalStorage.deleteVideo(id);
+    renderVideos();
+    renderInPageAdmin();
+    showToast("Video link deleted", "info");
+  }
+}
+
+// ==========================================
+// 4. LETTERS TO GOVERNMENT & LEGAL CELL
+// ==========================================
+function renderLetters() {
+  const container = document.getElementById("lettersGrid");
+  if (!container) return;
+
+  const letters = window.vokalStorage.getLetters();
+  container.innerHTML = "";
+
+  letters.forEach(letter => {
+    const cardCol = document.createElement("div");
+    cardCol.className = "col-md-6 col-lg-6 mb-4";
+    
+    const demandsHtml = (letter.keyDemands || [])
+      .map(d => `<li>${escapeHtml(d)}</li>`)
+      .join("");
+
+    cardCol.innerHTML = `
+      <div class="letter-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="letter-ref-badge">${letter.refNo}</span>
+          <span class="badge bg-${letter.statusColor || 'primary'}">${letter.status}</span>
+        </div>
+        <h5 class="fw-bold mt-2 text-dark">${letter.subject}</h5>
+        <div class="text-muted small mb-2">
+          <strong><i class="bi bi-building me-1"></i> To:</strong> ${letter.recipient} (${letter.department})
+        </div>
+        <div class="text-muted small mb-3">
+          <i class="bi bi-calendar-event me-1"></i> Submitted on: <strong>${letter.date}</strong>
+        </div>
+        <p class="text-secondary small mb-2">${letter.summary}</p>
+        
+        <h6 class="fw-bold small text-dark mt-2 mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Key Demands & Petitions:</h6>
+        <ul class="letter-demands-list mb-3">
+          ${demandsHtml}
+        </ul>
+
+        <div class="mt-auto pt-3 border-top d-flex gap-2 flex-wrap justify-content-between align-items-center">
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-vokal-primary" onclick="viewLetterModal('${letter.id}')">
+              <i class="bi bi-file-earmark-text me-1"></i> View Details
+            </button>
+            <a href="${letter.docUrl}" download="${letter.refNo.replace(/\//g, '_')}.txt" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-download me-1"></i> Download Copy
+            </a>
+          </div>
+          ${letter.isUserUploaded ? `
+            <button class="btn btn-sm btn-outline-danger" title="Delete Letter" onclick="deleteUserLetter('${letter.id}')">
+              <i class="bi bi-trash3"></i>
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+    container.appendChild(cardCol);
+  });
+}
+
+function viewLetterModal(letterId) {
+  const letters = window.vokalStorage.getLetters();
+  const letter = letters.find(l => l.id === letterId);
+  if (!letter) return;
+
+  const modalEl = document.getElementById("letterDetailsModal");
+  if (!modalEl) return;
+
+  document.getElementById("modalLetterRef").textContent = letter.refNo;
+  document.getElementById("modalLetterSubject").textContent = letter.subject;
+  document.getElementById("modalLetterRecipient").textContent = `${letter.recipient} - ${letter.department}`;
+  document.getElementById("modalLetterDate").textContent = letter.date;
+  document.getElementById("modalLetterStatus").textContent = letter.status;
+  document.getElementById("modalLetterStatus").className = `badge bg-${letter.statusColor || 'primary'}`;
+  document.getElementById("modalLetterSummary").textContent = letter.summary;
+
+  const demandsList = document.getElementById("modalLetterDemands");
+  demandsList.innerHTML = (letter.keyDemands || []).map(d => `<li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>${escapeHtml(d)}</li>`).join("");
+
+  const downloadBtn = document.getElementById("modalLetterDownloadBtn");
+  downloadBtn.href = letter.docUrl;
+  downloadBtn.download = `${letter.refNo.replace(/\//g, '_')}.txt`;
+
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+
+function deleteUserLetter(id) {
+  if (!isAdminLoggedIn()) {
+    showToast("Please log in as Admin first to delete content.", "danger");
+    location.hash = "#admin-portal";
+    return;
+  }
+  if (confirm("Are you sure you want to delete this letter representation?")) {
+    window.vokalStorage.deleteLetter(id);
+    renderLetters();
+    renderInPageAdmin();
+    showToast("Letter representation removed", "info");
+  }
+}
+
+// ==========================================
+// 5. IN-PAGE ADMIN PORTAL: LOGIN & LOG OFF
+// ==========================================
+// Authorized admin authentication
+
+function isAdminLoggedIn() {
+  return sessionStorage.getItem("vokal_admin_auth") === "true";
+}
+
+function initAdminAuthSystem() {
+  const loginCard = document.getElementById("adminLoginCard");
+  const controlPanel = document.getElementById("adminControlPanel");
+  const loginForm = document.getElementById("adminLoginForm");
+  const loginError = document.getElementById("adminLoginError");
+
+  // Check existing session
+  if (isAdminLoggedIn()) {
+    showAdminControlPanel();
+  } else {
+    showAdminLoginForm();
+  }
+
+  // Handle Login submission
+  if (loginForm) {
+    loginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById("adminLoginUser").value.trim();
+      const passwordInput = document.getElementById("adminLoginPass").value.trim();
+
+      if (usernameInput === "admin" && passwordInput === "admin123") {
+        sessionStorage.setItem("vokal_admin_auth", "true");
+        if (loginError) loginError.classList.add("d-none");
+        loginForm.reset();
+        showAdminControlPanel();
+        showToast("Welcome Admin! Logged in successfully.", "success");
+      } else {
+        if (loginError) {
+          loginError.textContent = "Invalid username or password. Please try again.";
+          loginError.classList.remove("d-none");
+        }
+        showToast("Invalid username or password. Please try again.", "danger");
+      }
+    });
+  }
+}
+
+function showAdminControlPanel() {
+  const loginCard = document.getElementById("adminLoginCard");
+  const controlPanel = document.getElementById("adminControlPanel");
+  if (loginCard) loginCard.classList.add("d-none");
+  if (controlPanel) controlPanel.classList.remove("d-none");
+  renderInPageAdmin();
+}
+
+function showAdminLoginForm() {
+  const loginCard = document.getElementById("adminLoginCard");
+  const controlPanel = document.getElementById("adminControlPanel");
+  if (loginCard) loginCard.classList.remove("d-none");
+  if (controlPanel) controlPanel.classList.add("d-none");
+}
+
+function logOffAdmin() {
+  if (confirm("Are you sure you want to log off from the Admin Hub?")) {
+    sessionStorage.removeItem("vokal_admin_auth");
+    if (window.location.pathname.endsWith("admin.html")) {
+      window.location.href = "index.html#admin-portal";
+      return;
+    }
+    showAdminLoginForm();
+    showToast("You have been logged off successfully.", "info");
+    location.hash = "#admin-portal";
+  }
+}
+
+function renderInPageAdmin() {
+  if (!isAdminLoggedIn()) return;
+
+  // Update counts
+  const photos = window.vokalStorage.getEvents();
+  const letters = window.vokalStorage.getLetters();
+  const videos = window.vokalStorage.getVideos();
+  const inquiries = window.vokalStorage.getInquiries();
+
+  const elPhotoCount = document.getElementById("inPageAdminPhotoCount");
+  const elLetterCount = document.getElementById("inPageAdminLetterCount");
+  const elVideoCount = document.getElementById("inPageAdminVideoCount");
+  const elInquiryCount = document.getElementById("inPageAdminInquiryCount");
+
+  if (elPhotoCount) elPhotoCount.textContent = photos.length;
+  if (elLetterCount) elLetterCount.textContent = letters.length;
+  if (elVideoCount) elVideoCount.textContent = videos.length;
+  if (elInquiryCount) elInquiryCount.textContent = inquiries.length;
+
+  // Render Admin Photo List
+  const adminPhotoList = document.getElementById("inPageAdminPhotosList");
+  if (adminPhotoList) {
+    adminPhotoList.innerHTML = "";
+    photos.forEach(p => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><img src="${p.image}" class="admin-table-thumb"></td>
+        <td><strong>${escapeHtml(p.title)}</strong><br><small class="text-muted">${p.location} | ${p.date}</small></td>
+        <td><span class="badge bg-light text-dark border">${p.category}</span></td>
+        <td>${p.isUserUploaded ? '<span class="badge bg-warning text-dark">Uploaded</span>' : '<span class="badge bg-secondary">Default</span>'}</td>
+        <td>
+          <button class="btn btn-outline-danger btn-sm" onclick="deleteUserEvent('${p.id}')">
+            <i class="bi bi-trash3"></i> Delete
+          </button>
+        </td>
+      `;
+      adminPhotoList.appendChild(tr);
+    });
+  }
+
+  // Render Admin Letters List
+  const adminLettersList = document.getElementById("inPageAdminLettersList");
+  if (adminLettersList) {
+    adminLettersList.innerHTML = "";
+    letters.forEach(l => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><code>${l.refNo}</code></td>
+        <td><strong>${escapeHtml(l.subject)}</strong><br><small class="text-muted">${l.recipient} (${l.department})</small></td>
+        <td><span class="badge bg-${l.statusColor || 'primary'}">${l.status}</span></td>
+        <td>${l.date}</td>
+        <td>
+          <button class="btn btn-outline-danger btn-sm" onclick="deleteUserLetter('${l.id}')">
+            <i class="bi bi-trash3"></i> Delete
+          </button>
+        </td>
+      `;
+      adminLettersList.appendChild(tr);
+    });
+  }
+
+  // Render Admin Videos List
+  const adminVideosList = document.getElementById("inPageAdminVideosList");
+  if (adminVideosList) {
+    adminVideosList.innerHTML = "";
+    videos.forEach(v => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><img src="${v.thumbnail}" class="admin-table-thumb"></td>
+        <td><strong>${escapeHtml(v.title)}</strong><br><small class="text-muted">${v.duration}</small></td>
+        <td><span class="badge bg-light text-dark border">${v.category}</span></td>
+        <td><a href="${v.videoUrl}" target="_blank" class="small">Open Link <i class="bi bi-box-arrow-up-right"></i></a></td>
+        <td>
+          <button class="btn btn-outline-danger btn-sm" onclick="deleteUserVideo('${v.id}')">
+            <i class="bi bi-trash3"></i> Delete
+          </button>
+        </td>
+      `;
+      adminVideosList.appendChild(tr);
+    });
+  }
+
+  // Render Admin Inquiries
+  const adminInquiriesList = document.getElementById("inPageAdminInquiriesList");
+  if (adminInquiriesList) {
+    adminInquiriesList.innerHTML = "";
+    if (inquiries.length === 0) {
+      adminInquiriesList.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No citizen inquiries or reports received yet. Form submissions appear here in real time.</td></tr>`;
+    } else {
+      inquiries.forEach(i => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="small text-muted">${new Date(i.submittedAt).toLocaleDateString()}</td>
+          <td><strong>${escapeHtml(i.name)}</strong><br><small><a href="mailto:${escapeHtml(i.email)}" class="text-success">${escapeHtml(i.email || 'No email')}</a></small></td>
+          <td><span class="badge bg-light text-dark border">${escapeHtml(i.district)}</span></td>
+          <td><span class="badge bg-danger">${escapeHtml(i.type)}</span></td>
+          <td class="small">${escapeHtml(i.message)}</td>
+        `;
+        adminInquiriesList.appendChild(tr);
+      });
+    }
+  }
+}
+
+// ==========================================
+// 6. UPLOAD SETUP (ADMIN PROTECTED)
+// ==========================================
+function setupUploadForms() {
+  setupPhotoUpload("inpagePhotoFile", "inpagePhotoPreview", "inpagePhotoForm", "inpagePhotoTitle", "inpagePhotoCategory", "inpagePhotoLocation", "inpagePhotoDate", "inpagePhotoDesc", "inpagePhotoUrl");
+  setupLetterUpload("inpageLetterForm", "inpageLetterSubject", "inpageLetterRefNo", "inpageLetterRecipient", "inpageLetterDepartment", "inpageLetterStatus", "inpageLetterDate", "inpageLetterSummary", "inpageLetterDemands", "inpageLetterFile");
+  setupVideoUpload("inpageVideoForm", "inpageVideoTitle", "inpageVideoUrl", "inpageVideoCategory", "inpageVideoDuration", "inpageVideoDesc", "inpageVideoThumbnail");
+}
+
+function setupPhotoUpload(fileId, previewId, formId, titleId, catId, locId, dateId, descId, urlId) {
+  const fileInput = document.getElementById(fileId);
+  const preview = document.getElementById(previewId);
+  let encodedPhotoData = "";
+
+  if (fileInput && preview) {
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          encodedPhotoData = e.target.result;
+          preview.src = encodedPhotoData;
+          preview.classList.remove("d-none");
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  const form = document.getElementById(formId);
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!isAdminLoggedIn()) {
+        showToast("Please log in as Admin to upload photos.", "danger");
+        location.hash = "#admin-portal";
+        return;
+      }
+
+      const title = document.getElementById(titleId).value.trim();
+      const category = document.getElementById(catId).value;
+      const locationVal = document.getElementById(locId).value.trim();
+      const date = document.getElementById(dateId).value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      const description = document.getElementById(descId).value.trim();
+      const urlInput = document.getElementById(urlId) ? document.getElementById(urlId).value.trim() : "";
+
+      const finalImage = encodedPhotoData || urlInput || "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80";
+
+      window.vokalStorage.addEvent({
+        title,
+        category,
+        location: locationVal,
+        date,
+        description,
+        image: finalImage
+      });
+
+      renderEvents();
+      renderInPageAdmin();
+      form.reset();
+      encodedPhotoData = "";
+      if (preview) preview.classList.add("d-none");
+
+      showToast("Event photo uploaded and published to gallery!", "success");
+    });
+  }
+}
+
+function setupLetterUpload(formId, subjId, refId, recId, deptId, statusId, dateId, sumId, demId, fileId) {
+  let docUrl = "#";
+  const fileInput = document.getElementById(fileId);
+  if (fileInput) {
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) docUrl = URL.createObjectURL(file);
+    });
+  }
+
+  const form = document.getElementById(formId);
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!isAdminLoggedIn()) {
+        showToast("Please log in as Admin to upload representations.", "danger");
+        location.hash = "#admin-portal";
+        return;
+      }
+
+      const subject = document.getElementById(subjId).value.trim();
+      const refNo = document.getElementById(refId).value.trim();
+      const recipient = document.getElementById(recId).value.trim();
+      const department = document.getElementById(deptId).value.trim();
+      const status = document.getElementById(statusId).value;
+      const date = document.getElementById(dateId).value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      const summary = document.getElementById(sumId).value.trim();
+      const demands = document.getElementById(demId).value.trim();
+
+      window.vokalStorage.addLetter({
+        subject,
+        refNo,
+        recipient,
+        department,
+        status,
+        date,
+        summary,
+        keyDemands: demands,
+        docUrl
+      });
+
+      renderLetters();
+      renderInPageAdmin();
+      form.reset();
+      docUrl = "#";
+
+      showToast("Govt letter representation published successfully!", "success");
+    });
+  }
+}
+
+function setupVideoUpload(formId, titleId, urlId, catId, durId, descId, thumbId) {
+  const form = document.getElementById(formId);
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!isAdminLoggedIn()) {
+        showToast("Please log in as Admin to add video links.", "danger");
+        location.hash = "#admin-portal";
+        return;
+      }
+
+      const title = document.getElementById(titleId).value.trim();
+      const videoUrl = document.getElementById(urlId).value.trim();
+      const category = document.getElementById(catId).value;
+      const duration = document.getElementById(durId).value.trim() || "Live / Video";
+      const description = document.getElementById(descId).value.trim();
+      const thumbnail = document.getElementById(thumbId) && document.getElementById(thumbId).value.trim() 
+        ? document.getElementById(thumbId).value.trim() 
+        : "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80";
+
+      window.vokalStorage.addVideo({
+        title,
+        videoUrl,
+        category,
+        duration,
+        description,
+        thumbnail
+      });
+
+      renderVideos();
+      renderInPageAdmin();
+      form.reset();
+
+      showToast("Video link uploaded and added to the gallery!", "success");
+    });
+  }
+}
+
+// ==========================================
+// 7. CUSTOMER INQUIRY & CRUELTY REPORT FORM
+// ==========================================
+function setupContactForm() {
+  const form = document.getElementById("vokalContactForm");
+  if (!form) return;
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const name = document.getElementById("contactName").value.trim();
+    const email = document.getElementById("contactEmail").value.trim();
+    const district = document.getElementById("contactDistrict").value;
+    const type = document.getElementById("contactType").value;
+    const message = document.getElementById("contactMessage").value.trim();
+
+    window.vokalStorage.saveInquiry({
+      name,
+      email,
+      district,
+      type,
+      message
+    });
+
+    form.reset();
+    renderInPageAdmin();
+    showToast("Your inquiry has been received by VOKAL. Our district volunteers will review it promptly!", "success");
+  });
+}
+
+// Backup & Reset Actions
+function exportSiteDataBackup() {
+  if (!isAdminLoggedIn()) return;
+  const data = window.vokalStorage.exportAllData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `vokal_database_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Database exported successfully!", "success");
+}
+
+function importSiteDataBackup(inputEl) {
+  if (!isAdminLoggedIn() || !inputEl.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      window.vokalStorage.importData(parsed);
+      renderEvents();
+      renderVideos();
+      renderLetters();
+      renderInPageAdmin();
+      showToast("Data backup successfully restored!", "success");
+    } catch (err) {
+      alert("Invalid backup file: " + err.message);
+    }
+  };
+  reader.readAsText(inputEl.files[0]);
+}
+
+function resetSiteDataDefaults() {
+  if (!isAdminLoggedIn()) return;
+  if (confirm("Reset all data to official defaults? This will erase custom test uploads.")) {
+    window.vokalStorage.resetToDefaults();
+    renderEvents();
+    renderVideos();
+    renderLetters();
+    renderInPageAdmin();
+    showToast("Reset to official default data completed", "info");
+  }
+}
+
+// Toast notification helper
+function showToast(message, type = "success") {
+  let toastContainer = document.getElementById("vokalToastContainer");
+  if (!toastContainer) {
+    toastContainer = document.createElement("div");
+    toastContainer.id = "vokalToastContainer";
+    toastContainer.className = "toast-container position-fixed bottom-0 end-0 p-3";
+    toastContainer.style.zIndex = "9999";
+    document.body.appendChild(toastContainer);
+  }
+
+  const toastEl = document.createElement("div");
+  toastEl.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'info' ? 'primary' : 'danger'} border-0`;
+  toastEl.setAttribute("role", "alert");
+  toastEl.setAttribute("aria-live", "assertive");
+  toastEl.setAttribute("aria-atomic", "true");
+
+  toastEl.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body d-flex align-items-center gap-2">
+        <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-info-circle-fill'} fs-5"></i>
+        <span>${message}</span>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  `;
+
+  toastContainer.appendChild(toastEl);
+  const toast = new bootstrap.Toast(toastEl, { delay: 4500 });
+  toast.show();
+
+  toastEl.addEventListener("hidden.bs.modal", () => {
+    toastEl.remove();
+  });
+}
+
+function escapeHtml(string) {
+  if (!string) return "";
+  return String(string)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}

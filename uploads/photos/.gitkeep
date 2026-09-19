@@ -1,0 +1,3 @@
+# Keeps uploads/photos directory in git repo
+*
+!.gitkeep

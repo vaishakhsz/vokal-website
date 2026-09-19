@@ -1,0 +1,3 @@
+# Keeps uploads/videos directory in git repo
+*
+!.gitkeep
