@@ -738,6 +738,9 @@ function setupPhotoUpload(fileId, previewId, formId, titleId, catId, locId, date
 
       const finalImage = encodedPhotoData || urlInput || "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80";
 
+      const fileInputEl = document.getElementById(fileId);
+      const fileObj = (fileInputEl && fileInputEl.files && fileInputEl.files[0]) ? fileInputEl.files[0] : null;
+
       window.vokalStorage.addEvent({
         title,
         category,
@@ -745,6 +748,9 @@ function setupPhotoUpload(fileId, previewId, formId, titleId, catId, locId, date
         date,
         description,
         image: finalImage
+      }, fileObj).then(() => {
+        renderEvents();
+        renderInPageAdmin();
       });
 
       renderEvents();
@@ -753,7 +759,7 @@ function setupPhotoUpload(fileId, previewId, formId, titleId, catId, locId, date
       encodedPhotoData = "";
       if (preview) preview.classList.add("d-none");
 
-      showToast("Event photo uploaded and published to gallery!", "success");
+      showToast("Event photo uploaded and saved to server!", "success");
     });
   }
 }
@@ -787,6 +793,8 @@ function setupLetterUpload(formId, subjId, refId, recId, deptId, statusId, dateI
       const summary = document.getElementById(sumId).value.trim();
       const demands = document.getElementById(demId).value.trim();
 
+      const letterFileObj = (fileInput && fileInput.files && fileInput.files[0]) ? fileInput.files[0] : null;
+
       window.vokalStorage.addLetter({
         subject,
         refNo,
@@ -797,6 +805,9 @@ function setupLetterUpload(formId, subjId, refId, recId, deptId, statusId, dateI
         summary,
         keyDemands: demands,
         docUrl
+      }, letterFileObj).then(() => {
+        renderLetters();
+        renderInPageAdmin();
       });
 
       renderLetters();

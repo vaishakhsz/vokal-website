@@ -18,9 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Database Credentials (Update these with your server's MySQL credentials)
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
-define('DB_NAME', getenv('DB_NAME') ?: 'vokal_database');
+define('DB_USER', getenv('DB_USER') ?: 'vokalorg_vokal_db');
+define('DB_PASS', getenv('DB_PASS') ?: 'Vokal@2026');
+define('DB_NAME', getenv('DB_NAME') ?: 'vokalorg_vokal');
 define('DB_PORT', getenv('DB_PORT') ?: '3306');
 
 // Base URL configuration for file uploads

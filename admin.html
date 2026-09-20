@@ -635,7 +635,108 @@
     }
 
     function showAdminUploadModal(tab) {
-      openUploadModal(tab);
+      const modalEl = document.getElementById("uploadModal");
+      if (modalEl) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+        if (tab === 'photo') document.getElementById('tab-photo-btn')?.click();
+        if (tab === 'letter') document.getElementById('tab-letter-btn')?.click();
+        if (tab === 'video') document.getElementById('tab-video-btn')?.click();
+      }
+    }
+
+    // Photo Upload Handler
+    const photoForm = document.getElementById("formUploadPhoto");
+    if (photoForm) {
+      const photoFile = document.getElementById("photoFileInput");
+      const photoPreview = document.getElementById("photoPreview");
+      let photoData = "";
+
+      photoFile?.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            photoData = e.target.result;
+            if (photoPreview) {
+              photoPreview.src = photoData;
+              photoPreview.classList.remove("d-none");
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      photoForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const title = document.getElementById("photoTitle").value.trim();
+        const category = document.getElementById("photoCategory").value;
+        const location = document.getElementById("photoLocation").value.trim();
+        const date = document.getElementById("photoDate").value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const description = document.getElementById("photoDesc").value.trim();
+        const urlInput = document.getElementById("photoUrlInput")?.value.trim();
+        const finalImg = photoData || urlInput || "assets/vokal_brand_header.png";
+        const fileObj = photoFile?.files?.[0] || null;
+
+        await window.vokalStorage.addEvent({
+          title, category, location, date, description, image: finalImg
+        }, fileObj);
+
+        photoForm.reset();
+        photoData = "";
+        photoPreview?.classList.add("d-none");
+        bootstrap.Modal.getInstance(document.getElementById("uploadModal"))?.hide();
+        loadAdminDashboard();
+        showToast("Photo uploaded and saved to MySQL database successfully!", "success");
+      });
+    }
+
+    // Letter Upload Handler
+    const letterForm = document.getElementById("formUploadLetter");
+    if (letterForm) {
+      letterForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const subject = document.getElementById("letterSubject").value.trim();
+        const refNo = document.getElementById("letterRefNo").value.trim();
+        const recipient = document.getElementById("letterRecipient").value.trim();
+        const department = document.getElementById("letterDept").value.trim();
+        const status = document.getElementById("letterStatus").value;
+        const date = document.getElementById("letterDate").value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const summary = document.getElementById("letterSummary").value.trim();
+        const demands = document.getElementById("letterDemands").value.trim();
+        const letterFile = document.getElementById("letterFileInput")?.files?.[0] || null;
+
+        await window.vokalStorage.addLetter({
+          subject, refNo, recipient, department, status, date, summary, keyDemands: demands
+        }, letterFile);
+
+        letterForm.reset();
+        bootstrap.Modal.getInstance(document.getElementById("uploadModal"))?.hide();
+        loadAdminDashboard();
+        showToast("Official letter representation published and saved to MySQL!", "success");
+      });
+    }
+
+    // Video Upload Handler
+    const videoForm = document.getElementById("formUploadVideo");
+    if (videoForm) {
+      videoForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const title = document.getElementById("videoTitle").value.trim();
+        const videoUrl = document.getElementById("videoUrl").value.trim();
+        const category = document.getElementById("videoCategory").value;
+        const duration = document.getElementById("videoDuration").value.trim() || "10:00";
+        const description = document.getElementById("videoDesc").value.trim();
+
+        window.vokalStorage.addVideo({
+          title, videoUrl, category, duration, description
+        });
+
+        videoForm.reset();
+        bootstrap.Modal.getInstance(document.getElementById("uploadModal"))?.hide();
+        loadAdminDashboard();
+        showToast("Video documentation added and saved to MySQL!", "success");
+      });
     }
 
     // Backup & Export
