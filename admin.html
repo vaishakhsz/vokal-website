@@ -17,7 +17,7 @@
 
   <style>
     .admin-sidebar {
-      background: #092e24;
+      background: #0b2545;
       min-height: 100vh;
       color: #fff;
     }
@@ -95,7 +95,7 @@
             <p class="text-muted small mb-0">Upload new event photos, legal representations, and video resources to <code>vokal.org.in</code>.</p>
           </div>
           <div class="d-flex gap-2">
-            <a href="index.html" target="_blank" class="btn btn-outline-success btn-sm">
+            <a href="index.html" target="_blank" class="btn btn-outline-primary btn-sm">
               <i class="bi bi-box-arrow-up-right me-1"></i> Live Site Preview
             </a>
           </div>
@@ -119,9 +119,9 @@
               <div class="d-flex justify-content-between">
                 <div>
                   <small class="text-muted text-uppercase fw-bold">Govt Letters</small>
-                  <h3 class="fw-bold mt-1 text-success" id="adminTotalLetters">0</h3>
+                  <h3 class="fw-bold mt-1 text-primary" id="adminTotalLetters">0</h3>
                 </div>
-                <div class="fs-2 text-success opacity-50"><i class="bi bi-file-earmark-check-fill"></i></div>
+                <div class="fs-2 text-primary opacity-50"><i class="bi bi-file-earmark-check-fill"></i></div>
               </div>
             </div>
           </div>
@@ -186,7 +186,7 @@
           <div class="tab-pane fade" id="sec-letters" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-4 mb-4">
               <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-text-fill text-success me-2"></i>Official Letters to Government</h5>
+                <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i>Official Letters to Government</h5>
                 <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('letter')">
                   <i class="bi bi-plus-lg me-1"></i> Upload New Letter
                 </button>
@@ -198,10 +198,9 @@
                       <th>Ref Number</th>
                       <th>Subject</th>
                       <th>Department</th>
-                      <th>Status</th>
                       <th>Date</th>
-                      <th>Source</th>
-                      <th>Action</th>
+                      <th>Status</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="adminLettersTableBody">
@@ -216,7 +215,7 @@
           <div class="tab-pane fade" id="sec-videos" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-4 mb-4">
               <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="bi bi-youtube text-danger me-2"></i>Video Links & Documents</h5>
+                <h5 class="fw-bold mb-0"><i class="bi bi-youtube text-danger me-2"></i>Official Video Archive</h5>
                 <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('video')">
                   <i class="bi bi-plus-lg me-1"></i> Add Video Link
                 </button>
@@ -227,10 +226,9 @@
                     <tr>
                       <th>Thumbnail</th>
                       <th>Title</th>
+                      <th>Platform</th>
                       <th>Category</th>
-                      <th>Duration</th>
-                      <th>URL</th>
-                      <th>Action</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="adminVideosTableBody">
@@ -241,22 +239,27 @@
             </div>
           </div>
 
-          <!-- 4. INQUIRIES & CRUELTY REPORTS -->
+          <!-- 4. INQUIRIES TAB -->
           <div class="tab-pane fade" id="sec-inquiries" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-4 mb-4">
-              <div class="card-header bg-white py-3">
-                <h5 class="fw-bold mb-0"><i class="bi bi-inbox-fill text-warning me-2"></i>Public Cruelty Reports & Inquiries</h5>
+              <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-inbox-fill text-primary me-2"></i>Citizen Inquiries & Cruelty Reports</h5>
+                <button class="btn btn-outline-secondary btn-sm" onclick="loadInquiries()">
+                  <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                </button>
               </div>
               <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                   <thead class="table-light">
                     <tr>
                       <th>Date</th>
-                      <th>Name</th>
-                      <th>Contact</th>
-                      <th>District</th>
                       <th>Category</th>
-                      <th>Message Details</th>
+                      <th>Name</th>
+                      <th>District</th>
+                      <th>Contact</th>
+                      <th>Message</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody id="adminInquiriesTableBody">
@@ -267,25 +270,25 @@
             </div>
           </div>
 
-          <!-- 5. BACKUP & RESET -->
+          <!-- 5. BACKUP & RESET TAB -->
           <div class="tab-pane fade" id="sec-backup" role="tabpanel">
             <div class="row g-4">
               <div class="col-md-6">
                 <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                  <h5 class="fw-bold mb-2"><i class="bi bi-download text-primary me-2"></i>Export Site Database (JSON)</h5>
-                  <p class="text-muted small mb-4">Download a complete snapshot of all uploaded photos, letters, videos, and settings to a JSON file for safe offline keeping or migration to production server.</p>
+                  <h5 class="fw-bold mb-2"><i class="bi bi-download text-primary me-2"></i>Export Full Database Backup</h5>
+                  <p class="text-muted small mb-3">Download a clean JSON archive containing all photos, letters, videos, and citizen inquiries currently stored on the database.</p>
                   <button class="btn btn-vokal-primary" onclick="exportDataBackup()">
-                    <i class="bi bi-cloud-arrow-down-fill me-1"></i> Download JSON Backup
+                    <i class="bi bi-cloud-arrow-down-fill me-1"></i> Export Data (.json)
                   </button>
                 </div>
               </div>
 
               <div class="col-md-6">
                 <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                  <h5 class="fw-bold mb-2"><i class="bi bi-upload text-success me-2"></i>Import Database Backup</h5>
+                  <h5 class="fw-bold mb-2"><i class="bi bi-upload text-primary me-2"></i>Import Database Backup</h5>
                   <p class="text-muted small mb-3">Restore or merge data from a previously exported VOKAL JSON backup file.</p>
                   <input type="file" id="backupFileInput" class="form-control mb-3" accept=".json">
-                  <button class="btn btn-outline-success" onclick="importDataBackup()">
+                  <button class="btn btn-outline-primary" onclick="importDataBackup()">
                     <i class="bi bi-arrow-repeat me-1"></i> Restore from JSON
                   </button>
                 </div>
@@ -312,7 +315,7 @@
   <div class="modal fade" id="uploadContentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header bg-success text-white py-3">
+        <div class="modal-header bg-primary text-white py-3">
           <h5 class="modal-title fw-bold">Upload to VOKAL</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
