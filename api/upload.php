@@ -10,9 +10,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(["success" => false, "error" => "Method not allowed. Use POST."], 405);
 }
 
+$uploadErrorMessages = [
+    UPLOAD_ERR_INI_SIZE   => "The uploaded file exceeds the upload_max_filesize limit on the server.",
+    UPLOAD_ERR_FORM_SIZE  => "The uploaded file exceeds the MAX_FILE_SIZE limit specified in the form.",
+    UPLOAD_ERR_PARTIAL    => "The uploaded file was only partially uploaded.",
+    UPLOAD_ERR_NO_FILE    => "No file was uploaded.",
+    UPLOAD_ERR_NO_TMP_DIR => "Server missing temporary folder.",
+    UPLOAD_ERR_CANT_WRITE => "Failed to write file to server disk.",
+    UPLOAD_ERR_EXTENSION  => "A server extension stopped the file upload."
+];
+
 if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-    $errorCode = isset($_FILES['file']['error']) ? $_FILES['file']['error'] : 'No file sent';
-    sendJsonResponse(["success" => false, "error" => "File upload error: " . $errorCode], 400);
+    $err = isset($_FILES['file']['error']) ? $_FILES['file']['error'] : UPLOAD_ERR_NO_FILE;
+    $msg = isset($uploadErrorMessages[$err]) ? $uploadErrorMessages[$err] : "File upload error code: {$err}";
+    sendJsonResponse(["success" => false, "error" => $msg, "error_code" => $err], 400);
 }
 
 $file = $_FILES['file'];
@@ -22,18 +33,18 @@ $uploadType = isset($_POST['type']) ? strtolower(trim($_POST['type'])) : 'photo'
 $allowedTypes = [
     'photo' => [
         'dir' => 'photos',
-        'ext' => ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'],
-        'max_size' => 25 * 1024 * 1024 // 25 MB for photos
+        'ext' => ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'jfif', 'svg', 'heic', 'heif', 'tiff'],
+        'max_size' => 50 * 1024 * 1024 // 50 MB for photos
     ],
     'document' => [
         'dir' => 'documents',
-        'ext' => ['pdf', 'doc', 'docx', 'txt', 'rtf'],
-        'max_size' => 50 * 1024 * 1024 // 50 MB for legal petitions
+        'ext' => ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt'],
+        'max_size' => 100 * 1024 * 1024 // 100 MB for legal petitions
     ],
     'video' => [
         'dir' => 'videos',
-        'ext' => ['mp4', 'webm', 'mov', 'avi', 'mkv'],
-        'max_size' => 200 * 1024 * 1024 // 200 MB for direct video uploads
+        'ext' => ['mp4', 'webm', 'mov', 'avi', 'mkv', 'm4v'],
+        'max_size' => 500 * 1024 * 1024 // 500 MB
     ]
 ];
 

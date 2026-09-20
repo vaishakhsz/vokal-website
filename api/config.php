@@ -41,6 +41,8 @@ function getDbConnection() {
         ];
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            // Self-healing: ensure image_url and large columns are LONGTEXT so uploads never fail
+            ensureDatabaseSchemaUpdates($pdo);
         } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode([
@@ -51,6 +53,52 @@ function getDbConnection() {
         }
     }
     return $pdo;
+}
+
+/**
+ * Ensures table columns are sufficiently large for long URLs and full content.
+ */
+function ensureDatabaseSchemaUpdates($pdo) {
+    static $migrated = false;
+    if (!$migrated) {
+        $migrated = true;
+        try {
+            $pdo->exec("ALTER TABLE `events_photos` MODIFY `image_url` LONGTEXT NOT NULL");
+            $pdo->exec("ALTER TABLE `events_photos` MODIFY `thumbnail_url` LONGTEXT NULL");
+            $pdo->exec("ALTER TABLE `letters_govt` MODIFY `document_url` LONGTEXT NULL");
+            $pdo->exec("ALTER TABLE `videos` MODIFY `thumbnail_url` LONGTEXT NULL");
+        } catch (Exception $e) {
+            // Silently continue if already modified or no ALTER permissions
+        }
+    }
+}
+
+/**
+ * If $imageString is a base64 data URI, decodes and saves it as a real file in /uploads/{$subDir}/.
+ * Returns the relative path e.g. 'uploads/photos/vokal_photo_xxx.jpg' or original string if not base64.
+ */
+function processAndSaveBase64Image($imageString, $subDir = 'photos') {
+    if (empty($imageString) || !is_string($imageString)) {
+        return $imageString;
+    }
+    if (preg_match('/^data:image\/([a-zA-Z0-9_\-\+]+);base64,(.+)$/s', $imageString, $matches)) {
+        $ext = strtolower($matches[1]);
+        if ($ext === 'jpeg') $ext = 'jpg';
+        if ($ext === 'svg+xml') $ext = 'svg';
+        $binaryData = base64_decode($matches[2]);
+        if ($binaryData !== false) {
+            $targetDir = UPLOAD_BASE_DIR . DIRECTORY_SEPARATOR . $subDir;
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+            $filename = 'vokal_' . $subDir . '_' . date('Ymd_His') . '_' . substr(md5(uniqid('', true)), 0, 8) . '.' . $ext;
+            $fullPath = $targetDir . DIRECTORY_SEPARATOR . $filename;
+            if (file_put_contents($fullPath, $binaryData) !== false) {
+                return 'uploads/' . $subDir . '/' . $filename;
+            }
+        }
+    }
+    return $imageString;
 }
 
 /**

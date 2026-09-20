@@ -45,10 +45,11 @@ class VokalStorageManager {
             if (localEvt.isUserUploaded && !json.data.some(d => d.title === localEvt.title || d.event_uid === localEvt.id)) {
               console.log("Auto-migrating offline uploaded photo to MySQL:", localEvt.title);
               try {
-                await fetch("api/events.php", {
+                const migRes = await fetch("api/events.php", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
+                    event_uid: localEvt.id,
                     title: localEvt.title,
                     category: localEvt.category,
                     date: localEvt.date,
@@ -58,7 +59,10 @@ class VokalStorageManager {
                     show_on_tv: 1
                   })
                 });
-                needsRefresh = true;
+                const migData = await migRes.json();
+                if (migData && migData.success) {
+                  needsRefresh = true;
+                }
               } catch (err) {}
             }
           }
@@ -180,14 +184,18 @@ class VokalStorageManager {
             finalImageUrl = uploadJson.file.relative_url;
             eventItem.image = finalImageUrl;
           }
+        } else {
+          const errJson = await uploadRes.json().catch(() => null);
+          console.warn("api/upload.php notice:", errJson ? errJson.error : uploadRes.statusText);
         }
       } catch (err) {
         console.warn("File upload to server disk failed, falling back to base64/URL", err);
       }
     }
 
+    const eventUid = "evt-user-" + Date.now();
     const newEvent = {
-      id: "evt-user-" + Date.now(),
+      id: eventUid,
       title: eventItem.title || "Community Event",
       category: eventItem.category || "Community Care",
       date: eventItem.date || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
@@ -201,12 +209,13 @@ class VokalStorageManager {
     events.unshift(newEvent);
     localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
 
-    // Save directly into MySQL database via API
+    // Save directly into MySQL database via API and await
     try {
-      fetch("api/events.php", {
+      const dbRes = await fetch("api/events.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          event_uid: eventUid,
           title: newEvent.title,
           category: newEvent.category,
           date: newEvent.date,
@@ -215,13 +224,22 @@ class VokalStorageManager {
           image: newEvent.image,
           show_on_tv: 1
         })
-      }).then(r => r.json()).then(res => {
-        if (res.success) {
-          console.log("Event saved to MySQL successfully:", res);
-        } else {
-          console.warn("MySQL insert warning:", res.error);
+      });
+      const res = await dbRes.json();
+      if (res && res.success) {
+        console.log("Event saved to MySQL successfully:", res);
+        if (res.image_url) {
+          newEvent.image = res.image_url;
+          const currentEvents = this.getEvents();
+          const found = currentEvents.find(e => e.id === newEvent.id);
+          if (found) {
+            found.image = res.image_url;
+            localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(currentEvents));
+          }
         }
-      }).catch(e => console.warn("MySQL sync error:", e));
+      } else {
+        console.warn("MySQL insert warning:", res ? res.error : "Unknown error");
+      }
     } catch (e) {
       console.warn("Network error saving to MySQL:", e);
     }

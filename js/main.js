@@ -721,7 +721,7 @@ function setupPhotoUpload(fileId, previewId, formId, titleId, catId, locId, date
 
   const form = document.getElementById(formId);
   if (form) {
-    form.addEventListener("submit", function (e) {
+    form.addEventListener("submit", async function (e) {
       e.preventDefault();
       if (!isAdminLoggedIn()) {
         showToast("Please log in as Admin to upload photos.", "danger");
@@ -729,37 +729,51 @@ function setupPhotoUpload(fileId, previewId, formId, titleId, catId, locId, date
         return;
       }
 
-      const title = document.getElementById(titleId).value.trim();
-      const category = document.getElementById(catId).value;
-      const locationVal = document.getElementById(locId).value.trim();
-      const date = document.getElementById(dateId).value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      const description = document.getElementById(descId).value.trim();
-      const urlInput = document.getElementById(urlId) ? document.getElementById(urlId).value.trim() : "";
+      const submitBtn = form.querySelector("button[type='submit']");
+      const origHtml = submitBtn ? submitBtn.innerHTML : "";
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving to Database...';
+      }
 
-      const finalImage = encodedPhotoData || urlInput || "https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80";
+      try {
+        const title = document.getElementById(titleId).value.trim();
+        const category = document.getElementById(catId).value;
+        const locationVal = document.getElementById(locId).value.trim();
+        const date = document.getElementById(dateId).value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const description = document.getElementById(descId).value.trim();
+        const urlInput = document.getElementById(urlId) ? document.getElementById(urlId).value.trim() : "";
 
-      const fileInputEl = document.getElementById(fileId);
-      const fileObj = (fileInputEl && fileInputEl.files && fileInputEl.files[0]) ? fileInputEl.files[0] : null;
+        const finalImage = encodedPhotoData || urlInput || "assets/vokal_brand_header.png";
 
-      window.vokalStorage.addEvent({
-        title,
-        category,
-        location: locationVal,
-        date,
-        description,
-        image: finalImage
-      }, fileObj).then(() => {
+        const fileInputEl = document.getElementById(fileId);
+        const fileObj = (fileInputEl && fileInputEl.files && fileInputEl.files[0]) ? fileInputEl.files[0] : null;
+
+        await window.vokalStorage.addEvent({
+          title,
+          category,
+          location: locationVal,
+          date,
+          description,
+          image: finalImage
+        }, fileObj);
+
         renderEvents();
         renderInPageAdmin();
-      });
+        form.reset();
+        encodedPhotoData = "";
+        if (preview) preview.classList.add("d-none");
 
-      renderEvents();
-      renderInPageAdmin();
-      form.reset();
-      encodedPhotoData = "";
-      if (preview) preview.classList.add("d-none");
-
-      showToast("Event photo uploaded and saved to server!", "success");
+        showToast("Event photo published and saved to MySQL successfully!", "success");
+      } catch (err) {
+        console.error("Photo upload error:", err);
+        showToast("Upload failed: " + err.message, "danger");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origHtml;
+        }
+      }
     });
   }
 }
@@ -776,7 +790,7 @@ function setupLetterUpload(formId, subjId, refId, recId, deptId, statusId, dateI
 
   const form = document.getElementById(formId);
   if (form) {
-    form.addEventListener("submit", function (e) {
+    form.addEventListener("submit", async function (e) {
       e.preventDefault();
       if (!isAdminLoggedIn()) {
         showToast("Please log in as Admin to upload representations.", "danger");
@@ -784,38 +798,52 @@ function setupLetterUpload(formId, subjId, refId, recId, deptId, statusId, dateI
         return;
       }
 
-      const subject = document.getElementById(subjId).value.trim();
-      const refNo = document.getElementById(refId).value.trim();
-      const recipient = document.getElementById(recId).value.trim();
-      const department = document.getElementById(deptId).value.trim();
-      const status = document.getElementById(statusId).value;
-      const date = document.getElementById(dateId).value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      const summary = document.getElementById(sumId).value.trim();
-      const demands = document.getElementById(demId).value.trim();
+      const submitBtn = form.querySelector("button[type='submit']");
+      const origHtml = submitBtn ? submitBtn.innerHTML : "";
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving to Database...';
+      }
 
-      const letterFileObj = (fileInput && fileInput.files && fileInput.files[0]) ? fileInput.files[0] : null;
+      try {
+        const subject = document.getElementById(subjId).value.trim();
+        const refNo = document.getElementById(refId).value.trim();
+        const recipient = document.getElementById(recId).value.trim();
+        const department = document.getElementById(deptId).value.trim();
+        const status = document.getElementById(statusId).value;
+        const date = document.getElementById(dateId).value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const summary = document.getElementById(sumId).value.trim();
+        const demands = document.getElementById(demId).value.trim();
 
-      window.vokalStorage.addLetter({
-        subject,
-        refNo,
-        recipient,
-        department,
-        status,
-        date,
-        summary,
-        keyDemands: demands,
-        docUrl
-      }, letterFileObj).then(() => {
+        const letterFileObj = (fileInput && fileInput.files && fileInput.files[0]) ? fileInput.files[0] : null;
+
+        await window.vokalStorage.addLetter({
+          subject,
+          refNo,
+          recipient,
+          department,
+          status,
+          date,
+          summary,
+          keyDemands: demands,
+          docUrl
+        }, letterFileObj);
+
         renderLetters();
         renderInPageAdmin();
-      });
+        form.reset();
+        docUrl = "#";
 
-      renderLetters();
-      renderInPageAdmin();
-      form.reset();
-      docUrl = "#";
-
-      showToast("Govt letter representation published successfully!", "success");
+        showToast("Govt letter representation published and saved to MySQL!", "success");
+      } catch (err) {
+        console.error("Letter upload error:", err);
+        showToast("Upload failed: " + err.message, "danger");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origHtml;
+        }
+      }
     });
   }
 }

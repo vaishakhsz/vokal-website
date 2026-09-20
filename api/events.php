@@ -41,17 +41,20 @@ switch ($method) {
             $input = $_POST;
         }
 
-        if (empty($input['title']) || empty($input['image'])) {
-            sendJsonResponse(["success" => false, "error" => "Title and image URL are required"], 400);
+        if (empty($input['title'])) {
+            sendJsonResponse(["success" => false, "error" => "Title is required"], 400);
         }
 
-        $eventUid = 'evt-srv-' . time() . '-' . rand(100, 999);
+        $rawImage = !empty($input['image']) ? trim($input['image']) : 'assets/vokal_brand_header.png';
+        // Auto-decode base64 and save as physical file to /uploads/photos/
+        $imageUrl = processAndSaveBase64Image($rawImage, 'photos');
+
+        $eventUid = !empty($input['event_uid']) ? trim($input['event_uid']) : ('evt-srv-' . time() . '-' . rand(100, 999));
         $title = trim($input['title']);
         $category = !empty($input['category']) ? trim($input['category']) : 'Community Care';
         $eventDate = !empty($input['date']) ? trim($input['date']) : date('F d, Y');
         $location = !empty($input['location']) ? trim($input['location']) : 'Kerala';
         $description = !empty($input['description']) ? trim($input['description']) : '';
-        $imageUrl = trim($input['image']);
         $isUserUploaded = 1;
         $showOnTv = isset($input['show_on_tv']) ? (int)$input['show_on_tv'] : 1;
 
@@ -59,6 +62,14 @@ switch ($method) {
             INSERT INTO `events_photos` 
             (`event_uid`, `title`, `category`, `event_date`, `location`, `description`, `image_url`, `is_user_uploaded`, `show_on_tv`) 
             VALUES (:uid, :title, :category, :eventDate, :location, :description, :imageUrl, :userUploaded, :showOnTv)
+            ON DUPLICATE KEY UPDATE 
+            `title` = VALUES(`title`),
+            `category` = VALUES(`category`),
+            `event_date` = VALUES(`event_date`),
+            `location` = VALUES(`location`),
+            `description` = VALUES(`description`),
+            `image_url` = VALUES(`image_url`),
+            `show_on_tv` = VALUES(`show_on_tv`)
         ");
 
         $stmt->execute([
@@ -77,7 +88,8 @@ switch ($method) {
             "success" => true,
             "message" => "Event photo added to MySQL successfully",
             "id" => $pdo->lastInsertId(),
-            "event_uid" => $eventUid
+            "event_uid" => $eventUid,
+            "image_url" => $imageUrl
         ], 201);
         break;
 

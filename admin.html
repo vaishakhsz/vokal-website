@@ -479,9 +479,9 @@
   <!-- Bootstrap 5.3 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- VOKAL Scripts -->
-  <script src="js/data.js?v=2.1"></script>
-  <script src="js/storage.js?v=2.1"></script>
-  <script src="js/main.js?v=2.1"></script>
+  <script src="js/data.js?v=2.2"></script>
+  <script src="js/storage.js?v=2.2"></script>
+  <script src="js/main.js?v=2.2"></script>
 
   <!-- Admin Dashboard Logic -->
   <script>
@@ -635,7 +635,7 @@
     }
 
     function showAdminUploadModal(tab) {
-      const modalEl = document.getElementById("uploadModal");
+      const modalEl = document.getElementById("uploadContentModal");
       if (modalEl) {
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
@@ -669,25 +669,42 @@
 
       photoForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        const title = document.getElementById("photoTitle").value.trim();
-        const category = document.getElementById("photoCategory").value;
-        const location = document.getElementById("photoLocation").value.trim();
-        const date = document.getElementById("photoDate").value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        const description = document.getElementById("photoDesc").value.trim();
-        const urlInput = document.getElementById("photoUrlInput")?.value.trim();
-        const finalImg = photoData || urlInput || "assets/vokal_brand_header.png";
-        const fileObj = photoFile?.files?.[0] || null;
+        const submitBtn = photoForm.querySelector("button[type='submit']");
+        const origText = submitBtn ? submitBtn.innerHTML : "";
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving to Database...';
+        }
 
-        await window.vokalStorage.addEvent({
-          title, category, location, date, description, image: finalImg
-        }, fileObj);
+        try {
+          const title = document.getElementById("photoTitle").value.trim();
+          const category = document.getElementById("photoCategory").value;
+          const location = document.getElementById("photoLocation").value.trim();
+          const date = document.getElementById("photoDate").value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          const description = document.getElementById("photoDesc").value.trim();
+          const urlInput = document.getElementById("photoUrlInput")?.value.trim();
+          const finalImg = photoData || urlInput || "assets/vokal_brand_header.png";
+          const fileObj = photoFile?.files?.[0] || null;
 
-        photoForm.reset();
-        photoData = "";
-        photoPreview?.classList.add("d-none");
-        bootstrap.Modal.getInstance(document.getElementById("uploadModal"))?.hide();
-        loadAdminDashboard();
-        showToast("Photo uploaded and saved to MySQL database successfully!", "success");
+          await window.vokalStorage.addEvent({
+            title, category, location, date, description, image: finalImg
+          }, fileObj);
+
+          photoForm.reset();
+          photoData = "";
+          photoPreview?.classList.add("d-none");
+          bootstrap.Modal.getInstance(document.getElementById("uploadContentModal"))?.hide();
+          loadAdminDashboard();
+          showToast("Photo uploaded and saved to MySQL database successfully!", "success");
+        } catch (err) {
+          console.error("Photo upload error:", err);
+          showToast("Upload failed: " + err.message, "danger");
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origText;
+          }
+        }
       });
     }
 
@@ -696,24 +713,41 @@
     if (letterForm) {
       letterForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        const subject = document.getElementById("letterSubject").value.trim();
-        const refNo = document.getElementById("letterRefNo").value.trim();
-        const recipient = document.getElementById("letterRecipient").value.trim();
-        const department = document.getElementById("letterDept").value.trim();
-        const status = document.getElementById("letterStatus").value;
-        const date = document.getElementById("letterDate").value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        const summary = document.getElementById("letterSummary").value.trim();
-        const demands = document.getElementById("letterDemands").value.trim();
-        const letterFile = document.getElementById("letterFileInput")?.files?.[0] || null;
+        const submitBtn = letterForm.querySelector("button[type='submit']");
+        const origText = submitBtn ? submitBtn.innerHTML : "";
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving to Database...';
+        }
 
-        await window.vokalStorage.addLetter({
-          subject, refNo, recipient, department, status, date, summary, keyDemands: demands
-        }, letterFile);
+        try {
+          const subject = document.getElementById("letterSubject").value.trim();
+          const refNo = document.getElementById("letterRefNo").value.trim();
+          const recipient = document.getElementById("letterRecipient").value.trim();
+          const department = document.getElementById("letterDept").value.trim();
+          const status = document.getElementById("letterStatus").value;
+          const date = document.getElementById("letterDate").value || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          const summary = document.getElementById("letterSummary").value.trim();
+          const demands = document.getElementById("letterDemands").value.trim();
+          const letterFile = document.getElementById("letterFileInput")?.files?.[0] || null;
 
-        letterForm.reset();
-        bootstrap.Modal.getInstance(document.getElementById("uploadModal"))?.hide();
-        loadAdminDashboard();
-        showToast("Official letter representation published and saved to MySQL!", "success");
+          await window.vokalStorage.addLetter({
+            subject, refNo, recipient, department, status, date, summary, keyDemands: demands
+          }, letterFile);
+
+          letterForm.reset();
+          bootstrap.Modal.getInstance(document.getElementById("uploadContentModal"))?.hide();
+          loadAdminDashboard();
+          showToast("Official letter representation published and saved to MySQL!", "success");
+        } catch (err) {
+          console.error("Letter upload error:", err);
+          showToast("Upload failed: " + err.message, "danger");
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origText;
+          }
+        }
       });
     }
 
@@ -733,7 +767,7 @@
         });
 
         videoForm.reset();
-        bootstrap.Modal.getInstance(document.getElementById("uploadModal"))?.hide();
+        bootstrap.Modal.getInstance(document.getElementById("uploadContentModal"))?.hide();
         loadAdminDashboard();
         showToast("Video documentation added and saved to MySQL!", "success");
       });
