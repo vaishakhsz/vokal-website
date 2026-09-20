@@ -1,0 +1,14 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=${DEPLOYPATH:-$HOME/public_html}
+    - /bin/cp index.html $DEPLOYPATH/
+    - /bin/cp admin.html $DEPLOYPATH/
+    - /bin/cp tv.html $DEPLOYPATH/
+    - /bin/cp -R css $DEPLOYPATH/
+    - /bin/cp -R js $DEPLOYPATH/
+    - /bin/cp -R assets $DEPLOYPATH/
+    - /bin/cp -R api $DEPLOYPATH/
+    - /bin/cp -R database $DEPLOYPATH/
+    - /bin/cp -R uploads $DEPLOYPATH/
+    - /bin/chmod -R 755 $DEPLOYPATH/uploads
