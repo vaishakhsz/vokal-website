@@ -1,14 +1,8 @@
 -- =====================================================================
 -- VOKAL (Voice of Kerala for Animal Legit) - Official MySQL Database
 -- Domain: vokal.org.in | Legal Registration: Reg. No: 147/2026
--- Compatible with MySQL 5.7+, MySQL 8.0+, MariaDB 10.3+, and phpMyAdmin
+-- Compatible with cPanel, phpMyAdmin, MySQL 5.7+, MySQL 8.0+, MariaDB
 -- =====================================================================
-
-CREATE DATABASE IF NOT EXISTS `vokal_database` 
-  DEFAULT CHARACTER SET utf8mb4 
-  DEFAULT COLLATE utf8mb4_unicode_ci;
-
-USE `vokal_database`;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -30,7 +24,6 @@ CREATE TABLE `admin_users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default Admin Account: username: admin | password: admin123
--- (Password hash generated using PHP password_hash bcrypt)
 INSERT INTO `admin_users` (`username`, `password_hash`, `full_name`, `email`, `role`, `status`)
 VALUES ('admin', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 'VOKAL Chief Admin', 'voiceofkerala.legit@gmail.com', 'superadmin', 'active')
 ON DUPLICATE KEY UPDATE `username`=`username`;
@@ -61,7 +54,6 @@ CREATE TABLE `events_photos` (
   INDEX `idx_show_tv` (`show_on_tv`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seed Data for Events
 INSERT INTO `events_photos` (`event_uid`, `title`, `category`, `event_date`, `location`, `description`, `image_url`, `is_featured`, `show_on_tv`, `is_user_uploaded`) VALUES
 ('evt-01', 'Mega Anti-Rabies Vaccination & Glow Collar Drive', 'Vaccination & Care', 'August 28, 2026', 'Ernakulam North & Marine Drive, Kochi', 'Vaccinated over 320 community dogs and fitted reflective safety collars to prevent nighttime vehicular road accidents. Conducted with certified volunteer veterinarians.', 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=1000&q=80', 1, 1, 0),
 ('evt-02', 'High Court Legal Workshop for Animal Feeder Protection', 'Legal & Advocacy', 'August 14, 2026', 'High Court Advocates Association Hall, Kochi', 'Educated 150+ street dog caretakers and residential community feeders on Article 51A(g), Animal Birth Control 2023 Rules, and Kerala High Court interim directives.', 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=1000&q=80', 1, 1, 0),
@@ -92,7 +84,6 @@ CREATE TABLE `videos` (
   INDEX `idx_video_tv` (`show_on_tv`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seed Data for Videos
 INSERT INTO `videos` (`video_uid`, `title`, `video_url`, `embed_url`, `category`, `duration`, `description`, `thumbnail_url`, `show_on_tv`, `is_user_uploaded`) VALUES
 ('vid-01', 'Legal Rights of Animal Feeders in Kerala: High Court Ruling Analysis', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'Legal Insights', '14:20', 'Comprehensive legal breakdown explaining High Court orders prohibiting harassment against community animal feeders. Guidance on filing police complaints under Section 506 IPC.', 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80', 1, 0),
 ('vid-02', 'Why ABC (Animal Birth Control) Rules 2023 Work Better Than Culling', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'Scientific Policy', '18:45', 'Veterinary experts and animal scientists explain the science of population stabilization, herd immunity through mass vaccination, and vacuum effect following illegal culling.', 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=800&q=80', 1, 0),
@@ -124,7 +115,6 @@ CREATE TABLE `letters_govt` (
   INDEX `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seed Data for Letters
 INSERT INTO `letters_govt` (`letter_uid`, `ref_no`, `subject`, `recipient`, `department`, `submission_date`, `status`, `status_color`, `summary`, `key_demands`, `document_url`, `is_user_uploaded`) VALUES
 ('let-01', 'VOKAL/LEG/2026/091', 'Mandatory Implementation of ABC Rules 2023 & Closure of Illegal Dog Meat Stalls', 'The Principal Secretary to Government', 'Local Self Government Department (LSGD), Govt of Kerala', 'August 18, 2026', 'Under Scrutiny', 'warning', 'Petition demanding strict compliance with central Animal Birth Control Rules 2023 across all 6 Municipal Corporations and 87 Municipalities in Kerala, with direct funding allocated for humane sterilization rather than unscientific detention.', '["Immediate audit of ABC operating theaters in all 14 districts","Closure of unauthorized breeding mills and illegal meat trades","Designation of clean community feeding spots as per HC directives","Mandatory police registration of cruelty complaints under PCA Act 1960"]', '#', 0),
 ('let-02', 'VOKAL/POL/2026/084', 'Directive to District Police Chiefs on Non-Registration of Animal Cruelty FIRs', 'State Police Chief & DGP', 'Kerala Police Headquarters, Thiruvananthapuram', 'July 29, 2026', 'Action Initiated', 'success', 'Formal memorandum submitting documented cases where local police stations refused to register FIRs under Section 429 IPC and PCA Act 1960 in canine poisonings, and requesting issuance of a statewide circular to all SHOs.', '["Issuance of DGP executive circular to all Station House Officers","Mandatory forensic post-mortem in all suspected poisonings","Designating dedicated District Animal Welfare Liaison Officers","Zero-tolerance and departmental enquiry against errant officers"]', '#', 0),
@@ -168,7 +158,6 @@ CREATE TABLE `tv_display_slides` (
   INDEX `idx_active_order` (`is_active`, `sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seed Data for TV Display Slideshow Loop
 INSERT INTO `tv_display_slides` (`slide_type`, `title`, `subtitle`, `media_url`, `caption`, `duration_seconds`, `sort_order`, `is_active`) VALUES
 ('stat', 'Voice of Kerala for Animal Legit', 'Reg. No: 147/2026 • Constitution Article 51A(g)', 'assets/vokal_logo_emblem.png', '4,850+ Rescues • 128 Legal Petitions • 14,200+ Vaccinations Across All 14 Kerala Districts', 12, 1, 1),
 ('quote', 'Mata Amritanandamayi Devi (Amma)', 'Universal Mother of Compassion • Amritapuri, Kerala', 'assets/masters/mata_amritanandamayi.jpg', 'Nature is our mother. The same divine life force pulses through every creature. Feeding the hungry stray and caring for wounded animals is direct worship of the Divine.', 12, 2, 1),
