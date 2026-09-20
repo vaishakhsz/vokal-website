@@ -16,13 +16,14 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: 🚀 Sync files to cPanel Server (public_html)
+      - name: 🚀 Sync files to cPanel Server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: public_html/
+          protocol: ftp
+          server-dir: ./
           exclude: |
             **/.git*
             **/.git*/**
