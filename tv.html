@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VOKAL TV Display | Live Animal Welfare Signage • Reg. No: 147/2026</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   
   <!-- Google Fonts: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -387,7 +390,7 @@
     <!-- TOP HEADER -->
     <header class="tv-header">
       <div class="tv-brand">
-        <img src="assets/vokal_logo_emblem.png" alt="VOKAL" class="tv-emblem">
+        <img src="assets/vokal_emblem_clean.png?v=3.5" alt="VOKAL" class="tv-emblem">
         <div>
           <h1 class="tv-title">
             VOKAL <span class="tv-reg-badge">REG. NO: 147/2026</span>
@@ -440,8 +443,8 @@
   </div>
 
   <!-- VOKAL Core Data -->
-  <script src="js/data.js"></script>
-  <script src="js/storage.js"></script>
+  <script src="js/data.js?v=3.5"></script>
+  <script src="js/storage.js?v=3.5"></script>
 
   <script>
     // TV DISPLAY SIGNAGE SCRIPT
@@ -451,26 +454,23 @@
     let slideDuration = 10000; // 10 seconds per slide
     let isPaused = false;
 
-    // 1. Clock updates
-    function updateClock() {
-      const now = new Date();
-      document.getElementById("tvTime").textContent = now.toLocaleTimeString('en-US', { hour12: true });
-      document.getElementById("tvDate").textContent = now.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
+    // 1. Clock Display (Top Bar)
+    function startTVClock() {
+      function updateClock() {
+        const now = new Date();
+        const el = document.getElementById("tvTime");
+        if (el) {
+          el.textContent = now.toLocaleTimeString('en-IN', { hour12: false });
+        }
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
     }
-    setInterval(updateClock, 1000);
-    updateClock();
 
     // 2. Build Slides Playlist (from server API or local storage/data.js fallback)
     async function loadTVSlides() {
-      // First populate default slides
-      buildDefaultTVSlides();
+      startTVClock();
 
-      // Attempt live server sync if backend API is reachable
       try {
         const res = await fetch('api/tv.php');
         if (res.ok) {
@@ -507,7 +507,7 @@
           tag: 'Official Registry & Impact',
           title: 'Giving Voice to the Voiceless Across God\'s Own Country',
           subtitle: 'VOKAL • Reg. No: 147/2026',
-          media: 'assets/vokal_logo_emblem.png',
+          media: 'assets/vokal_emblem_clean.png?v=3.5',
           body: 'A dedicated legal animal welfare trust enforcing Article 51A(g) of the Constitution of India. Scientific Animal Birth Control (ABC), anti-rabies vaccination, and legal feeder protection throughout Kerala.',
           isStat: true,
           duration: 12000
