@@ -49,7 +49,7 @@ function renderSpiritualMastersSlider() {
       <div class="master-portrait-wrap">
         <img src="${master.image}" alt="${master.name}" loading="lazy">
         <div class="master-tradition-tag">
-          <i class="bi bi-flower1 text-warning"></i>
+          <i class="bi bi-flower1" style="color: #ff4081;"></i>
           <span>${master.tradition}</span>
         </div>
       </div>
@@ -63,7 +63,7 @@ function renderSpiritualMastersSlider() {
             ${master.images.map((_, i) => `<span class="photo-pip ${i === 0 ? 'active' : ''}" data-pip-idx="${i}"></span>`).join('')}
           </div>
           <div class="master-tradition-tag">
-            <i class="bi bi-flower1 text-warning"></i>
+            <i class="bi bi-flower1" style="color: #ff4081;"></i>
             <span>${master.tradition}</span>
           </div>
         </div>
@@ -82,7 +82,7 @@ function renderSpiritualMastersSlider() {
           <p class="master-title">${master.title}</p>
           <p class="master-quote-text serif-quote">${master.quote}</p>
           <div class="master-teaching-box">
-            <strong class="d-block text-dark mb-1"><i class="bi bi-lightbulb-fill text-warning me-1"></i> Essence of Teaching:</strong>
+            <strong class="d-block text-dark mb-1"><i class="bi bi-lightbulb-fill me-1" style="color: #ff4081;"></i> Essence of Teaching:</strong>
             ${master.teaching}
           </div>
         </div>
@@ -211,6 +211,8 @@ function renderSpiritualMastersSlider() {
         if (pausePlayIcon) pausePlayIcon.className = "bi bi-pause-fill fs-6";
         if (pausePlayText) pausePlayText.textContent = "Pause";
         pausePlayBtn.className = "btn btn-sm btn-outline-dark py-1 px-3 rounded-pill d-flex align-items-center gap-1 shadow-sm";
+        pausePlayBtn.style.backgroundColor = "";
+        pausePlayBtn.style.borderColor = "";
         handleMasterSlideChange(currentMasterIdx);
         showToast("Auto-slide resumed", "info");
       } else {
@@ -220,7 +222,8 @@ function renderSpiritualMastersSlider() {
         stopAmmaPhotoCycle();
         if (pausePlayIcon) pausePlayIcon.className = "bi bi-play-fill fs-6";
         if (pausePlayText) pausePlayText.textContent = "Resume";
-        pausePlayBtn.className = "btn btn-sm btn-warning text-dark py-1 px-3 rounded-pill d-flex align-items-center gap-1 shadow-sm fw-bold";
+        pausePlayBtn.className = "btn btn-sm text-white py-1 px-3 rounded-pill d-flex align-items-center gap-1 shadow-sm fw-bold border-0";
+        pausePlayBtn.style.backgroundColor = "#ff4081";
         showToast("Teachings slide paused", "info");
       }
     });
@@ -335,7 +338,7 @@ function renderEvents() {
         <div class="event-card-img-wrap" style="cursor: pointer;" onclick="openPhotoLightbox('${event.image}', '${escapeHtml(event.title)}', '${escapeHtml(event.description)}', '${escapeHtml(event.date)}')">
           <img src="${event.image}" alt="${escapeHtml(event.title)}" loading="lazy">
           <span class="event-category-badge">${event.category}</span>
-          ${event.isUserUploaded ? '<span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
+          ${event.isUserUploaded ? '<span class="badge text-white position-absolute top-0 end-0 m-3" style="background: #ff4081;"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
         </div>
         <div class="event-body">
           <div class="event-meta">
@@ -420,7 +423,7 @@ function renderVideos() {
         <div class="p-4">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <span class="badge bg-light text-dark border px-2 py-1">${video.category}</span>
-            ${video.isUserUploaded ? '<span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> Uploaded Link</span>' : ''}
+            ${video.isUserUploaded ? '<span class="badge text-white" style="background: #ff4081;"><i class="bi bi-star-fill"></i> Uploaded Link</span>' : ''}
           </div>
           <h5 class="fw-bold mb-2">${video.title}</h5>
           <p class="text-muted small mb-3">${video.description}</p>
