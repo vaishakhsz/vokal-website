@@ -964,11 +964,11 @@ h1, h2, h3, h4, .brand-font {
   box-shadow: 0 10px 25px rgba(74, 14, 46, 0.25);
 }
 
-/* --- FOOTER (LIGHT PINK & ULTRA COMPACT) --- */
+/* --- FOOTER (ROSEWOOD TO LOTUS PINK GRADIENT & COMPACT) --- */
 .footer-vokal {
-  background: linear-gradient(180deg, #fff5f8 0%, #ffe3ed 100%);
-  border-top: 1px solid rgba(194, 24, 91, 0.16);
-  color: #4a0e2e;
+  background: linear-gradient(135deg, #3b0722 0%, #5e0d37 35%, #880e4f 70%, #c2185b 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   padding: 22px 0 10px;
   font-size: 0.82rem;
 }
@@ -980,18 +980,18 @@ h1, h2, h3, h4, .brand-font {
   padding: 4px;
   border-radius: 50%;
   background: #ffffff;
-  border: 1.5px solid rgba(194, 24, 91, 0.28);
-  box-shadow: 0 3px 10px rgba(194, 24, 91, 0.12);
+  border: 2px solid #ff80ab;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .footer-logo-wrap:hover {
   transform: scale(1.05);
-  box-shadow: 0 5px 16px rgba(194, 24, 91, 0.22);
+  box-shadow: 0 6px 20px rgba(255, 128, 171, 0.4);
 }
 
 .footer-vokal h6 {
-  color: #880e4f;
+  color: #ffffff;
   font-size: 0.86rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -1003,36 +1003,45 @@ h1, h2, h3, h4, .brand-font {
 .footer-vokal li,
 .footer-vokal small:not(.text-danger):not(.badge),
 .footer-vokal div {
-  color: #521835;
+  color: #ffd6e7;
 }
 
 .footer-lead-text {
-  color: #632d46 !important;
+  color: #ffd6e7 !important;
   font-size: 0.78rem;
   line-height: 1.45;
 }
 
 .footer-vokal a {
-  color: #880e4f;
+  color: #ffffff;
   text-decoration: none;
   transition: var(--transition);
 }
 
 .footer-vokal a:hover {
-  color: #c2185b !important;
+  color: #ff80ab !important;
   text-decoration: underline;
 }
 
 .footer-office-box {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(194, 24, 91, 0.18);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
   padding: 8px 12px;
   max-width: 320px;
+  backdrop-filter: blur(6px);
+}
+
+.footer-office-box small {
+  color: #ffd6e7 !important;
+}
+
+.footer-office-box small.fw-bold {
+  color: #ffffff !important;
 }
 
 .footer-divider {
-  border-color: rgba(194, 24, 91, 0.16);
+  border-color: rgba(255, 255, 255, 0.18);
   margin: 14px 0 10px;
 }
 
