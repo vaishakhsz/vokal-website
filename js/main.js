@@ -38,20 +38,41 @@ function renderSpiritualMastersSlider() {
 
   masters.forEach((master, index) => {
     const isActive = index === 0 ? "active" : "";
+    const isAmma = master.id === "master-amritanandamayi" && master.images && master.images.length > 1;
 
     // 1. Carousel Slide Item
     const slide = document.createElement("div");
     slide.className = `carousel-item ${isActive}`;
     slide.setAttribute("data-master-index", index);
-    slide.innerHTML = `
-      <div class="master-slide-grid">
-        <div class="master-portrait-wrap">
-          <img src="${master.image}" alt="${master.name}" loading="lazy">
+
+    let portraitHtml = `
+      <div class="master-portrait-wrap">
+        <img src="${master.image}" alt="${master.name}" loading="lazy">
+        <div class="master-tradition-tag">
+          <i class="bi bi-flower1 text-warning"></i>
+          <span>${master.tradition}</span>
+        </div>
+      </div>
+    `;
+
+    if (isAmma) {
+      portraitHtml = `
+        <div class="master-portrait-wrap master-multi-photo-wrap position-relative" id="ammaPortraitWrap">
+          <img src="${master.images[0]}" alt="${master.name}" id="ammaDynamicPhoto" class="master-photo-fader" loading="eager">
+          <div class="master-photo-pills" id="ammaPhotoPills">
+            ${master.images.map((_, i) => `<span class="photo-pip ${i === 0 ? 'active' : ''}" data-pip-idx="${i}"></span>`).join('')}
+          </div>
           <div class="master-tradition-tag">
             <i class="bi bi-flower1 text-warning"></i>
             <span>${master.tradition}</span>
           </div>
         </div>
+      `;
+    }
+
+    slide.innerHTML = `
+      <div class="master-slide-grid">
+        ${portraitHtml}
         <div class="master-content-wrap">
           <div class="master-quote-symbol">“</div>
           <div class="d-flex align-items-center gap-2 mb-1">
@@ -79,7 +100,7 @@ function renderSpiritualMastersSlider() {
     `;
     navBtn.addEventListener("click", () => {
       carouselInstance.to(index);
-      resetAutoTimer();
+      handleMasterSlideChange(index);
     });
     navContainer.appendChild(navBtn);
 
@@ -91,44 +112,93 @@ function renderSpiritualMastersSlider() {
       dot.setAttribute("aria-label", `Slide to ${master.name}`);
       dot.addEventListener("click", () => {
         carouselInstance.to(index);
-        resetAutoTimer();
+        handleMasterSlideChange(index);
       });
       dotsContainer.appendChild(dot);
     }
   });
 
-  // 4. Initialize Bootstrap Carousel with 10-Second Interval
+  // 4. Initialize Bootstrap Carousel with manual interval control
   const carouselInstance = new bootstrap.Carousel(carouselEl, {
-    interval: 10000,
-    ride: 'carousel',
+    interval: false,
+    ride: false,
     wrap: true,
-    pause: 'hover',
     touch: true
   });
-  carouselInstance.cycle();
 
-  // 5. Dedicated 10-Second Auto-Switch Timer & Pause / Resume Control
+  // 5. Multi-Photo Fader & Master Duration Timers
   let isPaused = false;
-  let autoSlideTimer = null;
+  let masterTimer = null;
+  let ammaPhotoTimer = null;
+  let currentAmmaPhotoIdx = 0;
+  let currentMasterIdx = 0;
 
-  function startAutoTimer() {
-    clearInterval(autoSlideTimer);
-    autoSlideTimer = setInterval(() => {
+  function switchAmmaPhoto(targetIdx) {
+    const ammaImg = document.getElementById("ammaDynamicPhoto");
+    const pips = document.querySelectorAll(".photo-pip");
+    const ammaData = masters.find(m => m.id === "master-amritanandamayi");
+    if (!ammaImg || !ammaData || !ammaData.images) return;
+
+    currentAmmaPhotoIdx = (targetIdx !== undefined) ? targetIdx : (currentAmmaPhotoIdx + 1) % ammaData.images.length;
+
+    ammaImg.style.opacity = "0.25";
+    ammaImg.style.transform = "scale(0.98)";
+    setTimeout(() => {
+      ammaImg.src = ammaData.images[currentAmmaPhotoIdx];
+      ammaImg.style.opacity = "1";
+      ammaImg.style.transform = "scale(1)";
+    }, 220);
+
+    pips.forEach((pip, idx) => {
+      pip.classList.toggle("active", idx === currentAmmaPhotoIdx);
+    });
+  }
+
+  function startAmmaPhotoCycle() {
+    clearInterval(ammaPhotoTimer);
+    currentAmmaPhotoIdx = 0;
+    switchAmmaPhoto(0);
+    if (isPaused) return;
+    ammaPhotoTimer = setInterval(() => {
+      if (!isPaused) {
+        switchAmmaPhoto();
+      }
+    }, 5000); // 5 seconds each photo
+  }
+
+  function stopAmmaPhotoCycle() {
+    clearInterval(ammaPhotoTimer);
+  }
+
+  function scheduleNextMaster(durationMs) {
+    clearTimeout(masterTimer);
+    if (isPaused) return;
+    masterTimer = setTimeout(() => {
       if (!isPaused) {
         carouselInstance.next();
       }
-    }, 10000);
+    }, durationMs);
   }
 
-  function resetAutoTimer() {
-    if (isPaused) return;
-    startAutoTimer();
+  function handleMasterSlideChange(index) {
+    currentMasterIdx = index;
+    stopAmmaPhotoCycle();
+    clearTimeout(masterTimer);
+
+    if (index === 0) {
+      // Amma: 4 photos * 5s = 20 seconds total before advancing
+      startAmmaPhotoCycle();
+      scheduleNextMaster(20000);
+    } else {
+      // Other Masters: 15 seconds each
+      scheduleNextMaster(15000);
+    }
   }
 
-  // Start initial 10-second timer
-  startAutoTimer();
+  // Start initial sequence on first master (Amma)
+  handleMasterSlideChange(0);
 
-  // Pause / Resume Toggle Button
+  // Pause / Resume Toggle Button (Clean: No numeric timers!)
   const pausePlayBtn = document.getElementById("masterPausePlayBtn");
   const pausePlayIcon = document.getElementById("pausePlayIcon");
   const pausePlayText = document.getElementById("pausePlayText");
@@ -138,21 +208,20 @@ function renderSpiritualMastersSlider() {
       if (isPaused) {
         // Resume
         isPaused = false;
-        carouselInstance.cycle();
-        startAutoTimer();
         if (pausePlayIcon) pausePlayIcon.className = "bi bi-pause-fill fs-6";
-        if (pausePlayText) pausePlayText.textContent = "Pause (10s)";
+        if (pausePlayText) pausePlayText.textContent = "Pause";
         pausePlayBtn.className = "btn btn-sm btn-outline-dark py-1 px-3 rounded-pill d-flex align-items-center gap-1 shadow-sm";
-        showToast("Auto-slide resumed (10-second timer)", "info");
+        handleMasterSlideChange(currentMasterIdx);
+        showToast("Auto-slide resumed", "info");
       } else {
         // Pause
         isPaused = true;
-        carouselInstance.pause();
-        clearInterval(autoSlideTimer);
+        clearTimeout(masterTimer);
+        stopAmmaPhotoCycle();
         if (pausePlayIcon) pausePlayIcon.className = "bi bi-play-fill fs-6";
         if (pausePlayText) pausePlayText.textContent = "Resume";
         pausePlayBtn.className = "btn btn-sm btn-warning text-dark py-1 px-3 rounded-pill d-flex align-items-center gap-1 shadow-sm fw-bold";
-        showToast("Teachings slide paused. Click Resume anytime.", "info");
+        showToast("Teachings slide paused", "info");
       }
     });
   }
@@ -172,7 +241,6 @@ function renderSpiritualMastersSlider() {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         carouselInstance.prev();
-        resetAutoTimer();
       });
     }
   });
@@ -182,7 +250,6 @@ function renderSpiritualMastersSlider() {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         carouselInstance.next();
-        resetAutoTimer();
       });
     }
   });
@@ -190,6 +257,7 @@ function renderSpiritualMastersSlider() {
   // 7. Synchronize Carousel Events (slide change)
   carouselEl.addEventListener("slide.bs.carousel", (e) => {
     const targetIndex = e.to;
+    handleMasterSlideChange(targetIndex);
     const currentMaster = masters[targetIndex];
 
     // Update Counter Badge
@@ -302,8 +370,8 @@ function filterEvents(category, btnElement) {
 
 function deleteUserEvent(id) {
   if (!isAdminLoggedIn()) {
-    showToast("Please log in as Admin first to delete content.", "danger");
-    location.hash = "#admin-portal";
+    showToast("Please log in via the Admin Portal to manage content.", "warning");
+    window.open("admin.html", "_blank");
     return;
   }
   if (confirm("Are you sure you want to delete this photo?")) {
@@ -400,8 +468,8 @@ function setupVideoPlayerModal() {
 
 function deleteUserVideo(id) {
   if (!isAdminLoggedIn()) {
-    showToast("Please log in as Admin first to delete content.", "danger");
-    location.hash = "#admin-portal";
+    showToast("Please log in via the Admin Portal to manage content.", "warning");
+    window.open("admin.html", "_blank");
     return;
   }
   if (confirm("Delete this video link?")) {
@@ -500,8 +568,8 @@ function viewLetterModal(letterId) {
 
 function deleteUserLetter(id) {
   if (!isAdminLoggedIn()) {
-    showToast("Please log in as Admin first to delete content.", "danger");
-    location.hash = "#admin-portal";
+    showToast("Please log in via the Admin Portal to manage content.", "warning");
+    window.open("admin.html", "_blank");
     return;
   }
   if (confirm("Are you sure you want to delete this letter representation?")) {
@@ -524,6 +592,7 @@ function isAdminLoggedIn() {
 function initAdminAuthSystem() {
   const loginCard = document.getElementById("adminLoginCard");
   const controlPanel = document.getElementById("adminControlPanel");
+  if (!loginCard && !controlPanel) return;
   const loginForm = document.getElementById("adminLoginForm");
   const loginError = document.getElementById("adminLoginError");
 
@@ -577,12 +646,10 @@ function logOffAdmin() {
   if (confirm("Are you sure you want to log off from the Admin Hub?")) {
     sessionStorage.removeItem("vokal_admin_auth");
     if (window.location.pathname.endsWith("admin.html")) {
-      window.location.href = "index.html#admin-portal";
+      window.location.reload();
       return;
     }
-    showAdminLoginForm();
     showToast("You have been logged off successfully.", "info");
-    location.hash = "#admin-portal";
   }
 }
 
@@ -724,8 +791,8 @@ function setupPhotoUpload(fileId, previewId, formId, titleId, catId, locId, date
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       if (!isAdminLoggedIn()) {
-        showToast("Please log in as Admin to upload photos.", "danger");
-        location.hash = "#admin-portal";
+        showToast("Please log in via the Admin Portal to upload photos.", "warning");
+        window.open("admin.html", "_blank");
         return;
       }
 
@@ -793,8 +860,8 @@ function setupLetterUpload(formId, subjId, refId, recId, deptId, statusId, dateI
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       if (!isAdminLoggedIn()) {
-        showToast("Please log in as Admin to upload representations.", "danger");
-        location.hash = "#admin-portal";
+        showToast("Please log in via the Admin Portal to upload representations.", "warning");
+        window.open("admin.html", "_blank");
         return;
       }
 
@@ -854,8 +921,8 @@ function setupVideoUpload(formId, titleId, urlId, catId, durId, descId, thumbId)
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       if (!isAdminLoggedIn()) {
-        showToast("Please log in as Admin to add video links.", "danger");
-        location.hash = "#admin-portal";
+        showToast("Please log in via the Admin Portal to add video links.", "warning");
+        window.open("admin.html", "_blank");
         return;
       }
 

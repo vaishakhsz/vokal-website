@@ -4,20 +4,20 @@
  */
 
 :root {
-  --vk-primary: #19528d;       /* Universal Peace Blue */
-  --vk-primary-dark: #0b2545;  /* Deep Tranquil Midnight Navy */
-  --vk-primary-light: #2c72b2; /* Serene Sky Azure */
-  --vk-accent: #e67e22;        /* Warm Compassion Saffron */
-  --vk-accent-hover: #cf6d17;
+  --vk-primary: #c2185b;       /* Vibrant Lotus Rose Pink */
+  --vk-primary-dark: #4a0e2e;  /* Deep Rosewood / Plum Burgundy */
+  --vk-primary-light: #e91e63; /* Radiant Blossom Pink */
+  --vk-accent: #e67e22;        /* Warm Compassion Gold / Amber */
+  --vk-accent-hover: #d35400;
   --vk-gold: #d4af37;          /* Sacred Official Gold */
-  --vk-dark: #0f172a;          /* Deep Slate / Midnight */
-  --vk-light: #f8fafc;         /* Clean Pearl */
-  --vk-cream: #f6f9fc;         /* Serene Ivory / Peace White */
+  --vk-dark: #1e0513;          /* Deep Plum Charcoal */
+  --vk-light: #fff5f8;         /* Soft Blossom White */
+  --vk-cream: #fdf6f9;         /* Pure Powder Rose / Soft White */
   --vk-surface: #ffffff;
-  --vk-border: #e2e8f0;
-  --vk-text-muted: #64748b;
-  --vk-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-  --vk-shadow-lg: 0 20px 30px -10px rgba(11, 37, 69, 0.18);
+  --vk-border: rgba(194, 24, 91, 0.15);
+  --vk-text-muted: #704859;    /* Soft Rose Slate */
+  --vk-shadow: 0 10px 25px -5px rgba(194, 24, 91, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --vk-shadow-lg: 0 20px 30px -10px rgba(74, 14, 46, 0.2);
   --vk-radius: 16px;
   --vk-radius-sm: 8px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -220,10 +220,11 @@ h1, h2, h3, h4, .brand-font {
 .hero-section {
   position: relative;
   padding: 85px 0 100px;
-  background: linear-gradient(180deg, rgba(11, 37, 69, 0.74) 0%, rgba(15, 43, 72, 0.78) 50%, rgba(11, 37, 69, 0.88) 100%), 
+  background: linear-gradient(180deg, rgba(74, 14, 46, 0.45) 0%, rgba(194, 24, 91, 0.32) 45%, rgba(42, 8, 26, 0.65) 100%), 
               url('../assets/lotus_hero_bg.jpg') center/cover no-repeat;
   color: #fff;
   overflow: hidden;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
 }
 
 .hero-logo-wrapper {
@@ -550,7 +551,41 @@ h1, h2, h3, h4, .brand-font {
   height: 420px;
   object-fit: cover;
   display: block;
-  transition: transform 0.6s ease;
+  transition: transform 0.6s ease, opacity 0.3s ease;
+}
+
+.master-photo-fader {
+  transition: opacity 0.35s ease-in-out, transform 0.4s ease !important;
+}
+
+.master-photo-pills {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.photo-pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+}
+
+.photo-pip.active {
+  width: 18px;
+  border-radius: 8px;
+  background: #ff4081;
+  box-shadow: 0 0 10px rgba(255, 64, 129, 0.9);
 }
 
 .master-slide-grid:hover .master-portrait-wrap img {
@@ -562,7 +597,7 @@ h1, h2, h3, h4, .brand-font {
   bottom: 16px;
   left: 16px;
   right: 16px;
-  background: rgba(11, 37, 69, 0.9);
+  background: rgba(74, 14, 46, 0.92);
   color: #fed7aa;
   padding: 8px 14px;
   border-radius: 10px;
@@ -926,29 +961,29 @@ h1, h2, h3, h4, .brand-font {
   box-shadow: 0 10px 25px rgba(11, 37, 69, 0.25);
 }
 
-/* --- FOOTER --- */
+/* --- FOOTER (COMPACT & SLEEK) --- */
 .footer-vokal {
-  background: #07192c;
+  background: #240615;
   color: #ffffff !important;
-  padding: 70px 0 24px;
-  font-size: 0.92rem;
+  padding: 36px 0 16px;
+  font-size: 0.88rem;
 }
 
 .footer-logo-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 6px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
-  border: 2px solid rgba(246, 173, 85, 0.4);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  border: 1.5px solid rgba(246, 173, 85, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .footer-logo-wrap:hover {
-  transform: scale(1.06);
-  box-shadow: 0 6px 24px rgba(246, 173, 85, 0.25);
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(246, 173, 85, 0.25);
 }
 
 .footer-vokal p,
@@ -972,8 +1007,8 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .footer-divider {
-  border-color: rgba(255, 255, 255, 0.25);
-  margin: 40px 0 20px;
+  border-color: rgba(255, 255, 255, 0.18);
+  margin: 22px 0 14px;
 }
 
 /* Responsive tweaks */

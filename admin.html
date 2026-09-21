@@ -13,11 +13,11 @@
   <!-- Bootstrap 5.3 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2.3">
 
   <style>
     .admin-sidebar {
-      background: #0b2545;
+      background: #240615;
       min-height: 100vh;
       color: #fff;
     }
@@ -45,6 +45,36 @@
   </style>
 </head>
 <body class="bg-light">
+
+  <!-- STANDALONE ADMIN AUTHENTICATION MODAL OVERLAY -->
+  <div id="adminAuthOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(30, 5, 19, 0.88); backdrop-filter: blur(8px); z-index: 9999;">
+    <div class="card shadow-lg border-0 rounded-4 p-4 p-md-5 text-center" style="max-width: 440px; width: 92%; background: #ffffff;">
+      <div class="mb-3">
+        <img src="assets/vokal_logo_emblem.png" alt="VOKAL" style="width: 72px; height: 72px; object-fit: contain;">
+      </div>
+      <h4 class="fw-bold text-dark mb-1">VOKAL Admin Portal</h4>
+      <p class="text-muted small mb-4">Enter administrative credentials to manage photos, letters, and site resources.</p>
+      <div id="adminAuthError" class="alert alert-danger py-2 small d-none" role="alert">Invalid username or password.</div>
+      <form id="adminStandaloneLoginForm">
+        <div class="form-floating mb-3 text-start">
+          <input type="text" class="form-control rounded-3" id="standaloneUser" placeholder="Username" autocomplete="username" required autofocus>
+          <label for="standaloneUser"><i class="bi bi-person me-1"></i> Username</label>
+        </div>
+        <div class="form-floating mb-3 text-start">
+          <input type="password" class="form-control rounded-3" id="standalonePass" placeholder="Password" autocomplete="current-password" required>
+          <label for="standalonePass"><i class="bi bi-lock me-1"></i> Password</label>
+        </div>
+        <button type="submit" class="btn btn-vokal-primary w-100 py-2 rounded-3 fw-bold mb-3 shadow-sm">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Admin Hub
+        </button>
+        <div>
+          <a href="index.html" class="text-decoration-none small text-muted">
+            <i class="bi bi-arrow-left me-1"></i> Return to Main Website
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <div class="container-fluid">
     <div class="row">
@@ -482,20 +512,57 @@
   <!-- Bootstrap 5.3 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- VOKAL Scripts -->
-  <script src="js/data.js?v=2.2"></script>
-  <script src="js/storage.js?v=2.2"></script>
-  <script src="js/main.js?v=2.2"></script>
+  <script src="js/data.js?v=2.3"></script>
+  <script src="js/storage.js?v=2.3"></script>
+  <script src="js/main.js?v=2.3"></script>
 
   <!-- Admin Dashboard Logic -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      if (!isAdminLoggedIn()) {
-        alert("Admin authentication required. Please log in from the main site Admin Hub.");
-        window.location.href = "index.html#admin-portal";
-        return;
+      const overlay = document.getElementById("adminAuthOverlay");
+      const loginForm = document.getElementById("adminStandaloneLoginForm");
+      const loginError = document.getElementById("adminAuthError");
+
+      function evaluateAuth() {
+        if (isAdminLoggedIn()) {
+          if (overlay) overlay.classList.add("d-none");
+          loadAdminDashboard();
+        } else {
+          if (overlay) overlay.classList.remove("d-none");
+        }
       }
-      loadAdminDashboard();
+
+      if (loginForm) {
+        loginForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const u = document.getElementById("standaloneUser").value.trim();
+          const p = document.getElementById("standalonePass").value.trim();
+
+          if (u === "admin" && p === "admin123") {
+            sessionStorage.setItem("vokal_admin_auth", "true");
+            if (loginError) loginError.classList.add("d-none");
+            loginForm.reset();
+            evaluateAuth();
+            showToast("Welcome Administrator! Signed in successfully.", "success");
+          } else {
+            if (loginError) {
+              loginError.textContent = "Invalid username or password. Please try again.";
+              loginError.classList.remove("d-none");
+            }
+            showToast("Invalid administrative credentials.", "danger");
+          }
+        });
+      }
+
+      evaluateAuth();
     });
+
+    function logOffAdmin() {
+      if (confirm("Are you sure you want to log off from the Admin Hub?")) {
+        sessionStorage.removeItem("vokal_admin_auth");
+        window.location.reload();
+      }
+    }
 
     function loadAdminDashboard() {
       renderAdminPhotos();
