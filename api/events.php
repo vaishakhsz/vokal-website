@@ -94,15 +94,28 @@ switch ($method) {
         break;
 
     case 'DELETE':
-        $id = isset($_GET['id']) ? trim($_GET['id']) : null;
+        $id = isset($_REQUEST['id']) ? trim($_REQUEST['id']) : null;
         if (!$id) {
             sendJsonResponse(["success" => false, "error" => "Event ID or UID required"], 400);
         }
 
+        // Find and delete the uploaded image from server disk to save space
+        try {
+            $selStmt = $pdo->prepare("SELECT `image_url` FROM `events_photos` WHERE `id` = :id OR `event_uid` = :uid");
+            $selStmt->execute([':id' => $id, ':uid' => $id]);
+            $row = $selStmt->fetch();
+            if ($row && !empty($row['image_url']) && strpos($row['image_url'], 'uploads/') === 0) {
+                $diskFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $row['image_url']);
+                if (file_exists($diskFile)) {
+                    @unlink($diskFile);
+                }
+            }
+        } catch (Exception $e) {}
+
         $stmt = $pdo->prepare("DELETE FROM `events_photos` WHERE `id` = :id OR `event_uid` = :uid");
         $stmt->execute([':id' => $id, ':uid' => $id]);
 
-        sendJsonResponse(["success" => true, "message" => "Event photo deleted from MySQL"]);
+        sendJsonResponse(["success" => true, "message" => "Event photo deleted from MySQL and disk"]);
         break;
 
     default:

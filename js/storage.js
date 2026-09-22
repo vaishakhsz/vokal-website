@@ -33,64 +33,24 @@ class VokalStorageManager {
    */
   async syncWithServer() {
     try {
-      // Sync Events / Photos from MySQL
+      // Sync Events / Photos from MySQL (Server is single source of truth)
       const evtRes = await fetch("api/events.php");
       if (evtRes.ok) {
         const json = await evtRes.json();
-        if (json.success && Array.isArray(json.data)) {
-          // Check if any locally uploaded event is missing from server (e.g. uploaded while DB was offline)
-          const localEvents = this.getEvents();
-          let needsRefresh = false;
-          for (const localEvt of localEvents) {
-            if (localEvt.isUserUploaded && !json.data.some(d => d.title === localEvt.title || d.event_uid === localEvt.id)) {
-              console.log("Auto-migrating offline uploaded photo to MySQL:", localEvt.title);
-              try {
-                const migRes = await fetch("api/events.php", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    event_uid: localEvt.id,
-                    title: localEvt.title,
-                    category: localEvt.category,
-                    date: localEvt.date,
-                    location: localEvt.location,
-                    description: localEvt.description,
-                    image: localEvt.image,
-                    show_on_tv: 1
-                  })
-                });
-                const migData = await migRes.json();
-                if (migData && migData.success) {
-                  needsRefresh = true;
-                }
-              } catch (err) {}
-            }
-          }
-
-          let listToMap = json.data;
-          if (needsRefresh) {
-            const refreshedRes = await fetch("api/events.php");
-            const refreshedJson = await refreshedRes.json();
-            if (refreshedJson && refreshedJson.success && refreshedJson.data) {
-              listToMap = refreshedJson.data;
-            }
-          }
-
-          if (listToMap.length > 0) {
-            const mapped = listToMap.map(dbItem => ({
-              id: dbItem.event_uid || ("evt-" + dbItem.id),
-              title: dbItem.title,
-              category: dbItem.category,
-              date: dbItem.event_date,
-              location: dbItem.location,
-              description: dbItem.description,
-              image: dbItem.image_url,
-              isUserUploaded: !!dbItem.is_user_uploaded,
-              createdAt: dbItem.created_at
-            }));
-            localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(mapped));
-            if (typeof renderEvents === "function") renderEvents();
-          }
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map(dbItem => ({
+            id: dbItem.event_uid || ("evt-" + dbItem.id),
+            title: dbItem.title,
+            category: dbItem.category,
+            date: dbItem.event_date,
+            location: dbItem.location,
+            description: dbItem.description,
+            image: dbItem.image_url,
+            isUserUploaded: !!dbItem.is_user_uploaded,
+            createdAt: dbItem.created_at
+          }));
+          localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(mapped));
+          if (typeof renderEvents === "function") renderEvents();
         }
       }
     } catch (e) {
@@ -247,17 +207,19 @@ class VokalStorageManager {
     return newEvent;
   }
 
-  deleteEvent(id) {
+  async deleteEvent(id) {
     let events = this.getEvents();
     events = events.filter(e => e.id !== id);
     localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
 
-    // Delete from MySQL if on server
+    // Delete from MySQL server
     try {
-      fetch(`api/events.php?id=${encodeURIComponent(id)}`, {
+      await fetch(`api/events.php?id=${encodeURIComponent(id)}`, {
         method: "DELETE"
-      }).catch(() => {});
-    } catch (e) {}
+      });
+    } catch (e) {
+      console.warn("Failed to delete event from server:", e);
+    }
 
     return true;
   }
