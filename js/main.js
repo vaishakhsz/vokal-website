@@ -413,7 +413,6 @@ function openEventFolder(category) {
                   onclick="openPhotoLightbox('${event.image}','${escapeHtml(event.title)}','${escapeHtml(event.description)}','${escapeHtml(event.date)}')">
                   <i class="bi bi-arrows-fullscreen me-1"></i>Full Photo
                 </button>
-                ${event.isUserUploaded ? `<button class="btn btn-outline-danger btn-sm p-1 px-2" title="Delete" onclick="deleteUserEvent('${event.id}')"><i class="bi bi-trash3"></i></button>` : ""}
               </div>
             </div>
           </div>
@@ -566,7 +565,6 @@ function openVideoFolder(category) {
                 <button class="btn btn-vokal-outline btn-sm" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
                   <i class="bi bi-play-circle-fill me-1"></i> Watch
                 </button>
-                ${video.isUserUploaded ? `<button class="btn btn-outline-danger btn-sm p-1 px-2" title="Remove" onclick="deleteUserVideo('${video.id}')"><i class="bi bi-trash3"></i></button>` : ""}
               </div>
             </div>
           </div>
@@ -733,7 +731,6 @@ function openLetterFolder(dept) {
                     <i class="bi bi-download me-1"></i> Download
                   </a>
                 </div>
-                ${letter.isUserUploaded ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteUserLetter('${letter.id}')"><i class="bi bi-trash3"></i></button>` : ""}
               </div>
             </div>
           </div>
