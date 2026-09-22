@@ -593,8 +593,14 @@
       const photos = window.vokalStorage.getEvents();
       tbody.innerHTML = "";
 
+      if (photos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No event photos in database.</td></tr>`;
+        return;
+      }
+
       photos.forEach(p => {
         const tr = document.createElement("tr");
+        tr.id = `photo-row-${p.id}`;
         tr.innerHTML = `
           <td><img src="${p.image}" class="admin-table-img"></td>
           <td class="fw-bold">${p.title}</td>
@@ -603,9 +609,14 @@
           <td>${p.date}</td>
           <td>${p.isUserUploaded ? '<span class="badge bg-warning text-dark">Uploaded</span>' : '<span class="badge bg-secondary">Official</span>'}</td>
           <td>
-            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteEvent('${p.id}')">
-              <i class="bi bi-trash3"></i>
-            </button>
+            <div class="d-flex gap-1">
+              <button class="btn btn-outline-primary btn-sm" title="Edit" onclick="showEditPhotoModal('${p.id}')">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="adminDeleteEvent('${p.id}')">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -613,10 +624,143 @@
     }
 
     async function adminDeleteEvent(id) {
-      if (confirm("Delete this photo?")) {
+      if (!confirm("Permanently delete this photo from the database?")) return;
+      const btn = document.querySelector(`#photo-row-${id} .btn-outline-danger`);
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
+      try {
         await window.vokalStorage.deleteEvent(id);
         loadAdminDashboard();
-        showToast("Photo deleted", "info");
+        showToast("Photo deleted from database successfully.", "success");
+      } catch (err) {
+        showToast("Delete failed: " + err.message, "danger");
+        loadAdminDashboard(); // re-render with current state
+      }
+    }
+
+    function showEditPhotoModal(id) {
+      const photos = window.vokalStorage.getEvents();
+      const p = photos.find(x => x.id === id);
+      if (!p) return;
+
+      // Build edit modal dynamically
+      let modalEl = document.getElementById("editPhotoModal");
+      if (!modalEl) {
+        modalEl = document.createElement("div");
+        modalEl.className = "modal fade";
+        modalEl.id = "editPhotoModal";
+        modalEl.tabIndex = -1;
+        modalEl.innerHTML = `
+          <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+              <div class="modal-header" style="background: linear-gradient(135deg,#ff4081,#c2185b);">
+                <h5 class="modal-title text-white fw-bold"><i class="bi bi-pencil-fill me-2"></i>Edit Event Photo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body p-4">
+                <input type="hidden" id="editPhotoId">
+                <div class="row g-3">
+                  <div class="col-12 text-center">
+                    <img id="editPhotoPreview" src="" class="img-fluid rounded-3 mb-2" style="max-height:160px; object-fit:cover;">
+                  </div>
+                  <div class="col-md-8">
+                    <label class="form-label fw-bold small">Title *</label>
+                    <input type="text" id="editPhotoTitle" class="form-control" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label fw-bold small">Category *</label>
+                    <select id="editPhotoCategory" class="form-select">
+                      <option value="Vaccination &amp; Care">Vaccination &amp; Care</option>
+                      <option value="Legal &amp; Advocacy">Legal &amp; Advocacy</option>
+                      <option value="Emergency Rescue">Emergency Rescue</option>
+                      <option value="Community Support">Community Support</option>
+                      <option value="Public Campaign">Public Campaign</option>
+                      <option value="Humane Education">Humane Education</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold small">Location</label>
+                    <input type="text" id="editPhotoLocation" class="form-control">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold small">Date</label>
+                    <input type="text" id="editPhotoDate" class="form-control" placeholder="e.g. August 28, 2026">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-bold small">Description</label>
+                    <textarea id="editPhotoDesc" class="form-control" rows="3"></textarea>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-vokal-primary fw-bold" onclick="saveEditedPhoto()">
+                  <i class="bi bi-check-circle me-1"></i> Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modalEl);
+      }
+
+      document.getElementById("editPhotoId").value = p.id;
+      document.getElementById("editPhotoTitle").value = p.title;
+      document.getElementById("editPhotoCategory").value = p.category;
+      document.getElementById("editPhotoLocation").value = p.location;
+      document.getElementById("editPhotoDate").value = p.date;
+      document.getElementById("editPhotoDesc").value = p.description;
+      document.getElementById("editPhotoPreview").src = p.image;
+
+      new bootstrap.Modal(modalEl).show();
+    }
+
+    async function saveEditedPhoto() {
+      const id = document.getElementById("editPhotoId").value;
+      const updated = {
+        title: document.getElementById("editPhotoTitle").value.trim(),
+        category: document.getElementById("editPhotoCategory").value,
+        location: document.getElementById("editPhotoLocation").value.trim(),
+        date: document.getElementById("editPhotoDate").value.trim(),
+        description: document.getElementById("editPhotoDesc").value.trim()
+      };
+      if (!updated.title) { showToast("Title is required.", "warning"); return; }
+
+      // Update in MySQL via POST (upsert with same UID)
+      try {
+        const photos = window.vokalStorage.getEvents();
+        const existing = photos.find(p => p.id === id);
+        if (!existing) { showToast("Photo not found.", "danger"); return; }
+
+        const res = await fetch("api/events.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event_uid: id,
+            title: updated.title,
+            category: updated.category,
+            date: updated.date,
+            location: updated.location,
+            description: updated.description,
+            image: existing.image,
+            show_on_tv: 1
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          // Update localStorage
+          const idx = photos.findIndex(p => p.id === id);
+          if (idx !== -1) {
+            photos[idx] = { ...photos[idx], ...updated };
+            localStorage.setItem("vokal_events_data", JSON.stringify(photos));
+          }
+          bootstrap.Modal.getInstance(document.getElementById("editPhotoModal"))?.hide();
+          loadAdminDashboard();
+          showToast("Photo updated successfully!", "success");
+        } else {
+          showToast("Update failed: " + (json.error || "Unknown error"), "danger");
+        }
+      } catch (e) {
+        showToast("Update failed: " + e.message, "danger");
       }
     }
 
@@ -625,8 +769,14 @@
       const letters = window.vokalStorage.getLetters();
       tbody.innerHTML = "";
 
+      if (letters.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No letters in database.</td></tr>`;
+        return;
+      }
+
       letters.forEach(l => {
         const tr = document.createElement("tr");
+        tr.id = `letter-row-${l.id}`;
         tr.innerHTML = `
           <td><code>${l.refNo}</code></td>
           <td class="fw-bold">${l.subject}</td>
@@ -635,20 +785,28 @@
           <td>${l.date}</td>
           <td>${l.isUserUploaded ? '<span class="badge bg-warning text-dark">Uploaded</span>' : '<span class="badge bg-secondary">Official</span>'}</td>
           <td>
-            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteLetter('${l.id}')">
-              <i class="bi bi-trash3"></i>
-            </button>
+            <div class="d-flex gap-1">
+              <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="adminDeleteLetter('${l.id}')">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function adminDeleteLetter(id) {
-      if (confirm("Delete this letter representation?")) {
-        window.vokalStorage.deleteLetter(id);
+    async function adminDeleteLetter(id) {
+      if (!confirm("Permanently delete this letter representation from the database?")) return;
+      const btn = document.querySelector(`#letter-row-${id} .btn-outline-danger`);
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
+      try {
+        await window.vokalStorage.deleteLetter(id);
         loadAdminDashboard();
-        showToast("Letter deleted", "info");
+        showToast("Letter deleted from database successfully.", "success");
+      } catch (err) {
+        showToast("Delete failed: " + err.message, "danger");
+        loadAdminDashboard();
       }
     }
 
@@ -657,8 +815,14 @@
       const videos = window.vokalStorage.getVideos();
       tbody.innerHTML = "";
 
+      if (videos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No videos in database.</td></tr>`;
+        return;
+      }
+
       videos.forEach(v => {
         const tr = document.createElement("tr");
+        tr.id = `video-row-${v.id}`;
         tr.innerHTML = `
           <td><img src="${v.thumbnail}" class="admin-table-img"></td>
           <td class="fw-bold">${v.title}</td>
@@ -666,20 +830,28 @@
           <td>${v.duration}</td>
           <td><a href="${v.videoUrl}" target="_blank" class="small text-truncate d-inline-block" style="max-width: 150px;">Link <i class="bi bi-box-arrow-up-right"></i></a></td>
           <td>
-            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteVideo('${v.id}')">
-              <i class="bi bi-trash3"></i>
-            </button>
+            <div class="d-flex gap-1">
+              <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="adminDeleteVideo('${v.id}')">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function adminDeleteVideo(id) {
-      if (confirm("Delete this video?")) {
-        window.vokalStorage.deleteVideo(id);
+    async function adminDeleteVideo(id) {
+      if (!confirm("Permanently delete this video link from the database?")) return;
+      const btn = document.querySelector(`#video-row-${id} .btn-outline-danger`);
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
+      try {
+        await window.vokalStorage.deleteVideo(id);
         loadAdminDashboard();
-        showToast("Video deleted", "info");
+        showToast("Video link deleted from database successfully.", "success");
+      } catch (err) {
+        showToast("Delete failed: " + err.message, "danger");
+        loadAdminDashboard();
       }
     }
 
