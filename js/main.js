@@ -304,9 +304,8 @@ function renderSpiritualMastersSlider() {
 }
 
 // ==========================================
-// 2. EVENTS & PHOTO GALLERY
+// 2. EVENTS & PHOTO GALLERY — FOLDER FORMAT
 // ==========================================
-let currentEventFilter = "all";
 
 function renderEvents() {
   const container = document.getElementById("eventsGrid");
@@ -315,47 +314,61 @@ function renderEvents() {
   const events = window.vokalStorage.getEvents();
   container.innerHTML = "";
 
-  const filtered = currentEventFilter === "all" 
-    ? events 
-    : events.filter(e => e.category.toLowerCase().includes(currentEventFilter.toLowerCase()));
-
-  if (filtered.length === 0) {
+  if (events.length === 0) {
     container.innerHTML = `
       <div class="col-12 text-center py-5 text-muted">
-        <i class="bi bi-camera-fill display-4 text-muted d-block mb-3"></i>
-        <h5>No photos found in this category</h5>
-        <p class="small text-secondary">New photos and ground intervention updates will be added soon.</p>
+        <i class="bi bi-folder2-open display-4 text-muted d-block mb-3"></i>
+        <h5>No event albums yet</h5>
+        <p class="small text-secondary">Event photos will be added via the Admin Portal and will appear here as folders.</p>
       </div>
     `;
     return;
   }
 
-  filtered.forEach((event) => {
+  // Group events by category
+  const folders = {};
+  events.forEach(event => {
+    const cat = event.category || "Uncategorised";
+    if (!folders[cat]) folders[cat] = [];
+    folders[cat].push(event);
+  });
+
+  // Folder icon colours per category
+  const folderColors = {
+    "Vaccination & Care": "#4caf50",
+    "Legal & Advocacy":   "#1565c0",
+    "Emergency Rescue":   "#e91e63",
+    "Community Support":  "#ff9800",
+    "Public Campaign":    "#9c27b0",
+    "Humane Education":   "#00897b",
+    "default":            "#607d8b"
+  };
+
+  Object.entries(folders).forEach(([category, items]) => {
+    const color = folderColors[category] || folderColors["default"];
+    const coverImg = items[0].image;
+    const extra = items.length > 1 ? `+${items.length - 1} more` : "";
+
     const cardCol = document.createElement("div");
     cardCol.className = "col-md-6 col-lg-4";
     cardCol.innerHTML = `
-      <div class="vk-card">
-        <div class="event-card-img-wrap" style="cursor: pointer;" onclick="openPhotoLightbox('${event.image}', '${escapeHtml(event.title)}', '${escapeHtml(event.description)}', '${escapeHtml(event.date)}')">
-          <img src="${event.image}" alt="${escapeHtml(event.title)}" loading="lazy">
-          <span class="event-category-badge">${event.category}</span>
-          ${event.isUserUploaded ? '<span class="badge text-white position-absolute top-0 end-0 m-3" style="background: #ff4081;"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
-        </div>
-        <div class="event-body">
-          <div class="event-meta">
-            <span><i class="bi bi-calendar3 me-1 text-primary"></i> ${event.date}</span>
-            <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i> ${event.location}</span>
+      <div class="folder-card" onclick="openEventFolder('${escapeHtml(category)}')" style="--folder-color: ${color}; cursor: pointer;">
+        <div class="folder-tab"></div>
+        <div class="folder-body">
+          <div class="folder-cover-grid">
+            <img src="${coverImg}" alt="${escapeHtml(category)}" loading="lazy" class="folder-cover-img">
+            ${extra ? `<span class="folder-extra-badge">${extra}</span>` : ""}
           </div>
-          <h5 class="fw-bold mb-2 text-dark">${event.title}</h5>
-          <p class="text-muted small mb-3">${event.description.length > 120 ? event.description.substring(0, 117) + "..." : event.description}</p>
-          <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-            <button class="btn btn-link text-decoration-none p-0 text-success fw-bold small" onclick="openPhotoLightbox('${event.image}', '${escapeHtml(event.title)}', '${escapeHtml(event.description)}', '${escapeHtml(event.date)}')">
-              <i class="bi bi-arrows-fullscreen me-1"></i> View Full Photo
-            </button>
-            ${event.isUserUploaded ? `
-              <button class="btn btn-outline-danger btn-sm p-1 px-2" title="Delete Photo" onclick="deleteUserEvent('${event.id}')">
-                <i class="bi bi-trash3"></i>
-              </button>
-            ` : ''}
+          <div class="folder-info p-3">
+            <h5 class="fw-bold mb-1 folder-title">
+              <i class="bi bi-folder-fill me-2" style="color: ${color};"></i>${category}
+            </h5>
+            <div class="d-flex justify-content-between align-items-center">
+              <small class="text-muted">${items.length} photo${items.length !== 1 ? "s" : ""}</small>
+              <span class="btn btn-sm rounded-pill px-3" style="background: ${color}; color: #fff; font-size: 0.78rem;">
+                <i class="bi bi-eye me-1"></i> Open
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -364,11 +377,53 @@ function renderEvents() {
   });
 }
 
-function filterEvents(category, btnElement) {
-  currentEventFilter = category;
-  document.querySelectorAll(".event-filter-pill").forEach(p => p.classList.remove("active"));
-  if (btnElement) btnElement.classList.add("active");
-  renderEvents();
+// Open a folder and show all photos inside the shared modal
+function openEventFolder(category) {
+  const events = window.vokalStorage.getEvents();
+  const items = events.filter(e => e.category === category);
+
+  const titleEl  = document.getElementById("folderModalTitle");
+  const subEl    = document.getElementById("folderModalSubtitle");
+  const bodyEl   = document.getElementById("folderModalBody");
+
+  if (!titleEl || !bodyEl) return;
+
+  titleEl.innerHTML = `<i class="bi bi-folder-fill me-2"></i>${category}`;
+  subEl.textContent = `${items.length} photo${items.length !== 1 ? "s" : ""} in this album`;
+
+  bodyEl.innerHTML = `
+    <div class="row g-3">
+      ${items.map(event => `
+        <div class="col-md-6 col-lg-4">
+          <div class="vk-card h-100">
+            <div class="event-card-img-wrap" style="cursor:pointer;" onclick="openPhotoLightbox('${event.image}', '${escapeHtml(event.title)}', '${escapeHtml(event.description)}', '${escapeHtml(event.date)}')">
+              <img src="${event.image}" alt="${escapeHtml(event.title)}" loading="lazy">
+              <span class="event-category-badge">${event.category}</span>
+              ${event.isUserUploaded ? '<span class="badge text-white position-absolute top-0 end-0 m-2" style="background:#ff4081;font-size:0.7rem;"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
+            </div>
+            <div class="event-body">
+              <div class="event-meta">
+                <span><i class="bi bi-calendar3 me-1 text-primary"></i>${event.date}</span>
+                <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i>${event.location}</span>
+              </div>
+              <h6 class="fw-bold mb-1 text-dark">${event.title}</h6>
+              <p class="text-muted small mb-2">${event.description.length > 100 ? event.description.substring(0, 97) + "..." : event.description}</p>
+              <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                <button class="btn btn-link text-decoration-none p-0 text-success fw-bold small"
+                  onclick="openPhotoLightbox('${event.image}','${escapeHtml(event.title)}','${escapeHtml(event.description)}','${escapeHtml(event.date)}')">
+                  <i class="bi bi-arrows-fullscreen me-1"></i>Full Photo
+                </button>
+                ${event.isUserUploaded ? `<button class="btn btn-outline-danger btn-sm p-1 px-2" title="Delete" onclick="deleteUserEvent('${event.id}')"><i class="bi bi-trash3"></i></button>` : ""}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  const modal = new bootstrap.Modal(document.getElementById("folderViewerModal"));
+  modal.show();
 }
 
 function deleteUserEvent(id) {
@@ -381,6 +436,12 @@ function deleteUserEvent(id) {
     window.vokalStorage.deleteEvent(id);
     renderEvents();
     renderInPageAdmin();
+    // Also refresh the folder modal if open
+    const folderModal = document.getElementById("folderViewerModal");
+    if (folderModal && folderModal.classList.contains("show")) {
+      const title = document.getElementById("folderModalTitle").textContent.replace(/^\s*\S+\s+/, "");
+      openEventFolder(title.trim());
+    }
     showToast("Photo removed successfully", "info");
   }
 }
@@ -399,7 +460,7 @@ function openPhotoLightbox(src, title, desc, date) {
 }
 
 // ==========================================
-// 3. VIDEOS & MEDIA LINKS
+// 3. VIDEOS & MEDIA LINKS — FOLDER FORMAT
 // ==========================================
 function renderVideos() {
   const container = document.getElementById("videosGrid");
@@ -408,40 +469,114 @@ function renderVideos() {
   const videos = window.vokalStorage.getVideos();
   container.innerHTML = "";
 
-  videos.forEach(video => {
+  if (videos.length === 0) {
+    container.innerHTML = `
+      <div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-camera-video display-4 text-muted d-block mb-3"></i>
+        <h5>No video albums yet</h5>
+        <p class="small text-secondary">Videos will appear here as folders once added.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Group videos by category
+  const folders = {};
+  videos.forEach(v => {
+    const cat = v.category || "General";
+    if (!folders[cat]) folders[cat] = [];
+    folders[cat].push(v);
+  });
+
+  const folderColors = {
+    "Scientific Policy": "#1565c0",
+    "Legal Insights":    "#6a1b9a",
+    "Spiritual Wisdom":  "#e65100",
+    "Rescue Stories":    "#c62828",
+    "default":           "#00695c"
+  };
+
+  Object.entries(folders).forEach(([category, items]) => {
+    const color = folderColors[category] || folderColors["default"];
+    const coverThumb = items[0].thumbnail;
+
     const cardCol = document.createElement("div");
-    cardCol.className = "col-md-6 col-lg-6";
+    cardCol.className = "col-md-6 col-lg-4";
     cardCol.innerHTML = `
-      <div class="vk-card">
-        <div class="video-card-thumb" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
-          <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}" loading="lazy">
-          <div class="video-play-btn">
-            <i class="bi bi-play-fill ms-1"></i>
+      <div class="folder-card" onclick="openVideoFolder('${escapeHtml(category)}')" style="--folder-color: ${color}; cursor: pointer;">
+        <div class="folder-tab"></div>
+        <div class="folder-body">
+          <div class="folder-cover-grid position-relative">
+            <img src="${coverThumb}" alt="${escapeHtml(category)}" loading="lazy" class="folder-cover-img">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+              <div style="width:48px;height:48px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-play-fill text-white fs-4 ms-1"></i>
+              </div>
+            </div>
           </div>
-          <span class="video-duration-badge"><i class="bi bi-clock me-1"></i>${video.duration}</span>
-        </div>
-        <div class="p-4">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="badge bg-light text-dark border px-2 py-1">${video.category}</span>
-            ${video.isUserUploaded ? '<span class="badge text-white" style="background: #ff4081;"><i class="bi bi-star-fill"></i> Uploaded Link</span>' : ''}
-          </div>
-          <h5 class="fw-bold mb-2">${video.title}</h5>
-          <p class="text-muted small mb-3">${video.description}</p>
-          <div class="d-flex justify-content-between align-items-center">
-            <button class="btn btn-vokal-outline btn-sm" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
-              <i class="bi bi-play-circle-fill me-1"></i> Watch Video
-            </button>
-            ${video.isUserUploaded ? `
-              <button class="btn btn-outline-danger btn-sm p-1 px-2" title="Remove Video" onclick="deleteUserVideo('${video.id}')">
-                <i class="bi bi-trash3"></i>
-              </button>
-            ` : ''}
+          <div class="folder-info p-3">
+            <h5 class="fw-bold mb-1 folder-title">
+              <i class="bi bi-folder-fill me-2" style="color: ${color};"></i>${category}
+            </h5>
+            <div class="d-flex justify-content-between align-items-center">
+              <small class="text-muted">${items.length} video${items.length !== 1 ? "s" : ""}</small>
+              <span class="btn btn-sm rounded-pill px-3" style="background: ${color}; color: #fff; font-size: 0.78rem;">
+                <i class="bi bi-play-circle me-1"></i> Watch
+              </span>
+            </div>
           </div>
         </div>
       </div>
     `;
     container.appendChild(cardCol);
   });
+}
+
+function openVideoFolder(category) {
+  const videos = window.vokalStorage.getVideos();
+  const items = videos.filter(v => v.category === category);
+
+  const titleEl = document.getElementById("folderModalTitle");
+  const subEl   = document.getElementById("folderModalSubtitle");
+  const bodyEl  = document.getElementById("folderModalBody");
+
+  if (!titleEl || !bodyEl) return;
+
+  titleEl.innerHTML = `<i class="bi bi-camera-video-fill me-2"></i>${category}`;
+  subEl.textContent = `${items.length} video${items.length !== 1 ? "s" : ""} in this folder`;
+
+  bodyEl.innerHTML = `
+    <div class="row g-3">
+      ${items.map(video => `
+        <div class="col-md-6">
+          <div class="vk-card h-100">
+            <div class="video-card-thumb" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
+              <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}" loading="lazy">
+              <div class="video-play-btn"><i class="bi bi-play-fill ms-1"></i></div>
+              <span class="video-duration-badge"><i class="bi bi-clock me-1"></i>${video.duration}</span>
+            </div>
+            <div class="p-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-light text-dark border px-2 py-1">${video.category}</span>
+                ${video.isUserUploaded ? '<span class="badge text-white" style="background: #ff4081;"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
+              </div>
+              <h6 class="fw-bold mb-2">${video.title}</h6>
+              <p class="text-muted small mb-2">${video.description}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <button class="btn btn-vokal-outline btn-sm" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
+                  <i class="bi bi-play-circle-fill me-1"></i> Watch
+                </button>
+                ${video.isUserUploaded ? `<button class="btn btn-outline-danger btn-sm p-1 px-2" title="Remove" onclick="deleteUserVideo('${video.id}')"><i class="bi bi-trash3"></i></button>` : ""}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  const modal = new bootstrap.Modal(document.getElementById("folderViewerModal"));
+  modal.show();
 }
 
 function playVideoModal(url, title, desc) {
@@ -484,7 +619,7 @@ function deleteUserVideo(id) {
 }
 
 // ==========================================
-// 4. LETTERS TO GOVERNMENT & LEGAL CELL
+// 4. LETTERS TO GOVERNMENT — FOLDER FORMAT
 // ==========================================
 function renderLetters() {
   const container = document.getElementById("lettersGrid");
@@ -493,53 +628,122 @@ function renderLetters() {
   const letters = window.vokalStorage.getLetters();
   container.innerHTML = "";
 
-  letters.forEach(letter => {
+  if (letters.length === 0) {
+    container.innerHTML = `
+      <div class="col-12 text-center py-5 text-muted">
+        <i class="bi bi-folder2-open display-4 text-muted d-block mb-3"></i>
+        <h5>No letter folders yet</h5>
+        <p class="small text-secondary">Government representations will appear here organised by department.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Group letters by department
+  const folders = {};
+  letters.forEach(l => {
+    const dept = l.department || "General";
+    if (!folders[dept]) folders[dept] = [];
+    folders[dept].push(l);
+  });
+
+  const folderColors = {
+    "Chief Minister's Office (CMO)": "#c62828",
+    "Kerala Police Headquarters":    "#1565c0",
+    "LSGD Kerala":                   "#2e7d32",
+    "Animal Husbandry Dept":         "#ff8f00",
+    "default":                       "#4a148c"
+  };
+
+  Object.entries(folders).forEach(([dept, items]) => {
+    const color = folderColors[dept] || folderColors["default"];
+    const statusColors = { success: "#4caf50", warning: "#ff9800", primary: "#1565c0", info: "#0288d1", secondary: "#607d8b" };
+    const badgeList = items.map(l => `<span class="badge me-1 mb-1" style="background:${statusColors[l.statusColor || 'primary'] || '#607d8b'}; font-size:0.7rem;">${l.status}</span>`).join("");
+
     const cardCol = document.createElement("div");
-    cardCol.className = "col-md-6 col-lg-6 mb-4";
-    
-    const demandsHtml = (letter.keyDemands || [])
-      .map(d => `<li>${escapeHtml(d)}</li>`)
-      .join("");
-
+    cardCol.className = "col-md-6 col-lg-4";
     cardCol.innerHTML = `
-      <div class="letter-card">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <span class="letter-ref-badge">${letter.refNo}</span>
-          <span class="badge bg-${letter.statusColor || 'primary'}">${letter.status}</span>
-        </div>
-        <h5 class="fw-bold mt-2 text-dark">${letter.subject}</h5>
-        <div class="text-muted small mb-2">
-          <strong><i class="bi bi-building me-1"></i> To:</strong> ${letter.recipient} (${letter.department})
-        </div>
-        <div class="text-muted small mb-3">
-          <i class="bi bi-calendar-event me-1"></i> Submitted on: <strong>${letter.date}</strong>
-        </div>
-        <p class="text-secondary small mb-2">${letter.summary}</p>
-        
-        <h6 class="fw-bold small text-dark mt-2 mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Key Demands & Petitions:</h6>
-        <ul class="letter-demands-list mb-3">
-          ${demandsHtml}
-        </ul>
-
-        <div class="mt-auto pt-3 border-top d-flex gap-2 flex-wrap justify-content-between align-items-center">
-          <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-vokal-primary" onclick="viewLetterModal('${letter.id}')">
-              <i class="bi bi-file-earmark-text me-1"></i> View Details
-            </button>
-            <a href="${letter.docUrl}" download="${letter.refNo.replace(/\//g, '_')}.txt" class="btn btn-sm btn-outline-secondary">
-              <i class="bi bi-download me-1"></i> Download Copy
-            </a>
+      <div class="folder-card" onclick="openLetterFolder('${escapeHtml(dept)}')" style="--folder-color: ${color}; cursor: pointer;">
+        <div class="folder-tab"></div>
+        <div class="folder-body">
+          <div class="folder-cover-grid d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, ${color}18, ${color}40); min-height: 140px;">
+            <div class="text-center p-3">
+              <i class="bi bi-envelope-paper-fill" style="font-size: 2.8rem; color: ${color};"></i>
+              <div class="mt-2">${badgeList}</div>
+            </div>
           </div>
-          ${letter.isUserUploaded ? `
-            <button class="btn btn-sm btn-outline-danger" title="Delete Letter" onclick="deleteUserLetter('${letter.id}')">
-              <i class="bi bi-trash3"></i>
-            </button>
-          ` : ''}
+          <div class="folder-info p-3">
+            <h5 class="fw-bold mb-1 folder-title">
+              <i class="bi bi-folder-fill me-2" style="color: ${color};"></i>${dept}
+            </h5>
+            <div class="d-flex justify-content-between align-items-center">
+              <small class="text-muted">${items.length} letter${items.length !== 1 ? "s" : ""}</small>
+              <span class="btn btn-sm rounded-pill px-3" style="background: ${color}; color: #fff; font-size: 0.78rem;">
+                <i class="bi bi-file-earmark-text me-1"></i> Open
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     `;
     container.appendChild(cardCol);
   });
+}
+
+function openLetterFolder(dept) {
+  const letters = window.vokalStorage.getLetters();
+  const items = letters.filter(l => l.department === dept);
+
+  const titleEl = document.getElementById("folderModalTitle");
+  const subEl   = document.getElementById("folderModalSubtitle");
+  const bodyEl  = document.getElementById("folderModalBody");
+
+  if (!titleEl || !bodyEl) return;
+
+  titleEl.innerHTML = `<i class="bi bi-envelope-paper-fill me-2"></i>${dept}`;
+  subEl.textContent = `${items.length} letter${items.length !== 1 ? "s" : ""} in this folder`;
+
+  bodyEl.innerHTML = `
+    <div class="row g-3">
+      ${items.map(letter => {
+        const demandsHtml = (letter.keyDemands || []).map(d => `<li>${escapeHtml(d)}</li>`).join("");
+        return `
+          <div class="col-12">
+            <div class="letter-card">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="letter-ref-badge">${letter.refNo}</span>
+                <span class="badge bg-${letter.statusColor || 'primary'}">${letter.status}</span>
+              </div>
+              <h5 class="fw-bold mt-2 text-dark">${letter.subject}</h5>
+              <div class="text-muted small mb-2">
+                <strong><i class="bi bi-building me-1"></i> To:</strong> ${letter.recipient} (${letter.department})
+              </div>
+              <div class="text-muted small mb-3">
+                <i class="bi bi-calendar-event me-1"></i> Submitted on: <strong>${letter.date}</strong>
+              </div>
+              <p class="text-secondary small mb-2">${letter.summary}</p>
+              <h6 class="fw-bold small text-dark mt-2 mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Key Demands &amp; Petitions:</h6>
+              <ul class="letter-demands-list mb-3">${demandsHtml}</ul>
+              <div class="mt-auto pt-3 border-top d-flex gap-2 flex-wrap justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-vokal-primary" onclick="viewLetterModal('${letter.id}')">
+                    <i class="bi bi-file-earmark-text me-1"></i> View Details
+                  </button>
+                  <a href="${letter.docUrl}" download="${letter.refNo.replace(/\//g, '_')}.txt" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-download me-1"></i> Download
+                  </a>
+                </div>
+                ${letter.isUserUploaded ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteUserLetter('${letter.id}')"><i class="bi bi-trash3"></i></button>` : ""}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  const modal = new bootstrap.Modal(document.getElementById("folderViewerModal"));
+  modal.show();
 }
 
 function viewLetterModal(letterId) {

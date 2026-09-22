@@ -1131,3 +1131,134 @@ h1, h2, h3, h4, .brand-font {
   background-color: #e91e63 !important;
   color: #ffffff !important;
 }
+
+/* ==========================================
+   HERO INTRO PARAGRAPH
+   ========================================== */
+.hero-intro-para {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+/* ==========================================
+   CORE VALUES SECTION
+   ========================================== */
+.core-values-section {
+  background: linear-gradient(135deg, #fff0f5 0%, #fce4ec 100%);
+  border: 1px solid rgba(233, 30, 99, 0.12);
+}
+
+.core-value-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(233, 30, 99, 0.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  transition: all 0.3s ease;
+}
+
+.core-value-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(233, 30, 99, 0.14);
+}
+
+.core-value-icon {
+  width: 60px;
+  height: 60px;
+  background: #fff5f8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 1.6rem;
+}
+
+/* ==========================================
+   CONTENT SECTIONS (Nature, Water, People, Animals)
+   ========================================== */
+#nature img, #water img, #empowerment img, #animal-compassion img {
+  border-radius: 20px;
+  max-height: 400px;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* ==========================================
+   FOLDER CARDS (Events / Videos / Letters)
+   ========================================== */
+.folder-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1.5px solid rgba(233, 30, 99, 0.10);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  transition: all 0.28s ease;
+  position: relative;
+}
+
+.folder-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.13);
+  border-color: var(--folder-color, #e91e63);
+}
+
+.folder-tab {
+  height: 10px;
+  width: 60px;
+  background: var(--folder-color, #e91e63);
+  border-radius: 8px 8px 0 0;
+  margin: 0 0 0 16px;
+  position: relative;
+  top: 0;
+}
+
+.folder-body {
+  border-top: 3px solid var(--folder-color, #e91e63);
+}
+
+.folder-cover-grid {
+  overflow: hidden;
+  height: 160px;
+}
+
+.folder-cover-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.folder-card:hover .folder-cover-img {
+  transform: scale(1.05);
+}
+
+.folder-extra-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.58);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.folder-info {
+  background: #fff;
+}
+
+.folder-title {
+  font-size: 0.95rem;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
