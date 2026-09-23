@@ -27,6 +27,30 @@ define('DB_PORT', getenv('DB_PORT') ?: '3306');
 define('UPLOAD_BASE_DIR', dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads');
 define('UPLOAD_BASE_URL', '/uploads');
 
+// API Secret Key — required for all POST and DELETE operations
+define('VOKAL_API_SECRET', 'vkl_9xK3pR7nW2mQ8tY2026');
+
+/**
+ * Validates the API secret key for write operations.
+ * Checks X-API-Key header or api_key body param.
+ */
+function requireApiAuth() {
+    $key = '';
+    if (!empty($_SERVER['HTTP_X_API_KEY'])) {
+        $key = trim($_SERVER['HTTP_X_API_KEY']);
+    } elseif (!empty($_POST['api_key'])) {
+        $key = trim($_POST['api_key']);
+    } else {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!empty($input['api_key'])) {
+            $key = trim($input['api_key']);
+        }
+    }
+    if ($key !== VOKAL_API_SECRET) {
+        sendJsonResponse(['success' => false, 'error' => 'Unauthorized: Invalid or missing API key'], 401);
+    }
+}
+
 /**
  * Returns a singleton PDO database connection.
  */

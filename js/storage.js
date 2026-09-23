@@ -10,6 +10,15 @@ const STORAGE_KEYS = {
   FEEDBACK: "vokal_contact_inquiries"
 };
 
+// API secret key — must match VOKAL_API_SECRET in api/config.php
+const VOKAL_API_KEY = "vkl_9xK3pR7nW2mQ8tY2026";
+
+// Helper: authenticated fetch headers for write operations
+const authHeaders = {
+  "Content-Type": "application/json",
+  "X-API-Key": VOKAL_API_KEY
+};
+
 class VokalStorageManager {
   constructor() {
     this.initStorage();
@@ -173,7 +182,7 @@ class VokalStorageManager {
     try {
       const dbRes = await fetch("api/events.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({
           event_uid: eventUid,
           title: newEvent.title,
@@ -216,7 +225,8 @@ class VokalStorageManager {
     // 2. Delete from MySQL server — must succeed
     try {
       const res = await fetch(`api/events.php?id=${encodeURIComponent(id)}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: { "X-API-Key": VOKAL_API_KEY }
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || (json && !json.success)) {
@@ -295,7 +305,7 @@ class VokalStorageManager {
     try {
       fetch("api/letters.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({
           ref_no: newLetter.refNo,
           subject: newLetter.subject,
@@ -319,7 +329,10 @@ class VokalStorageManager {
     letters = letters.filter(l => l.id !== id);
     localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(letters));
     try {
-      const res = await fetch(`api/letters.php?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      const res = await fetch(`api/letters.php?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: { "X-API-Key": VOKAL_API_KEY }
+      });
       const json = await res.json().catch(() => null);
       if (!res.ok || (json && !json.success)) {
         console.warn("Server deletion failed:", json);
@@ -376,7 +389,7 @@ class VokalStorageManager {
     try {
       fetch("api/videos.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({
           video_uid: videoUid,
           title: newVideo.title,
@@ -397,7 +410,10 @@ class VokalStorageManager {
     videos = videos.filter(v => v.id !== id);
     localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
     try {
-      const res = await fetch(`api/videos.php?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      const res = await fetch(`api/videos.php?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: { "X-API-Key": VOKAL_API_KEY }
+      });
       const json = await res.json().catch(() => null);
       if (!res.ok || (json && !json.success)) {
         console.warn("Server deletion failed:", json);
@@ -456,7 +472,7 @@ class VokalStorageManager {
       // Save to MySQL
       fetch("api/inquiries.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify(inquiry)
       }).catch(() => {});
 

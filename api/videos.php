@@ -29,6 +29,7 @@ switch ($method) {
         break;
 
     case 'POST':
+        requireApiAuth();
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) $input = $_POST;
 
@@ -76,6 +77,7 @@ switch ($method) {
         break;
 
     case 'DELETE':
+        requireApiAuth();
         $id = isset($_GET['id']) ? trim($_GET['id']) : null;
         if (!$id) sendJsonResponse(["success" => false, "error" => "Video ID required"], 400);
 

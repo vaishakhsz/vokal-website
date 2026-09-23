@@ -35,6 +35,7 @@ switch ($method) {
         break;
 
     case 'POST':
+        requireApiAuth();
         // Read JSON input or Form POST
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {
@@ -94,6 +95,7 @@ switch ($method) {
         break;
 
     case 'DELETE':
+        requireApiAuth();
         $id = isset($_REQUEST['id']) ? trim($_REQUEST['id']) : null;
         if (!$id) {
             sendJsonResponse(["success" => false, "error" => "Event ID or UID required"], 400);
