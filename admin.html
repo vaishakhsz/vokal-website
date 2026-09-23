@@ -711,7 +711,7 @@
       // Auto-populate current date like "23 Sep 2026"
       const now = new Date();
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const dateString = \`\${now.getDate()} \${months[now.getMonth()]} \${now.getFullYear()}\`;
+      const dateString = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
       document.getElementById("editFolderName").value = dateString;
       
       document.getElementById("editFolderType").value = "event";
@@ -759,7 +759,7 @@
       if (photoSelect) {
         const photoFolders = folders.filter(f => f.type === 'event');
         if (photoFolders.length > 0) {
-          photoSelect.innerHTML = photoFolders.map(f => \`<option value="\${f.name}">\${f.name}</option>\`).join('');
+          photoSelect.innerHTML = photoFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
         }
       }
       
@@ -768,7 +768,7 @@
       if (videoSelect) {
         const videoFolders = folders.filter(f => f.type === 'video');
         if (videoFolders.length > 0) {
-          videoSelect.innerHTML = videoFolders.map(f => \`<option value="\${f.name}">\${f.name}</option>\`).join('');
+          videoSelect.innerHTML = videoFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
         }
       }
       
