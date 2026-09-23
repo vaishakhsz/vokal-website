@@ -23,10 +23,14 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
-          server-dir: ./
+          port: 21
+          server-dir: /public_html/
+          local-dir: ./
+          dangerous-clean-slate: false
           exclude: |
             **/.git*
             **/.git*/**
+            **/node_modules/**
             **/scripts/**
             **/database/vokal_database.sql
             **/setup_db.php
