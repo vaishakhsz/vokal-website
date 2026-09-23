@@ -8,7 +8,7 @@
 // Enable CORS for frontend requests
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-API-Key");
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -32,20 +32,35 @@ define('VOKAL_API_SECRET', 'vkl_9xK3pR7nW2mQ8tY2026');
 
 /**
  * Validates the API secret key for write operations.
- * Checks X-API-Key header or api_key body param.
+ * Checks X-API-Key header, getallheaders(), or api_key query/body param.
  */
 function requireApiAuth() {
     $key = '';
     if (!empty($_SERVER['HTTP_X_API_KEY'])) {
         $key = trim($_SERVER['HTTP_X_API_KEY']);
-    } elseif (!empty($_POST['api_key'])) {
-        $key = trim($_POST['api_key']);
-    } else {
+    } elseif (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        if (is_array($headers)) {
+            foreach ($headers as $hName => $hVal) {
+                if (strcasecmp($hName, 'X-API-Key') === 0) {
+                    $key = trim($hVal);
+                    break;
+                }
+            }
+        }
+    }
+
+    if (empty($key) && !empty($_REQUEST['api_key'])) {
+        $key = trim($_REQUEST['api_key']);
+    }
+
+    if (empty($key)) {
         $input = json_decode(file_get_contents('php://input'), true);
         if (!empty($input['api_key'])) {
             $key = trim($input['api_key']);
         }
     }
+
     if ($key !== VOKAL_API_SECRET) {
         sendJsonResponse(['success' => false, 'error' => 'Unauthorized: Invalid or missing API key'], 401);
     }

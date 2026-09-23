@@ -103,8 +103,13 @@ switch ($method) {
 
         // Find and delete the uploaded image from server disk to save space
         try {
-            $selStmt = $pdo->prepare("SELECT `image_url` FROM `events_photos` WHERE `id` = :id OR `event_uid` = :uid");
-            $selStmt->execute([':id' => $id, ':uid' => $id]);
+            if (is_numeric($id)) {
+                $selStmt = $pdo->prepare("SELECT `image_url` FROM `events_photos` WHERE `id` = :id");
+                $selStmt->execute([':id' => (int)$id]);
+            } else {
+                $selStmt = $pdo->prepare("SELECT `image_url` FROM `events_photos` WHERE `event_uid` = :uid");
+                $selStmt->execute([':uid' => $id]);
+            }
             $row = $selStmt->fetch();
             if ($row && !empty($row['image_url']) && strpos($row['image_url'], 'uploads/') === 0) {
                 $diskFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $row['image_url']);
@@ -114,10 +119,19 @@ switch ($method) {
             }
         } catch (Exception $e) {}
 
-        $stmt = $pdo->prepare("DELETE FROM `events_photos` WHERE `id` = :id OR `event_uid` = :uid");
-        $stmt->execute([':id' => $id, ':uid' => $id]);
+        if (is_numeric($id)) {
+            $stmt = $pdo->prepare("DELETE FROM `events_photos` WHERE `id` = :id");
+            $stmt->execute([':id' => (int)$id]);
+        } else {
+            $stmt = $pdo->prepare("DELETE FROM `events_photos` WHERE `event_uid` = :uid");
+            $stmt->execute([':uid' => $id]);
+        }
 
-        sendJsonResponse(["success" => true, "message" => "Event photo deleted from MySQL and disk"]);
+        sendJsonResponse([
+            "success" => true,
+            "message" => "Event photo deleted from MySQL and disk",
+            "deleted" => $stmt->rowCount()
+        ]);
         break;
 
     default:

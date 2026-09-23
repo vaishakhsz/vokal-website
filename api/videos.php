@@ -78,13 +78,22 @@ switch ($method) {
 
     case 'DELETE':
         requireApiAuth();
-        $id = isset($_GET['id']) ? trim($_GET['id']) : null;
+        $id = isset($_REQUEST['id']) ? trim($_REQUEST['id']) : null;
         if (!$id) sendJsonResponse(["success" => false, "error" => "Video ID required"], 400);
 
-        $stmt = $pdo->prepare("DELETE FROM `videos` WHERE `id` = :id OR `video_uid` = :uid");
-        $stmt->execute([':id' => $id, ':uid' => $id]);
+        if (is_numeric($id)) {
+            $stmt = $pdo->prepare("DELETE FROM `videos` WHERE `id` = :id");
+            $stmt->execute([':id' => (int)$id]);
+        } else {
+            $stmt = $pdo->prepare("DELETE FROM `videos` WHERE `video_uid` = :uid");
+            $stmt->execute([':uid' => $id]);
+        }
 
-        sendJsonResponse(["success" => true, "message" => "Video deleted from MySQL"]);
+        sendJsonResponse([
+            "success" => true,
+            "message" => "Video deleted from MySQL",
+            "deleted" => $stmt->rowCount()
+        ]);
         break;
 
     default:

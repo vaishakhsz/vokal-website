@@ -217,28 +217,27 @@ class VokalStorageManager {
   }
 
   async deleteEvent(id) {
-    // 1. Remove from localStorage immediately (optimistic)
-    let events = this.getEvents();
-    events = events.filter(e => e.id !== id);
-    localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
-
-    // 2. Delete from MySQL server — must succeed
     try {
-      const res = await fetch(`api/events.php?id=${encodeURIComponent(id)}`, {
+      const res = await fetch(`api/events.php?id=${encodeURIComponent(id)}&api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
         method: "DELETE",
         headers: { "X-API-Key": VOKAL_API_KEY }
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || (json && !json.success)) {
         console.warn("Server deletion failed:", json);
-        // Re-sync from server to restore accurate state
         await this.syncWithServer();
-        throw new Error(json?.error || "Server could not delete this entry. Please try again.");
+        throw new Error(json?.error || "Server could not delete this photo. Please try again.");
       }
     } catch (e) {
-      if (e.message && e.message.includes("Server could not delete")) throw e;
-      console.warn("Network error during delete:", e);
+      console.warn("Error during delete:", e);
+      await this.syncWithServer();
+      throw e;
     }
+
+    // Remove from localStorage
+    let events = this.getEvents();
+    events = events.filter(e => e.id !== id && String(e.id) !== String(id));
+    localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
 
     return true;
   }
@@ -325,11 +324,8 @@ class VokalStorageManager {
   }
 
   async deleteLetter(id) {
-    let letters = this.getLetters();
-    letters = letters.filter(l => l.id !== id);
-    localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(letters));
     try {
-      const res = await fetch(`api/letters.php?id=${encodeURIComponent(id)}`, {
+      const res = await fetch(`api/letters.php?id=${encodeURIComponent(id)}&api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
         method: "DELETE",
         headers: { "X-API-Key": VOKAL_API_KEY }
       });
@@ -340,9 +336,14 @@ class VokalStorageManager {
         throw new Error(json?.error || "Server could not delete letter. Please try again.");
       }
     } catch (e) {
-      if (e.message && e.message.includes("Server could not delete")) throw e;
-      console.warn("Network error during delete:", e);
+      console.warn("Error during delete:", e);
+      await this.syncWithServer();
+      throw e;
     }
+
+    let letters = this.getLetters();
+    letters = letters.filter(l => l.id !== id && String(l.id) !== String(id));
+    localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(letters));
     return true;
   }
 
@@ -406,11 +407,8 @@ class VokalStorageManager {
   }
 
   async deleteVideo(id) {
-    let videos = this.getVideos();
-    videos = videos.filter(v => v.id !== id);
-    localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
     try {
-      const res = await fetch(`api/videos.php?id=${encodeURIComponent(id)}`, {
+      const res = await fetch(`api/videos.php?id=${encodeURIComponent(id)}&api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
         method: "DELETE",
         headers: { "X-API-Key": VOKAL_API_KEY }
       });
@@ -421,9 +419,14 @@ class VokalStorageManager {
         throw new Error(json?.error || "Server could not delete video. Please try again.");
       }
     } catch (e) {
-      if (e.message && e.message.includes("Server could not delete")) throw e;
-      console.warn("Network error during delete:", e);
+      console.warn("Error during delete:", e);
+      await this.syncWithServer();
+      throw e;
     }
+
+    let videos = this.getVideos();
+    videos = videos.filter(v => v.id !== id && String(v.id) !== String(id));
+    localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
     return true;
   }
 
