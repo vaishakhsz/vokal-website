@@ -56,8 +56,8 @@ for ($i = 0; $i < $zip->numFiles; $i++) {
         continue;
     }
 
-    // Protect user uploads directory - never overwrite!
-    if (strpos($relative, 'uploads/') === 0) {
+    // Protect user uploads and configuration - never overwrite!
+    if (strpos($relative, 'uploads/') === 0 || $relative === 'api/config.php') {
         continue;
     }
 

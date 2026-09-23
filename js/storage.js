@@ -46,7 +46,7 @@ class VokalStorageManager {
       const evtRes = await fetch("api/events.php");
       if (evtRes.ok) {
         const json = await evtRes.json();
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        if (json.success && Array.isArray(json.data)) {
           const mapped = json.data.map(dbItem => ({
             id: dbItem.event_uid || ("evt-" + dbItem.id),
             title: dbItem.title,
@@ -71,7 +71,7 @@ class VokalStorageManager {
       const vidRes = await fetch("api/videos.php");
       if (vidRes.ok) {
         const json = await vidRes.json();
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        if (json.success && Array.isArray(json.data)) {
           const mapped = json.data.map(v => ({
             id: v.video_uid || ("vid-" + v.id),
             title: v.title,
@@ -96,7 +96,7 @@ class VokalStorageManager {
       const letRes = await fetch("api/letters.php");
       if (letRes.ok) {
         const json = await letRes.json();
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        if (json.success && Array.isArray(json.data)) {
           const mapped = json.data.map(l => ({
             id: l.letter_uid || ("let-" + l.id),
             refNo: l.ref_no,
