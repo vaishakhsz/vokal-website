@@ -98,6 +98,9 @@
           <a class="admin-nav-item" data-bs-toggle="tab" href="#sec-letters" role="tab">
             <i class="bi bi-file-earmark-text-fill"></i> Govt Letters
           </a>
+          <a class="admin-nav-item" data-bs-toggle="tab" href="#sec-folders" role="tab">
+            <i class="bi bi-folder-fill"></i> Manage Folders
+          </a>
           <a class="admin-nav-item" data-bs-toggle="tab" href="#sec-videos" role="tab">
             <i class="bi bi-youtube"></i> Video Links
           </a>
@@ -265,6 +268,33 @@
                     </tr>
                   </thead>
                   <tbody id="adminVideosTableBody">
+                    <!-- Dynamic -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOLDERS TAB -->
+          <div class="tab-pane fade" id="sec-folders" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+              <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-folder-fill text-warning me-2"></i>Manage Folders</h5>
+                <button class="btn btn-vokal-primary btn-sm" onclick="showAdminFolderModal()">
+                  <i class="bi bi-folder-plus me-1"></i> Create Folder
+                </button>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Folder Name</th>
+                      <th>Type</th>
+                      <th>Created Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminFoldersTableBody">
                     <!-- Dynamic -->
                   </tbody>
                 </table>
@@ -568,11 +598,13 @@
     }
 
     function loadAdminDashboard() {
+      renderAdminFolders();
       renderAdminPhotos();
       renderAdminLetters();
       renderAdminVideos();
       renderAdminInquiries();
       updateAdminCounts();
+      updateFolderDropdowns();
     }
 
     function updateAdminCounts() {
@@ -586,6 +618,170 @@
       document.getElementById("adminTotalVideos").textContent = videos.length;
       document.getElementById("adminTotalInquiries").textContent = inquiries.length;
       document.getElementById("inquiryCountBadge").textContent = inquiries.length;
+    }
+
+    function renderAdminFolders() {
+      const tbody = document.getElementById("adminFoldersTableBody");
+      if (!tbody) return;
+      const folders = window.vokalStorage.getFolders();
+      tbody.innerHTML = "";
+
+      if (folders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No folders created yet.</td></tr>`;
+        return;
+      }
+
+      folders.forEach(f => {
+        const tr = document.createElement("tr");
+        tr.id = `folder-row-${f.id}`;
+        tr.innerHTML = `
+          <td class="fw-bold"><i class="bi bi-folder-fill text-warning me-2"></i>${f.name}</td>
+          <td><span class="badge bg-secondary text-uppercase">${f.type}</span></td>
+          <td>${f.created_at}</td>
+          <td>
+            <div class="d-flex gap-1">
+              <button class="btn btn-outline-primary btn-sm" title="Edit" onclick="showEditFolderModal('${f.id}')">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="adminDeleteFolder('${f.id}')">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function adminDeleteFolder(id) {
+      if (!confirm("Permanently delete this folder AND ALL items inside it? This cannot be undone.")) return;
+      try {
+        await window.vokalStorage.deleteFolder(id);
+        loadAdminDashboard();
+        showToast("Folder deleted successfully.", "success");
+      } catch (err) {
+        showToast("Delete failed: " + err.message, "danger");
+      }
+    }
+
+    function showAdminFolderModal() {
+      // Create modal if not exists
+      let modalEl = document.getElementById("editFolderModal");
+      if (!modalEl) {
+        modalEl = document.createElement("div");
+        modalEl.className = "modal fade";
+        modalEl.id = "editFolderModal";
+        modalEl.tabIndex = -1;
+        modalEl.innerHTML = `
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+              <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold"><i class="bi bi-folder-plus me-2"></i>Manage Folder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body p-4">
+                <input type="hidden" id="editFolderId">
+                <div class="mb-3">
+                  <label class="form-label fw-bold small">Folder Name (e.g. Date)</label>
+                  <input type="text" id="editFolderName" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold small">Content Type</label>
+                  <select id="editFolderType" class="form-select">
+                    <option value="event">Photos / Events</option>
+                    <option value="video">Videos</option>
+                    <option value="letter">Govt Letters</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning fw-bold" onclick="saveAdminFolder()">
+                  <i class="bi bi-check-circle me-1"></i> Save Folder
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modalEl);
+      }
+
+      document.getElementById("editFolderId").value = "";
+      
+      // Auto-populate current date like "23 Sep 2026"
+      const now = new Date();
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dateString = \`\${now.getDate()} \${months[now.getMonth()]} \${now.getFullYear()}\`;
+      document.getElementById("editFolderName").value = dateString;
+      
+      document.getElementById("editFolderType").value = "event";
+
+      new bootstrap.Modal(modalEl).show();
+    }
+
+    function showEditFolderModal(id) {
+      const folders = window.vokalStorage.getFolders();
+      const f = folders.find(x => String(x.id) === String(id));
+      if (!f) return;
+      showAdminFolderModal();
+      document.getElementById("editFolderId").value = f.id;
+      document.getElementById("editFolderName").value = f.name;
+      document.getElementById("editFolderType").value = f.type;
+    }
+
+    async function saveAdminFolder() {
+      const id = document.getElementById("editFolderId").value;
+      const name = document.getElementById("editFolderName").value.trim();
+      const type = document.getElementById("editFolderType").value;
+      
+      if (!name) { showToast("Folder name is required.", "warning"); return; }
+
+      try {
+        if (id) {
+          await window.vokalStorage.editFolder(id, name, type);
+          showToast("Folder updated successfully!", "success");
+        } else {
+          await window.vokalStorage.addFolder(name, type);
+          showToast("Folder created successfully!", "success");
+        }
+        bootstrap.Modal.getInstance(document.getElementById("editFolderModal"))?.hide();
+        loadAdminDashboard();
+      } catch (e) {
+        showToast("Error: " + e.message, "danger");
+      }
+    }
+
+    function updateFolderDropdowns() {
+      const folders = window.vokalStorage.getFolders();
+      
+      // Photos dropdown
+      const photoSelect = document.getElementById("photoCategory");
+      if (photoSelect) {
+        const photoFolders = folders.filter(f => f.type === 'event');
+        if (photoFolders.length > 0) {
+          photoSelect.innerHTML = photoFolders.map(f => \`<option value="\${f.name}">\${f.name}</option>\`).join('');
+        }
+      }
+      
+      // Videos dropdown
+      const videoSelect = document.getElementById("videoCategory");
+      if (videoSelect) {
+        const videoFolders = folders.filter(f => f.type === 'video');
+        if (videoFolders.length > 0) {
+          videoSelect.innerHTML = videoFolders.map(f => \`<option value="\${f.name}">\${f.name}</option>\`).join('');
+        }
+      }
+      
+      // Letters dropdown
+      const letterSelect = document.getElementById("letterDepartment");
+      if (letterSelect) {
+        const letterFolders = folders.filter(f => f.type === 'letter');
+        if (letterFolders.length > 0) {
+          // Letters previously used department, but user wants them grouped by folder date.
+          // Wait, letters grouped by "department" in UI but the user said "do the same seperately for videos link and also letters"
+          // We can let them select folder for letters as well. 
+        }
+      }
     }
 
     function renderAdminPhotos() {

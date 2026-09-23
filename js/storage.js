@@ -120,6 +120,21 @@ class VokalStorageManager {
     } catch (e) {
       console.log("Offline mode: using cached letters", e.message);
     }
+
+    try {
+      // Sync Folders from MySQL
+      const fldrRes = await fetch("api/folders.php");
+      if (fldrRes.ok) {
+        const json = await fldrRes.json();
+        if (json.success && Array.isArray(json.data)) {
+          localStorage.setItem("vokal_folders_data", JSON.stringify(json.data));
+          if (typeof renderAdminFolders === "function") renderAdminFolders();
+          if (typeof updateFolderDropdowns === "function") updateFolderDropdowns();
+        }
+      }
+    } catch (e) {
+      console.log("Offline mode: using cached folders", e.message);
+    }
   }
 
   // --- EVENTS & PHOTOS ---
@@ -459,6 +474,72 @@ class VokalStorageManager {
       localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(jsonData.videos));
     }
     return true;
+  }
+
+  // --- FOLDERS ---
+  getFolders() {
+    try {
+      const data = localStorage.getItem("vokal_folders_data");
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async addFolder(name, type) {
+    try {
+      const res = await fetch("api/folders.php", {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({ name, type })
+      });
+      const json = await res.json();
+      if (json.success) {
+        await this.syncWithServer();
+        return json;
+      }
+      throw new Error(json.error || "Failed to create folder");
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  async editFolder(id, name, type) {
+    try {
+      const res = await fetch("api/folders.php", {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({ id, name, type })
+      });
+      const json = await res.json();
+      if (json.success) {
+        await this.syncWithServer();
+        return json;
+      }
+      throw new Error(json.error || "Failed to edit folder");
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  async deleteFolder(id) {
+    try {
+      const res = await fetch(`api/folders.php?id=${encodeURIComponent(id)}&api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
+        method: "DELETE",
+        headers: authHeaders
+      });
+      const json = await res.json();
+      if (json.success) {
+        await this.syncWithServer();
+        return true;
+      }
+      throw new Error(json.error || "Failed to delete folder");
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
   }
 
   // --- INQUIRIES & CRUELTY REPORTS ---

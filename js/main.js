@@ -163,7 +163,7 @@ function renderSpiritualMastersSlider() {
       if (!isPaused) {
         switchAmmaPhoto();
       }
-    }, 5000); // 5 seconds each photo
+    }, 10000); // 10 seconds each photo
   }
 
   function stopAmmaPhotoCycle() {
@@ -186,12 +186,12 @@ function renderSpiritualMastersSlider() {
     clearTimeout(masterTimer);
 
     if (index === 0) {
-      // Amma: 4 photos * 5s = 20 seconds total before advancing
+      // Amma: 2 photos * 10s = 20 seconds total before advancing
       startAmmaPhotoCycle();
       scheduleNextMaster(20000);
     } else {
-      // Other Masters: 15 seconds each
-      scheduleNextMaster(15000);
+      // Other Masters: 10 seconds each
+      scheduleNextMaster(10000);
     }
   }
 

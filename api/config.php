@@ -106,6 +106,13 @@ function ensureDatabaseSchemaUpdates($pdo) {
             $pdo->exec("ALTER TABLE `events_photos` MODIFY `thumbnail_url` LONGTEXT NULL");
             $pdo->exec("ALTER TABLE `letters_govt` MODIFY `document_url` LONGTEXT NULL");
             $pdo->exec("ALTER TABLE `videos` MODIFY `thumbnail_url` LONGTEXT NULL");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `folders` (
+                `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                `name` VARCHAR(128) NOT NULL,
+                `type` ENUM('event', 'video', 'letter') NOT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY `idx_name_type` (`name`, `type`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
         } catch (Exception $e) {
             // Silently continue if already modified or no ALTER permissions
         }
