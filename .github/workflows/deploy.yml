@@ -11,21 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚀 Trigger cPanel Git Pull & Deploy
+      - name: 🚀 Trigger Automated Webhook Deploy
         run: |
-          echo "Step 1: Pulling latest code from GitHub to cPanel server..."
-          curl -s --insecure -X POST \
-            "https://lin31.plreseller.com:2083/execute/VersionControl/update" \
-            -H "Authorization: cpanel vokalorg:${{ secrets.CPANEL_API_TOKEN }}" \
-            --data "repository_root=/home/vokalorg/vokal-website"
+          echo "Calling VOKAL auto-deploy webhook on server..."
+          RESPONSE=$(curl -s -L "https://vokal.org.in/api/webhook.php?token=vkl_9xK3pR7nW2mQ8tY2026")
+          echo "Server Response: $RESPONSE"
 
-          echo "Waiting 5 seconds..."
-          sleep 5
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "✅ Auto-deploy succeeded instantly via Webhook!"
+          else
+            echo "Webhook not yet on server or returned non-success, attempting cPanel API fallback..."
+            curl -s --insecure -X POST \
+              "https://lin31.plreseller.com:2083/execute/VersionControlDeployment/create" \
+              -H "Authorization: cpanel vokalorg:${{ secrets.CPANEL_API_TOKEN }}" \
+              --data "repository_root=/home/vokalorg/vokal-website" || true
+          fi
 
-          echo "Step 2: Running .cpanel.yml deploy tasks..."
-          curl -s --insecure -X POST \
-            "https://lin31.plreseller.com:2083/execute/VersionControlDeployment/create" \
-            -H "Authorization: cpanel vokalorg:${{ secrets.CPANEL_API_TOKEN }}" \
-            --data "repository_root=/home/vokalorg/vokal-website"
-
-          echo "✅ Deployment triggered successfully!"
