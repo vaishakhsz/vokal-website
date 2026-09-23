@@ -6,35 +6,26 @@ on:
       - main
 
 jobs:
-  web-deploy:
-    name: Sync to vokal.org.in
+  deploy:
+    name: Deploy to vokal.org.in
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🚚 Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+      - name: 🚀 Trigger cPanel Git Pull & Deploy
+        run: |
+          echo "Step 1: Pulling latest code from GitHub to cPanel server..."
+          curl -s --insecure -X POST \
+            "https://lin31.plreseller.com:2083/execute/VersionControl/update" \
+            -H "Authorization: cpanel vokalorg:${{ secrets.CPANEL_API_TOKEN }}" \
+            --data "repository_root=/home/vokalorg/vokal-website"
 
-      - name: 🚀 Sync files to cPanel Server
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          port: 21
-          server-dir: public_html/
-          local-dir: ./
-          dangerous-clean-slate: false
-          timeout: 60000
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/scripts/**
-            **/database/vokal_database.sql
-            **/setup_db.php
-            uploads/photos/**
-            uploads/videos/**
-            uploads/documents/**
+          echo "Waiting 5 seconds..."
+          sleep 5
+
+          echo "Step 2: Running .cpanel.yml deploy tasks..."
+          curl -s --insecure -X POST \
+            "https://lin31.plreseller.com:2083/execute/VersionControlDeployment/create" \
+            -H "Authorization: cpanel vokalorg:${{ secrets.CPANEL_API_TOKEN }}" \
+            --data "repository_root=/home/vokalorg/vokal-website"
+
+          echo "✅ Deployment triggered successfully!"
