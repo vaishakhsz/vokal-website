@@ -193,27 +193,19 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4">
               <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0"><i class="bi bi-images text-primary me-2"></i>Published Event Photos</h5>
-                <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('photo')">
-                  <i class="bi bi-plus-lg me-1"></i> Upload New Photo
-                </button>
+                <div>
+                  <button class="btn btn-outline-warning btn-sm fw-bold me-2" onclick="showAdminFolderModal('event')">
+                    <i class="bi bi-folder-plus me-1"></i> Create Folder
+                  </button>
+                  <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('photo')">
+                    <i class="bi bi-plus-lg me-1"></i> Upload New Photo
+                  </button>
+                </div>
               </div>
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Image</th>
-                      <th>Title</th>
-                      <th>Category</th>
-                      <th>Location</th>
-                      <th>Date</th>
-                      <th>Source</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminPhotosTableBody">
-                    <!-- Dynamic -->
-                  </tbody>
-                </table>
+              <div class="p-4 bg-light">
+                <div class="row g-3" id="adminPhotosGrid">
+                  <!-- Dynamic folders -->
+                </div>
               </div>
             </div>
           </div>
@@ -223,26 +215,19 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4">
               <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i>Official Letters to Government</h5>
-                <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('letter')">
-                  <i class="bi bi-plus-lg me-1"></i> Upload New Letter
-                </button>
+                <div>
+                  <button class="btn btn-outline-warning btn-sm fw-bold me-2" onclick="showAdminFolderModal('letter')">
+                    <i class="bi bi-folder-plus me-1"></i> Create Folder
+                  </button>
+                  <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('letter')">
+                    <i class="bi bi-plus-lg me-1"></i> Upload New Letter
+                  </button>
+                </div>
               </div>
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Ref Number</th>
-                      <th>Subject</th>
-                      <th>Department</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminLettersTableBody">
-                    <!-- Dynamic -->
-                  </tbody>
-                </table>
+              <div class="p-4 bg-light">
+                <div class="row g-3" id="adminLettersGrid">
+                  <!-- Dynamic folders -->
+                </div>
               </div>
             </div>
           </div>
@@ -252,25 +237,19 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4">
               <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0"><i class="bi bi-youtube text-danger me-2"></i>Official Video Archive</h5>
-                <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('video')">
-                  <i class="bi bi-plus-lg me-1"></i> Add Video Link
-                </button>
+                <div>
+                  <button class="btn btn-outline-warning btn-sm fw-bold me-2" onclick="showAdminFolderModal('video')">
+                    <i class="bi bi-folder-plus me-1"></i> Create Folder
+                  </button>
+                  <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('video')">
+                    <i class="bi bi-plus-lg me-1"></i> Add Video Link
+                  </button>
+                </div>
               </div>
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Thumbnail</th>
-                      <th>Title</th>
-                      <th>Platform</th>
-                      <th>Category</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminVideosTableBody">
-                    <!-- Dynamic -->
-                  </tbody>
-                </table>
+              <div class="p-4 bg-light">
+                <div class="row g-3" id="adminVideosGrid">
+                  <!-- Dynamic folders -->
+                </div>
               </div>
             </div>
           </div>
@@ -307,28 +286,14 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4">
               <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0"><i class="bi bi-inbox-fill text-primary me-2"></i>Citizen Inquiries & Cruelty Reports</h5>
-                <button class="btn btn-outline-secondary btn-sm" onclick="loadInquiries()">
+                <button class="btn btn-outline-secondary btn-sm" onclick="loadAdminDashboard()">
                   <i class="bi bi-arrow-clockwise me-1"></i> Refresh
                 </button>
               </div>
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Date</th>
-                      <th>Category</th>
-                      <th>Name</th>
-                      <th>District</th>
-                      <th>Contact</th>
-                      <th>Message</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminInquiriesTableBody">
-                    <!-- Dynamic -->
-                  </tbody>
-                </table>
+              <div class="p-4 bg-light">
+                <div class="row g-3" id="adminInquiriesGrid">
+                  <!-- Dynamic folders -->
+                </div>
               </div>
             </div>
           </div>
@@ -415,7 +380,7 @@
                     <input type="text" id="photoTitle" class="form-control" required>
                   </div>
                   <div class="col-md-5">
-                    <label class="form-label small fw-bold">Category *</label>
+                    <label class="form-label small fw-bold">Folder *</label>
                     <select id="photoCategory" class="form-select" required>
                       <option value="Vaccination & Care">Vaccination & Care</option>
                       <option value="Legal & Advocacy">Legal & Advocacy</option>
@@ -460,7 +425,7 @@
                     <input type="text" id="letterRecipient" class="form-control" required>
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label small fw-bold">Department *</label>
+                    <label class="form-label small fw-bold">Folder *</label>
                     <input type="text" id="letterDepartment" class="form-control" required>
                   </div>
                   <div class="col-md-6">
@@ -509,7 +474,7 @@
                     <input type="url" id="videoUrl" class="form-control" required>
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label small fw-bold">Category *</label>
+                    <label class="form-label small fw-bold">Folder *</label>
                     <select id="videoCategory" class="form-select" required>
                       <option value="Legal Insights">Legal Insights</option>
                       <option value="Scientific Policy">Scientific Policy</option>
@@ -754,83 +719,226 @@
     function updateFolderDropdowns() {
       const folders = window.vokalStorage.getFolders();
       
-      // Photos dropdown
-      const photoSelect = document.getElementById("photoCategory");
-      if (photoSelect) {
-        const photoFolders = folders.filter(f => f.type === 'event');
-        if (photoFolders.length > 0) {
-          photoSelect.innerHTML = photoFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
-        }
-      }
-      
-      // Videos dropdown
-      const videoSelect = document.getElementById("videoCategory");
-      if (videoSelect) {
-        const videoFolders = folders.filter(f => f.type === 'video');
-        if (videoFolders.length > 0) {
-          videoSelect.innerHTML = videoFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
-        }
-      }
-      
-      // Letters dropdown
-      const letterSelect = document.getElementById("letterDepartment");
-      if (letterSelect) {
-        const letterFolders = folders.filter(f => f.type === 'letter');
-        if (letterFolders.length > 0) {
-          // Letters previously used department, but user wants them grouped by folder date.
-          // Wait, letters grouped by "department" in UI but the user said "do the same seperately for videos link and also letters"
-          // We can let them select folder for letters as well. 
-        }
-      }
+      const photoFolders = folders.filter(f => f.type === 'event');
+      const photoOptions = photoFolders.length > 0 ? photoFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('') : '<option value="General">General</option>';
+      if (document.getElementById("photoCategory")) document.getElementById("photoCategory").innerHTML = photoOptions;
+      if (document.getElementById("editPhotoCategory")) document.getElementById("editPhotoCategory").innerHTML = photoOptions;
+
+      const videoFolders = folders.filter(f => f.type === 'video');
+      const videoOptions = videoFolders.length > 0 ? videoFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('') : '<option value="General">General</option>';
+      if (document.getElementById("videoCategory")) document.getElementById("videoCategory").innerHTML = videoOptions;
+
+      const letterFolders = folders.filter(f => f.type === 'letter');
+      const letterOptions = letterFolders.length > 0 ? letterFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('') : '<option value="General">General</option>';
+      if (document.getElementById("letterDept")) document.getElementById("letterDept").innerHTML = letterOptions;
     }
 
     function renderAdminPhotos() {
-      const tbody = document.getElementById("adminPhotosTableBody");
+      const grid = document.getElementById("adminPhotosGrid");
+      if (!grid) return;
       const photos = window.vokalStorage.getEvents();
-      tbody.innerHTML = "";
+      const folders = window.vokalStorage.getFolders().filter(f => f.type === 'event');
+      grid.innerHTML = "";
 
-      if (photos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No event photos in database.</td></tr>`;
+      if (folders.length === 0 && photos.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No event photos in database. Click Create Folder to start.</div>`;
         return;
       }
 
+      const grouped = {};
+      folders.forEach(f => { grouped[f.name] = []; });
       photos.forEach(p => {
-        const tr = document.createElement("tr");
-        tr.id = `photo-row-${p.id}`;
-        tr.innerHTML = `
-          <td><img src="${p.image}" class="admin-table-img"></td>
-          <td class="fw-bold">${p.title}</td>
-          <td><span class="badge bg-light text-dark border">${p.category}</span></td>
-          <td>${p.location}</td>
-          <td>${p.date}</td>
-          <td>${p.isUserUploaded ? '<span class="badge bg-warning text-dark">Uploaded</span>' : '<span class="badge bg-secondary">Official</span>'}</td>
-          <td>
-            <div class="d-flex gap-1">
-              <button class="btn btn-outline-primary btn-sm" title="Edit" onclick="showEditPhotoModal('${p.id}')">
-                <i class="bi bi-pencil-fill"></i>
-              </button>
-              <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="adminDeleteEvent('${p.id}')">
-                <i class="bi bi-trash3"></i>
-              </button>
+        const cat = p.category || "General";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(p);
+      });
+
+      Object.entries(grouped).forEach(([folderName, items]) => {
+        const col = document.createElement("div");
+        col.className = "col-md-6 col-lg-4";
+        col.innerHTML = `
+          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'photo')" style="cursor: pointer;">
+            <div class="card-body p-4 text-center">
+              <i class="bi bi-folder-fill display-4 text-primary mb-3 d-block"></i>
+              <h5 class="fw-bold mb-1">${folderName}</h5>
+              <span class="badge bg-light text-dark border">${items.length} Photos</span>
             </div>
-          </td>
+          </div>
         `;
-        tbody.appendChild(tr);
+        grid.appendChild(col);
       });
     }
 
-    async function adminDeleteEvent(id) {
-      if (!confirm("Permanently delete this photo from the database?")) return;
-      const btn = document.querySelector(`#photo-row-${id} .btn-outline-danger`);
-      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
-      try {
-        await window.vokalStorage.deleteEvent(id);
-        loadAdminDashboard();
-        showToast("Photo deleted from database successfully.", "success");
-      } catch (err) {
-        showToast("Delete failed: " + err.message, "danger");
-        loadAdminDashboard(); // re-render with current state
+    function renderAdminLetters() {
+      const grid = document.getElementById("adminLettersGrid");
+      if (!grid) return;
+      const letters = window.vokalStorage.getLetters();
+      const folders = window.vokalStorage.getFolders().filter(f => f.type === 'letter');
+      grid.innerHTML = "";
+
+      if (folders.length === 0 && letters.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No letters in database. Click Create Folder to start.</div>`;
+        return;
       }
+
+      const grouped = {};
+      folders.forEach(f => { grouped[f.name] = []; });
+      letters.forEach(l => {
+        const cat = l.department || "General";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(l);
+      });
+
+      Object.entries(grouped).forEach(([folderName, items]) => {
+        const col = document.createElement("div");
+        col.className = "col-md-6 col-lg-4";
+        col.innerHTML = `
+          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'letter')" style="cursor: pointer;">
+            <div class="card-body p-4 text-center">
+              <i class="bi bi-folder-fill display-4 text-success mb-3 d-block"></i>
+              <h5 class="fw-bold mb-1">${folderName}</h5>
+              <span class="badge bg-light text-dark border">${items.length} Letters</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(col);
+      });
+    }
+
+    function renderAdminVideos() {
+      const grid = document.getElementById("adminVideosGrid");
+      if (!grid) return;
+      const videos = window.vokalStorage.getVideos();
+      const folders = window.vokalStorage.getFolders().filter(f => f.type === 'video');
+      grid.innerHTML = "";
+
+      if (folders.length === 0 && videos.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No videos in database. Click Create Folder to start.</div>`;
+        return;
+      }
+
+      const grouped = {};
+      folders.forEach(f => { grouped[f.name] = []; });
+      videos.forEach(v => {
+        const cat = v.category || "General";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(v);
+      });
+
+      Object.entries(grouped).forEach(([folderName, items]) => {
+        const col = document.createElement("div");
+        col.className = "col-md-6 col-lg-4";
+        col.innerHTML = `
+          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'video')" style="cursor: pointer;">
+            <div class="card-body p-4 text-center">
+              <i class="bi bi-folder-fill display-4 text-danger mb-3 d-block"></i>
+              <h5 class="fw-bold mb-1">${folderName}</h5>
+              <span class="badge bg-light text-dark border">${items.length} Videos</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(col);
+      });
+    }
+
+    // Modal to view folder contents and upload directly
+    function openAdminFolder(folderName, type) {
+      let items = [];
+      let html = '';
+      let titleIcon = '';
+      let btnLabel = '';
+
+      if (type === 'photo') {
+        items = window.vokalStorage.getEvents().filter(x => (x.category || 'General') === folderName);
+        titleIcon = 'bi-images text-primary';
+        btnLabel = 'Upload Photo';
+        html = items.map(p => `
+          <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+            <img src="${p.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+            <div class="flex-grow-1">
+              <h6 class="fw-bold mb-1">${p.title}</h6>
+              <small class="text-muted">${p.date} • ${p.location}</small>
+            </div>
+            <div class="d-flex gap-1">
+              <button class="btn btn-outline-primary btn-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('adminFolderItemsModal'))?.hide(); showEditPhotoModal('${p.id}');"><i class="bi bi-pencil-fill"></i></button>
+              <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteEvent('${p.id}');"><i class="bi bi-trash3"></i></button>
+            </div>
+          </div>
+        `).join('');
+      } else if (type === 'letter') {
+        items = window.vokalStorage.getLetters().filter(x => (x.department || 'General') === folderName);
+        titleIcon = 'bi-file-earmark-text-fill text-success';
+        btnLabel = 'Upload Letter';
+        html = items.map(l => `
+          <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+            <div class="fs-1 text-success"><i class="bi bi-file-pdf-fill"></i></div>
+            <div class="flex-grow-1">
+              <h6 class="fw-bold mb-1">${l.subject}</h6>
+              <small class="text-muted">Ref: ${l.refNo} • ${l.date}</small>
+            </div>
+            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteLetter('${l.id}'); this.parentElement.remove();"><i class="bi bi-trash3"></i></button>
+          </div>
+        `).join('');
+      } else if (type === 'video') {
+        items = window.vokalStorage.getVideos().filter(x => (x.category || 'General') === folderName);
+        titleIcon = 'bi-youtube text-danger';
+        btnLabel = 'Add Video';
+        html = items.map(v => `
+          <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+            <img src="${v.thumbnail}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 8px;">
+            <div class="flex-grow-1">
+              <h6 class="fw-bold mb-1">${v.title}</h6>
+              <small class="text-muted">${v.duration}</small>
+            </div>
+            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteVideo('${v.id}'); this.parentElement.remove();"><i class="bi bi-trash3"></i></button>
+          </div>
+        `).join('');
+      }
+
+      if (items.length === 0) {
+        html = `<div class="text-center py-5 text-muted">Folder is empty. Click below to add.</div>`;
+      }
+
+      let modalEl = document.getElementById("adminFolderItemsModal");
+      if (!modalEl) {
+        modalEl = document.createElement("div");
+        modalEl.className = "modal fade";
+        modalEl.id = "adminFolderItemsModal";
+        modalEl.tabIndex = -1;
+        document.body.appendChild(modalEl);
+      }
+      
+      modalEl.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header bg-light">
+              <h5 class="modal-title fw-bold"><i class="bi ${titleIcon} me-2"></i>${folderName}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+              ${html}
+            </div>
+            <div class="modal-footer bg-light">
+              <button class="btn btn-vokal-primary w-100 fw-bold" onclick="uploadDirectlyToFolder('${folderName}', '${type}')">
+                <i class="bi bi-plus-lg me-1"></i> ${btnLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      new bootstrap.Modal(modalEl).show();
+    }
+
+    function uploadDirectlyToFolder(folderName, type) {
+      bootstrap.Modal.getInstance(document.getElementById("adminFolderItemsModal"))?.hide();
+      showAdminUploadModal(type);
+      
+      setTimeout(() => {
+        if (type === 'photo') document.getElementById("photoCategory").value = folderName;
+        if (type === 'letter') document.getElementById("letterDept").value = folderName;
+        if (type === 'video') document.getElementById("videoCategory").value = folderName;
+      }, 300);
     }
 
     function showEditPhotoModal(id) {
@@ -863,14 +971,9 @@
                     <input type="text" id="editPhotoTitle" class="form-control" required>
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label fw-bold small">Category *</label>
+                    <label class="form-label fw-bold small">Folder *</label>
                     <select id="editPhotoCategory" class="form-select">
-                      <option value="Vaccination &amp; Care">Vaccination &amp; Care</option>
-                      <option value="Legal &amp; Advocacy">Legal &amp; Advocacy</option>
-                      <option value="Emergency Rescue">Emergency Rescue</option>
-                      <option value="Community Support">Community Support</option>
-                      <option value="Public Campaign">Public Campaign</option>
-                      <option value="Humane Education">Humane Education</option>
+                      <!-- Dynamically populated -->
                     </select>
                   </div>
                   <div class="col-md-6">
@@ -901,7 +1004,13 @@
 
       document.getElementById("editPhotoId").value = p.id;
       document.getElementById("editPhotoTitle").value = p.title;
-      document.getElementById("editPhotoCategory").value = p.category;
+      // Populate folders in edit photo modal dynamically
+      updateFolderDropdowns();
+      
+      setTimeout(() => {
+        document.getElementById("editPhotoCategory").value = p.category;
+      }, 100);
+
       document.getElementById("editPhotoLocation").value = p.location;
       document.getElementById("editPhotoDate").value = p.date;
       document.getElementById("editPhotoDesc").value = p.description;
@@ -921,13 +1030,12 @@
       };
       if (!updated.title) { showToast("Title is required.", "warning"); return; }
 
-      // Update in MySQL via POST (upsert with same UID)
       try {
         const photos = window.vokalStorage.getEvents();
         const existing = photos.find(p => p.id === id);
         if (!existing) { showToast("Photo not found.", "danger"); return; }
 
-        const res = await fetch(`api/events.php?api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
+        const res = await fetch(\`api/events.php?api_key=\${encodeURIComponent(VOKAL_API_KEY)}\`, {
           method: "POST",
           headers: authHeaders,
           body: JSON.stringify({
@@ -943,7 +1051,6 @@
         });
         const json = await res.json();
         if (json.success) {
-          // Update localStorage
           const idx = photos.findIndex(p => p.id === id);
           if (idx !== -1) {
             photos[idx] = { ...photos[idx], ...updated };
@@ -960,119 +1067,120 @@
       }
     }
 
-    function renderAdminLetters() {
-      const tbody = document.getElementById("adminLettersTableBody");
-      const letters = window.vokalStorage.getLetters();
-      tbody.innerHTML = "";
-
-      if (letters.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No letters in database.</td></tr>`;
-        return;
+    async function adminDeleteEvent(id) {
+      if (!confirm("Permanently delete this photo from the database?")) return;
+      try {
+        await window.vokalStorage.deleteEvent(id);
+        loadAdminDashboard();
+        showToast("Photo deleted from database successfully.", "success");
+        bootstrap.Modal.getInstance(document.getElementById("adminFolderItemsModal"))?.hide();
+      } catch (err) {
+        showToast("Delete failed: " + err.message, "danger");
       }
-
-      letters.forEach(l => {
-        const tr = document.createElement("tr");
-        tr.id = `letter-row-${l.id}`;
-        tr.innerHTML = `
-          <td><code>${l.refNo}</code></td>
-          <td class="fw-bold">${l.subject}</td>
-          <td>${l.recipient} (${l.department})</td>
-          <td><span class="badge bg-${l.statusColor || 'primary'}">${l.status}</span></td>
-          <td>${l.date}</td>
-          <td>${l.isUserUploaded ? '<span class="badge bg-warning text-dark">Uploaded</span>' : '<span class="badge bg-secondary">Official</span>'}</td>
-          <td>
-            <div class="d-flex gap-1">
-              <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="adminDeleteLetter('${l.id}')">
-                <i class="bi bi-trash3"></i>
-              </button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
     }
 
     async function adminDeleteLetter(id) {
       if (!confirm("Permanently delete this letter representation from the database?")) return;
-      const btn = document.querySelector(`#letter-row-${id} .btn-outline-danger`);
-      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
       try {
         await window.vokalStorage.deleteLetter(id);
         loadAdminDashboard();
         showToast("Letter deleted from database successfully.", "success");
+        bootstrap.Modal.getInstance(document.getElementById("adminFolderItemsModal"))?.hide();
       } catch (err) {
         showToast("Delete failed: " + err.message, "danger");
-        loadAdminDashboard();
       }
-    }
-
-    function renderAdminVideos() {
-      const tbody = document.getElementById("adminVideosTableBody");
-      const videos = window.vokalStorage.getVideos();
-      tbody.innerHTML = "";
-
-      if (videos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No videos in database.</td></tr>`;
-        return;
-      }
-
-      videos.forEach(v => {
-        const tr = document.createElement("tr");
-        tr.id = `video-row-${v.id}`;
-        tr.innerHTML = `
-          <td><img src="${v.thumbnail}" class="admin-table-img"></td>
-          <td class="fw-bold">${v.title}</td>
-          <td><span class="badge bg-light text-dark border">${v.category}</span></td>
-          <td>${v.duration}</td>
-          <td><a href="${v.videoUrl}" target="_blank" class="small text-truncate d-inline-block" style="max-width: 150px;">Link <i class="bi bi-box-arrow-up-right"></i></a></td>
-          <td>
-            <div class="d-flex gap-1">
-              <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="adminDeleteVideo('${v.id}')">
-                <i class="bi bi-trash3"></i>
-              </button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
     }
 
     async function adminDeleteVideo(id) {
       if (!confirm("Permanently delete this video link from the database?")) return;
-      const btn = document.querySelector(`#video-row-${id} .btn-outline-danger`);
-      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
       try {
         await window.vokalStorage.deleteVideo(id);
         loadAdminDashboard();
         showToast("Video link deleted from database successfully.", "success");
+        bootstrap.Modal.getInstance(document.getElementById("adminFolderItemsModal"))?.hide();
       } catch (err) {
         showToast("Delete failed: " + err.message, "danger");
-        loadAdminDashboard();
       }
     }
 
     function renderAdminInquiries() {
-      const tbody = document.getElementById("adminInquiriesTableBody");
+      const grid = document.getElementById("adminInquiriesGrid");
+      if (!grid) return;
       const inquiries = window.vokalStorage.getInquiries();
-      tbody.innerHTML = "";
+      grid.innerHTML = "";
 
       if (inquiries.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No reports received yet. Submissions from the main site contact form appear here.</td></tr>`;
+        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No reports received yet.</div>`;
         return;
       }
 
+      // Group inquiries by Date automatically
+      const grouped = {};
       inquiries.forEach(i => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="small text-muted">${new Date(i.submittedAt).toLocaleDateString()}</td>
-          <td class="fw-bold">${i.name}</td>
-          <td><a href="mailto:${i.email || 'voiceofkerala.legit@gmail.com'}" class="text-success small">${i.email || 'No email provided'}</a></td>
-          <td><span class="badge bg-light text-dark border">${i.district}</span></td>
-          <td><span class="badge bg-danger">${i.type}</span></td>
-          <td class="small">${i.message}</td>
-        `;
-        tbody.appendChild(tr);
+        const dateStr = new Date(i.submittedAt).toLocaleDateString();
+        if (!grouped[dateStr]) grouped[dateStr] = [];
+        grouped[dateStr].push(i);
       });
+
+      Object.entries(grouped).forEach(([dateStr, items]) => {
+        const col = document.createElement("div");
+        col.className = "col-md-6 col-lg-4";
+        col.innerHTML = `
+          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openInquiriesFolder('${dateStr}')" style="cursor: pointer;">
+            <div class="card-body p-4 text-center">
+              <i class="bi bi-folder-fill display-4 text-danger mb-3 d-block"></i>
+              <h5 class="fw-bold mb-1">${dateStr}</h5>
+              <span class="badge bg-light text-dark border">${items.length} Inquiries</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(col);
+      });
+    }
+
+    function openInquiriesFolder(dateStr) {
+      const inquiries = window.vokalStorage.getInquiries();
+      const items = inquiries.filter(i => new Date(i.submittedAt).toLocaleDateString() === dateStr);
+      
+      let modalEl = document.getElementById("viewInquiriesModal");
+      if (!modalEl) {
+        modalEl = document.createElement("div");
+        modalEl.className = "modal fade";
+        modalEl.id = "viewInquiriesModal";
+        modalEl.tabIndex = -1;
+        modalEl.innerHTML = `
+          <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+              <div class="modal-header bg-danger">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-folder2-open me-2"></i>Inquiries: <span id="inqModalDate"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body p-4 bg-light" id="inqModalBody">
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modalEl);
+      }
+
+      document.getElementById("inqModalDate").textContent = dateStr;
+      
+      const body = document.getElementById("inqModalBody");
+      body.innerHTML = items.map(i => `
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="badge bg-danger">${i.type}</span>
+              <span class="badge bg-light text-dark border">${i.district}</span>
+            </div>
+            <h6 class="fw-bold mb-1">${i.name}</h6>
+            <a href="mailto:${i.email || 'voiceofkerala.legit@gmail.com'}" class="text-success small mb-3 d-block">${i.email || 'No email provided'}</a>
+            <p class="mb-0 text-muted small bg-white p-3 rounded border">${i.message}</p>
+          </div>
+        </div>
+      `).join('');
+
+      new bootstrap.Modal(modalEl).show();
     }
 
     function showAdminUploadModal(tab) {

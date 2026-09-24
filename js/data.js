@@ -63,10 +63,12 @@ const VOKAL_DEFAULT_DATA = {
       portrait: "assets/masters/amma_1.jpg",
       images: [
         "assets/masters/amma_1.jpg",
-        "assets/masters/amma_2.jpg"
+        "assets/masters/amma_2.jpg",
+        "assets/masters/amma_3.jpg",
+        "assets/masters/amma_4.jpg"
       ],
-      photoIntervalSeconds: 5,
-      totalDurationSeconds: 20,
+      photoIntervalSeconds: 10,
+      totalDurationSeconds: 40,
       quote: "Nature is our mother. In truth, there is no difference between human beings and animals; the same divine life force pulses through every creature. Just as we feel pain, animals also feel hunger, fear, and distress. When we protect and feed a helpless animal, we are serving the Divine.",
       tradition: "Sanatana Dharma & Universal Prema (Amritapuri, Kerala)",
       teaching: "Amma teaches that true spiritual maturity begins when our circle of love expands to embrace every voiceless creature. Animals are not commodities for exploitation; they are our silent kin sharing the same cosmic breath. Feeding the hungry stray and caring for wounded animals is direct worship of the Almighty."

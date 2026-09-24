@@ -186,9 +186,9 @@ function renderSpiritualMastersSlider() {
     clearTimeout(masterTimer);
 
     if (index === 0) {
-      // Amma: 2 photos * 10s = 20 seconds total before advancing
+      // Amma: 4 photos * 10s = 40 seconds total before advancing
       startAmmaPhotoCycle();
-      scheduleNextMaster(20000);
+      scheduleNextMaster(40000);
     } else {
       // Other Masters: 10 seconds each
       scheduleNextMaster(10000);
@@ -354,22 +354,10 @@ function renderEvents() {
     cardCol.innerHTML = `
       <div class="folder-card" onclick="openEventFolder('${escapeHtml(category)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
-        <div class="folder-body">
-          <div class="folder-cover-grid">
-            <img src="${coverImg}" alt="${escapeHtml(category)}" loading="lazy" class="folder-cover-img">
-            ${extra ? `<span class="folder-extra-badge">${extra}</span>` : ""}
-          </div>
-          <div class="folder-info p-3">
-            <h5 class="fw-bold mb-1 folder-title">
-              <i class="bi bi-folder-fill me-2" style="color: ${color};"></i>${category}
-            </h5>
-            <div class="d-flex justify-content-between align-items-center">
-              <small class="text-muted">${items.length} photo${items.length !== 1 ? "s" : ""}</small>
-              <span class="btn btn-sm rounded-pill px-3" style="background: ${color}; color: #fff; font-size: 0.78rem;">
-                <i class="bi bi-eye me-1"></i> Open
-              </span>
-            </div>
-          </div>
+        <div class="folder-body p-4 text-center">
+          <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
+          <h5 class="fw-bold mb-2 folder-title">${category}</h5>
+          <span class="badge bg-light text-dark border px-3 py-2">${items.length} photo${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
@@ -504,26 +492,10 @@ function renderVideos() {
     cardCol.innerHTML = `
       <div class="folder-card" onclick="openVideoFolder('${escapeHtml(category)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
-        <div class="folder-body">
-          <div class="folder-cover-grid position-relative">
-            <img src="${coverThumb}" alt="${escapeHtml(category)}" loading="lazy" class="folder-cover-img">
-            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-              <div style="width:48px;height:48px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-                <i class="bi bi-play-fill text-white fs-4 ms-1"></i>
-              </div>
-            </div>
-          </div>
-          <div class="folder-info p-3">
-            <h5 class="fw-bold mb-1 folder-title">
-              <i class="bi bi-folder-fill me-2" style="color: ${color};"></i>${category}
-            </h5>
-            <div class="d-flex justify-content-between align-items-center">
-              <small class="text-muted">${items.length} video${items.length !== 1 ? "s" : ""}</small>
-              <span class="btn btn-sm rounded-pill px-3" style="background: ${color}; color: #fff; font-size: 0.78rem;">
-                <i class="bi bi-play-circle me-1"></i> Watch
-              </span>
-            </div>
-          </div>
+        <div class="folder-body p-4 text-center">
+          <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
+          <h5 class="fw-bold mb-2 folder-title">${category}</h5>
+          <span class="badge bg-light text-dark border px-3 py-2">${items.length} video${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
@@ -663,24 +635,10 @@ function renderLetters() {
     cardCol.innerHTML = `
       <div class="folder-card" onclick="openLetterFolder('${escapeHtml(dept)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
-        <div class="folder-body">
-          <div class="folder-cover-grid d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, ${color}18, ${color}40); min-height: 140px;">
-            <div class="text-center p-3">
-              <i class="bi bi-envelope-paper-fill" style="font-size: 2.8rem; color: ${color};"></i>
-              <div class="mt-2">${badgeList}</div>
-            </div>
-          </div>
-          <div class="folder-info p-3">
-            <h5 class="fw-bold mb-1 folder-title">
-              <i class="bi bi-folder-fill me-2" style="color: ${color};"></i>${dept}
-            </h5>
-            <div class="d-flex justify-content-between align-items-center">
-              <small class="text-muted">${items.length} letter${items.length !== 1 ? "s" : ""}</small>
-              <span class="btn btn-sm rounded-pill px-3" style="background: ${color}; color: #fff; font-size: 0.78rem;">
-                <i class="bi bi-file-earmark-text me-1"></i> Open
-              </span>
-            </div>
-          </div>
+        <div class="folder-body p-4 text-center">
+          <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
+          <h5 class="fw-bold mb-2 folder-title">${dept}</h5>
+          <span class="badge bg-light text-dark border px-3 py-2">${items.length} letter${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
