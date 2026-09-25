@@ -1,522 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin & Upload Hub | VOKAL - Voice of Kerala for Animal Legit</title>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  
-  <!-- Google Fonts: Outfit -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Bootstrap 5.3 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="css/style.css?v=3.5">
-
-  <style>
-    .admin-sidebar {
-      background: #240615;
-      min-height: 100vh;
-      color: #fff;
-    }
-    .admin-nav-item {
-      color: #cbd5e1;
-      padding: 12px 18px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    .admin-nav-item:hover, .admin-nav-item.active {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.12);
-    }
-    .admin-table-img {
-      width: 60px;
-      height: 45px;
-      object-fit: cover;
-      border-radius: 6px;
-    }
-  </style>
-</head>
-<body class="bg-light">
-
-  <!-- STANDALONE ADMIN AUTHENTICATION MODAL OVERLAY -->
-  <div id="adminAuthOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(30, 5, 19, 0.88); backdrop-filter: blur(8px); z-index: 9999;">
-    <div class="card shadow-lg border-0 rounded-4 p-4 p-md-5 text-center" style="max-width: 440px; width: 92%; background: #ffffff;">
-      <div class="mb-3">
-        <img src="assets/vokal_emblem_clean.png?v=3.5" alt="VOKAL" style="width: 72px; height: 72px; object-fit: contain;">
-      </div>
-      <h4 class="fw-bold text-dark mb-1">VOKAL Admin Portal</h4>
-      <p class="text-muted small mb-4">Enter administrative credentials to manage photos, letters, and site resources.</p>
-      <div id="adminAuthError" class="alert alert-danger py-2 small d-none" role="alert">Invalid username or password.</div>
-      <form id="adminStandaloneLoginForm">
-        <div class="form-floating mb-3 text-start">
-          <input type="text" class="form-control rounded-3" id="standaloneUser" placeholder="Username" autocomplete="username" required autofocus>
-          <label for="standaloneUser"><i class="bi bi-person me-1"></i> Username</label>
-        </div>
-        <div class="form-floating mb-3 text-start">
-          <input type="password" class="form-control rounded-3" id="standalonePass" placeholder="Password" autocomplete="current-password" required>
-          <label for="standalonePass"><i class="bi bi-lock me-1"></i> Password</label>
-        </div>
-        <button type="submit" class="btn btn-vokal-primary w-100 py-2 rounded-3 fw-bold mb-3 shadow-sm">
-          <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Admin Hub
-        </button>
-        <div>
-          <a href="index.html" class="text-decoration-none small text-muted">
-            <i class="bi bi-arrow-left me-1"></i> Return to Main Website
-          </a>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="container-fluid">
-    <div class="row">
-      <!-- SIDEBAR -->
-      <div class="col-lg-2 col-md-3 admin-sidebar p-3 d-flex flex-column">
-        <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom border-secondary">
-          <img src="assets/vokal_emblem_clean.png?v=3.5" alt="VOKAL" style="width: 44px; height: 44px; object-fit: contain;">
-          <div>
-            <h6 class="mb-0 fw-bold text-white">VOKAL Admin</h6>
-            <small class="text-warning">Reg. No: 147/2026</small>
-          </div>
-        </div>
-
-        <nav class="nav flex-column gap-1 flex-grow-1" id="adminNavTabs" role="tablist">
-          <a class="admin-nav-item active" data-bs-toggle="tab" href="#sec-photos" role="tab">
-            <i class="bi bi-images"></i> Manage Photos
-          </a>
-          <a class="admin-nav-item" data-bs-toggle="tab" href="#sec-letters" role="tab">
-            <i class="bi bi-file-earmark-text-fill"></i> Govt Letters
-          </a>
-          <a class="admin-nav-item" data-bs-toggle="tab" href="#sec-folders" role="tab">
-            <i class="bi bi-folder-fill"></i> Manage Folders
-          </a>
-          <a class="admin-nav-item" data-bs-toggle="tab" href="#sec-videos" role="tab">
-            <i class="bi bi-youtube"></i> Video Links
-          </a>
-          <a class="admin-nav-item" data-bs-toggle="tab" href="#sec-inquiries" role="tab">
-            <i class="bi bi-inbox-fill"></i> Public Reports <span id="inquiryCountBadge" class="badge bg-danger ms-auto">0</span>
-          </a>
-          <a class="admin-nav-item" data-bs-toggle="tab" href="#sec-backup" role="tab">
-            <i class="bi bi-database-down"></i> Backup & Reset
-          </a>
-        </nav>
-
-        <div class="pt-3 border-top border-secondary mt-auto">
-          <a href="index.html" class="btn btn-outline-light w-100 btn-sm mb-2">
-            <i class="bi bi-arrow-left me-1"></i> Back to Main Site
-          </a>
-          <button onclick="logOffAdmin()" class="btn btn-danger w-100 btn-sm">
-            <i class="bi bi-box-arrow-right me-1"></i> Log Off Admin
-          </button>
-        </div>
-      </div>
-
-      <!-- MAIN CONTENT -->
-      <div class="col-lg-10 col-md-9 p-4 p-md-5">
-        <!-- Top Title Bar -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-          <div>
-            <h3 class="fw-bold text-dark mb-1">VOKAL Content & Upload Management</h3>
-            <p class="text-muted small mb-0">Upload new event photos, legal representations, and video resources to <code>vokal.org.in</code>.</p>
-          </div>
-          <div class="d-flex gap-2">
-            <a href="index.html" target="_blank" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-box-arrow-up-right me-1"></i> Live Site Preview
-            </a>
-          </div>
-        </div>
-
-        <!-- Metric Cards -->
-        <div class="row g-3 mb-4">
-          <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3 rounded-3">
-              <div class="d-flex justify-content-between">
-                <div>
-                  <small class="text-muted text-uppercase fw-bold">Event Photos</small>
-                  <h3 class="fw-bold mt-1 text-primary" id="adminTotalPhotos">0</h3>
-                </div>
-                <div class="fs-2 text-primary opacity-50"><i class="bi bi-camera-fill"></i></div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3 rounded-3">
-              <div class="d-flex justify-content-between">
-                <div>
-                  <small class="text-muted text-uppercase fw-bold">Govt Letters</small>
-                  <h3 class="fw-bold mt-1 text-primary" id="adminTotalLetters">0</h3>
-                </div>
-                <div class="fs-2 text-primary opacity-50"><i class="bi bi-file-earmark-check-fill"></i></div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3 rounded-3">
-              <div class="d-flex justify-content-between">
-                <div>
-                  <small class="text-muted text-uppercase fw-bold">Video Links</small>
-                  <h3 class="fw-bold mt-1 text-danger" id="adminTotalVideos">0</h3>
-                </div>
-                <div class="fs-2 text-danger opacity-50"><i class="bi bi-youtube"></i></div>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-3 rounded-3">
-              <div class="d-flex justify-content-between">
-                <div>
-                  <small class="text-muted text-uppercase fw-bold">Cruelty Reports</small>
-                  <h3 class="fw-bold mt-1 text-warning" id="adminTotalInquiries">0</h3>
-                </div>
-                <div class="fs-2 text-warning opacity-50"><i class="bi bi-exclamation-triangle-fill"></i></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB CONTENT PANES -->
-        <div class="tab-content" id="adminTabContent">
-          
-          <!-- 1. PHOTOS TAB -->
-          <div class="tab-pane fade show active" id="sec-photos" role="tabpanel">
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-              <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="bi bi-images text-primary me-2"></i>Published Event Photos</h5>
-                <div>
-                  <button class="btn btn-outline-warning btn-sm fw-bold me-2" onclick="showAdminFolderModal('event')">
-                    <i class="bi bi-folder-plus me-1"></i> Create Folder
-                  </button>
-                  <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('photo')">
-                    <i class="bi bi-plus-lg me-1"></i> Upload New Photo
-                  </button>
-                </div>
-              </div>
-              <div class="p-4 bg-light">
-                <div class="row g-3" id="adminPhotosGrid">
-                  <!-- Dynamic folders -->
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2. LETTERS TAB -->
-          <div class="tab-pane fade" id="sec-letters" role="tabpanel">
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-              <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i>Official Letters to Government</h5>
-                <div>
-                  <button class="btn btn-outline-warning btn-sm fw-bold me-2" onclick="showAdminFolderModal('letter')">
-                    <i class="bi bi-folder-plus me-1"></i> Create Folder
-                  </button>
-                  <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('letter')">
-                    <i class="bi bi-plus-lg me-1"></i> Upload New Letter
-                  </button>
-                </div>
-              </div>
-              <div class="p-4 bg-light">
-                <div class="row g-3" id="adminLettersGrid">
-                  <!-- Dynamic folders -->
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. VIDEOS TAB -->
-          <div class="tab-pane fade" id="sec-videos" role="tabpanel">
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-              <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="bi bi-youtube text-danger me-2"></i>Official Video Archive</h5>
-                <div>
-                  <button class="btn btn-outline-warning btn-sm fw-bold me-2" onclick="showAdminFolderModal('video')">
-                    <i class="bi bi-folder-plus me-1"></i> Create Folder
-                  </button>
-                  <button class="btn btn-vokal-primary btn-sm" onclick="showAdminUploadModal('video')">
-                    <i class="bi bi-plus-lg me-1"></i> Add Video Link
-                  </button>
-                </div>
-              </div>
-              <div class="p-4 bg-light">
-                <div class="row g-3" id="adminVideosGrid">
-                  <!-- Dynamic folders -->
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLDERS TAB -->
-          <div class="tab-pane fade" id="sec-folders" role="tabpanel">
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-              <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="bi bi-folder-fill text-warning me-2"></i>Manage Folders</h5>
-                <button class="btn btn-vokal-primary btn-sm" onclick="showAdminFolderModal()">
-                  <i class="bi bi-folder-plus me-1"></i> Create Folder
-                </button>
-              </div>
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Folder Name</th>
-                      <th>Type</th>
-                      <th>Created Date</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminFoldersTableBody">
-                    <!-- Dynamic -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- 4. INQUIRIES TAB -->
-          <div class="tab-pane fade" id="sec-inquiries" role="tabpanel">
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-              <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0"><i class="bi bi-inbox-fill text-primary me-2"></i>Citizen Inquiries & Cruelty Reports</h5>
-                <button class="btn btn-outline-secondary btn-sm" onclick="loadAdminDashboard()">
-                  <i class="bi bi-arrow-clockwise me-1"></i> Refresh
-                </button>
-              </div>
-              <div class="p-4 bg-light">
-                <div class="row g-3" id="adminInquiriesGrid">
-                  <!-- Dynamic folders -->
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 5. BACKUP & RESET TAB -->
-          <div class="tab-pane fade" id="sec-backup" role="tabpanel">
-            <div class="row g-4">
-              <div class="col-md-6">
-                <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                  <h5 class="fw-bold mb-2"><i class="bi bi-download text-primary me-2"></i>Export Full Database Backup</h5>
-                  <p class="text-muted small mb-3">Download a clean JSON archive containing all photos, letters, videos, and citizen inquiries currently stored on the database.</p>
-                  <button class="btn btn-vokal-primary" onclick="exportDataBackup()">
-                    <i class="bi bi-cloud-arrow-down-fill me-1"></i> Export Data (.json)
-                  </button>
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="card border-0 shadow-sm p-4 rounded-4 h-100">
-                  <h5 class="fw-bold mb-2"><i class="bi bi-upload text-primary me-2"></i>Import Database Backup</h5>
-                  <p class="text-muted small mb-3">Restore or merge data from a previously exported VOKAL JSON backup file.</p>
-                  <input type="file" id="backupFileInput" class="form-control mb-3" accept=".json">
-                  <button class="btn btn-outline-primary" onclick="importDataBackup()">
-                    <i class="bi bi-arrow-repeat me-1"></i> Restore from JSON
-                  </button>
-                </div>
-              </div>
-
-              <div class="col-12">
-                <div class="card border-0 shadow-sm p-4 rounded-4 bg-light border-start border-danger border-4">
-                  <h5 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-octagon-fill me-2"></i>Reset to Official Defaults</h5>
-                  <p class="text-muted small mb-3">This will restore the original default seed data (all official letters, photos, and video links) and remove test user uploads.</p>
-                  <button class="btn btn-danger btn-sm" onclick="resetDefaults()">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset to Default Data
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reusable Upload Modal (linked with main.js) -->
-  <div class="modal fade" id="uploadContentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header bg-primary text-white py-3">
-          <h5 class="modal-title fw-bold">Upload to VOKAL</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body p-4">
-          <!-- Included Tabs in standard format -->
-          <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-pill" id="uploadTabs" role="tablist">
-            <li class="nav-item">
-              <button class="nav-link active rounded-pill fw-bold" id="tab-photo-btn" data-bs-toggle="pill" data-bs-target="#tab-photo" type="button">Upload Photo</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link rounded-pill fw-bold" id="tab-letter-btn" data-bs-toggle="pill" data-bs-target="#tab-letter" type="button">Upload Letter</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link rounded-pill fw-bold" id="tab-video-btn" data-bs-toggle="pill" data-bs-target="#tab-video" type="button">Add Video</button>
-            </li>
-          </ul>
-
-          <div class="tab-content">
-            <!-- Form Photo -->
-            <div class="tab-pane fade show active" id="tab-photo">
-              <form id="formUploadPhoto">
-                <div class="row g-3">
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Photo File</label>
-                    <input type="file" id="photoFileInput" class="form-control" accept="image/*">
-                    <img id="photoPreview" src="" alt="Preview" class="preview-thumbnail d-none">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Or Image URL</label>
-                    <input type="url" id="photoUrlInput" class="form-control" placeholder="https://...">
-                  </div>
-                  <div class="col-md-7">
-                    <label class="form-label small fw-bold">Title *</label>
-                    <input type="text" id="photoTitle" class="form-control" required>
-                  </div>
-                  <div class="col-md-5">
-                    <label class="form-label small fw-bold">Folder *</label>
-                    <select id="photoCategory" class="form-select" required>
-                      <option value="Vaccination & Care">Vaccination & Care</option>
-                      <option value="Legal & Advocacy">Legal & Advocacy</option>
-                      <option value="Emergency Rescue">Emergency Rescue</option>
-                      <option value="Community Support">Community Support</option>
-                      <option value="Public Campaign">Public Campaign</option>
-                    </select>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold">Location *</label>
-                    <input type="text" id="photoLocation" class="form-control" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold">Date</label>
-                    <input type="text" id="photoDate" class="form-control">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Description</label>
-                    <textarea id="photoDesc" class="form-control" rows="2"></textarea>
-                  </div>
-                  <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-vokal-primary">Publish</button>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <!-- Form Letter -->
-            <div class="tab-pane fade" id="tab-letter">
-              <form id="formUploadLetter">
-                <div class="row g-3">
-                  <div class="col-md-8">
-                    <label class="form-label small fw-bold">Subject *</label>
-                    <input type="text" id="letterSubject" class="form-control" required>
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label small fw-bold">Ref Number</label>
-                    <input type="text" id="letterRefNo" class="form-control">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold">Recipient *</label>
-                    <input type="text" id="letterRecipient" class="form-control" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold">Folder *</label>
-                    <input type="text" id="letterDepartment" class="form-control" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold">Status *</label>
-                    <select id="letterStatus" class="form-select" required>
-                      <option value="Submitted">Submitted</option>
-                      <option value="Under Review">Under Review</option>
-                      <option value="Action Taken">Action Taken</option>
-                      <option value="Hearing Scheduled">Hearing Scheduled</option>
-                      <option value="Implemented">Implemented</option>
-                    </select>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold">Date</label>
-                    <input type="text" id="letterDate" class="form-control">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Attach Document File</label>
-                    <input type="file" id="letterFileInput" class="form-control" accept=".pdf,.txt,.doc">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Summary *</label>
-                    <textarea id="letterSummary" class="form-control" rows="2" required></textarea>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Key Demands (one per line)</label>
-                    <textarea id="letterDemands" class="form-control" rows="2"></textarea>
-                  </div>
-                  <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-vokal-primary">Publish Letter</button>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <!-- Form Video -->
-            <div class="tab-pane fade" id="tab-video">
-              <form id="formUploadVideo">
-                <div class="row g-3">
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Title *</label>
-                    <input type="text" id="videoTitle" class="form-control" required>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Video URL *</label>
-                    <input type="url" id="videoUrl" class="form-control" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold">Folder *</label>
-                    <select id="videoCategory" class="form-select" required>
-                      <option value="Legal Insights">Legal Insights</option>
-                      <option value="Scientific Policy">Scientific Policy</option>
-                      <option value="Rescue Stories">Rescue Stories</option>
-                      <option value="Spiritual Wisdom">Spiritual Wisdom</option>
-                      <option value="Community Awareness">Community Awareness</option>
-                    </select>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold">Duration</label>
-                    <input type="text" id="videoDuration" class="form-control" placeholder="10:00">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Thumbnail URL</label>
-                    <input type="url" id="videoThumbnail" class="form-control">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label small fw-bold">Description</label>
-                    <textarea id="videoDesc" class="form-control" rows="2"></textarea>
-                  </div>
-                  <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-vokal-primary">Add Video</button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bootstrap 5.3 JS Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- VOKAL Scripts -->
-  <script src="js/data.js?v=5.0"></script>
-  <script src="js/storage.js?v=5.0"></script>
-  <script src="js/main.js?v=5.0"></script>
-
-  <!-- Admin Dashboard Logic -->
-  <script>
-    function initAdminPage() {
+    document.addEventListener("DOMContentLoaded", function () {
       const overlay = document.getElementById("adminAuthOverlay");
       const loginForm = document.getElementById("adminStandaloneLoginForm");
       const loginError = document.getElementById("adminAuthError");
@@ -553,13 +36,7 @@
       }
 
       evaluateAuth();
-    }
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initAdminPage);
-    } else {
-      initAdminPage();
-    }
+    });
 
     function logOffAdmin() {
       if (confirm("Are you sure you want to log off from the Admin Hub?")) {
@@ -627,24 +104,12 @@
       });
     }
 
-    async function adminDeleteFolder(folderName, type) {
-      if (!confirm(`Permanently delete the folder "${folderName}" AND ALL items inside it? This cannot be undone.`)) return;
+    async function adminDeleteFolder(id) {
+      if (!confirm("Permanently delete this folder AND ALL items inside it? This cannot be undone.")) return;
       try {
-        let items = [];
-        if (type === 'photo') {
-          items = window.vokalStorage.getEvents().filter(x => (x.date || 'Recent') === folderName);
-          for (let p of items) { await window.vokalStorage.deleteEvent(p.id); }
-        } else if (type === 'letter') {
-          items = window.vokalStorage.getLetters().filter(x => (x.date || 'Recent') === folderName);
-          for (let l of items) { await window.vokalStorage.deleteLetter(l.id); }
-        } else if (type === 'video') {
-          items = window.vokalStorage.getVideos().filter(x => (x.date || 'September 02, 2026') === folderName);
-          for (let v of items) { await window.vokalStorage.deleteVideo(v.id); }
-        }
-
-        bootstrap.Modal.getInstance(document.getElementById('adminFolderItemsModal'))?.hide();
+        await window.vokalStorage.deleteFolder(id);
         loadAdminDashboard();
-        showToast(`Folder and ${items.length} items deleted successfully.`, "success");
+        showToast("Folder deleted successfully.", "success");
       } catch (err) {
         showToast("Delete failed: " + err.message, "danger");
       }
@@ -758,23 +223,25 @@
       const grid = document.getElementById("adminPhotosGrid");
       if (!grid) return;
       const photos = window.vokalStorage.getEvents();
+      const folders = window.vokalStorage.getFolders().filter(f => f.type === 'event');
       grid.innerHTML = "";
 
-      if (photos.length === 0) {
-        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No event photos in database.</div>`;
+      if (folders.length === 0 && photos.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No event photos in database. Click Create Folder to start.</div>`;
         return;
       }
 
       const grouped = {};
+      folders.forEach(f => { grouped[f.name] = []; });
       photos.forEach(p => {
-        const d = p.date || "Recent";
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(p);
+        const cat = p.category || "General";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(p);
       });
 
       Object.entries(grouped).forEach(([folderName, items]) => {
         const col = document.createElement("div");
-        col.className = "col-md-6 col-lg-4 animate-on-scroll";
+        col.className = "col-md-6 col-lg-4";
         col.innerHTML = `
           <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'photo')" style="cursor: pointer;">
             <div class="card-body p-4 text-center">
@@ -792,23 +259,25 @@
       const grid = document.getElementById("adminLettersGrid");
       if (!grid) return;
       const letters = window.vokalStorage.getLetters();
+      const folders = window.vokalStorage.getFolders().filter(f => f.type === 'letter');
       grid.innerHTML = "";
 
-      if (letters.length === 0) {
-        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No letters in database.</div>`;
+      if (folders.length === 0 && letters.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No letters in database. Click Create Folder to start.</div>`;
         return;
       }
 
       const grouped = {};
+      folders.forEach(f => { grouped[f.name] = []; });
       letters.forEach(l => {
-        const d = l.date || "Recent";
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(l);
+        const cat = l.department || "General";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(l);
       });
 
       Object.entries(grouped).forEach(([folderName, items]) => {
         const col = document.createElement("div");
-        col.className = "col-md-6 col-lg-4 animate-on-scroll";
+        col.className = "col-md-6 col-lg-4";
         col.innerHTML = `
           <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'letter')" style="cursor: pointer;">
             <div class="card-body p-4 text-center">
@@ -826,23 +295,25 @@
       const grid = document.getElementById("adminVideosGrid");
       if (!grid) return;
       const videos = window.vokalStorage.getVideos();
+      const folders = window.vokalStorage.getFolders().filter(f => f.type === 'video');
       grid.innerHTML = "";
 
-      if (videos.length === 0) {
-        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No videos in database.</div>`;
+      if (folders.length === 0 && videos.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No videos in database. Click Create Folder to start.</div>`;
         return;
       }
 
       const grouped = {};
+      folders.forEach(f => { grouped[f.name] = []; });
       videos.forEach(v => {
-        const d = v.date || "September 02, 2026";
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(v);
+        const cat = v.category || "General";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(v);
       });
 
       Object.entries(grouped).forEach(([folderName, items]) => {
         const col = document.createElement("div");
-        col.className = "col-md-6 col-lg-4 animate-on-scroll";
+        col.className = "col-md-6 col-lg-4";
         col.innerHTML = `
           <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'video')" style="cursor: pointer;">
             <div class="card-body p-4 text-center">
@@ -864,7 +335,7 @@
       let btnLabel = '';
 
       if (type === 'photo') {
-        items = window.vokalStorage.getEvents().filter(x => (x.date || 'Recent') === folderName);
+        items = window.vokalStorage.getEvents().filter(x => (x.category || 'General') === folderName);
         titleIcon = 'bi-images text-primary';
         btnLabel = 'Upload Photo';
         html = items.map(p => `
@@ -881,7 +352,7 @@
           </div>
         `).join('');
       } else if (type === 'letter') {
-        items = window.vokalStorage.getLetters().filter(x => (x.date || 'Recent') === folderName);
+        items = window.vokalStorage.getLetters().filter(x => (x.department || 'General') === folderName);
         titleIcon = 'bi-file-earmark-text-fill text-success';
         btnLabel = 'Upload Letter';
         html = items.map(l => `
@@ -891,11 +362,11 @@
               <h6 class="fw-bold mb-1">${l.subject}</h6>
               <small class="text-muted">Ref: ${l.refNo} • ${l.date}</small>
             </div>
-            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteLetter('${l.id}');"><i class="bi bi-trash3"></i></button>
+            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteLetter('${l.id}'); this.parentElement.remove();"><i class="bi bi-trash3"></i></button>
           </div>
         `).join('');
       } else if (type === 'video') {
-        items = window.vokalStorage.getVideos().filter(x => (x.date || 'September 02, 2026') === folderName);
+        items = window.vokalStorage.getVideos().filter(x => (x.category || 'General') === folderName);
         titleIcon = 'bi-youtube text-danger';
         btnLabel = 'Add Video';
         html = items.map(v => `
@@ -905,7 +376,7 @@
               <h6 class="fw-bold mb-1">${v.title}</h6>
               <small class="text-muted">${v.duration}</small>
             </div>
-            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteVideo('${v.id}');"><i class="bi bi-trash3"></i></button>
+            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteVideo('${v.id}'); this.parentElement.remove();"><i class="bi bi-trash3"></i></button>
           </div>
         `).join('');
       }
@@ -933,11 +404,8 @@
             <div class="modal-body p-0">
               ${html}
             </div>
-            <div class="modal-footer bg-light d-flex justify-content-between">
-              <button class="btn btn-outline-danger btn-sm fw-bold" onclick="adminDeleteFolder('${folderName}', '${type}')">
-                <i class="bi bi-trash3-fill me-1"></i> Delete Folder
-              </button>
-              <button class="btn btn-vokal-primary btn-sm fw-bold" onclick="uploadDirectlyToFolder('${folderName}', '${type}')">
+            <div class="modal-footer bg-light">
+              <button class="btn btn-vokal-primary w-100 fw-bold" onclick="uploadDirectlyToFolder('${folderName}', '${type}')">
                 <i class="bi bi-plus-lg me-1"></i> ${btnLabel}
               </button>
             </div>
@@ -1053,7 +521,7 @@
         const existing = photos.find(p => p.id === id);
         if (!existing) { showToast("Photo not found.", "danger"); return; }
 
-        const res = await fetch(`api/events.php?api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
+        const res = await fetch(\`api/events.php?api_key=\${encodeURIComponent(VOKAL_API_KEY)}\`, {
           method: "POST",
           headers: authHeaders,
           body: JSON.stringify({
@@ -1380,6 +848,4 @@
         showToast("Reset to official default data completed", "info");
       }
     }
-  </script>
-</body>
-</html>
+  

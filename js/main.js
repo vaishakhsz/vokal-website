@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 3. Initialize In-Page Admin Portal with Login / Log Off
   initAdminAuthSystem();
+
+  // 4. Initialize animations
+  initScrollAnimations();
 });
 
 // ==========================================
@@ -366,9 +369,9 @@ function renderEvents() {
 }
 
 // Open a folder and show all photos inside the shared modal
-function openEventFolder(category) {
+function openEventFolder(dateStr) {
   const events = window.vokalStorage.getEvents();
-  const items = events.filter(e => e.category === category);
+  const items = events.filter(e => (e.date || "Recent") === dateStr);
 
   const titleEl  = document.getElementById("folderModalTitle");
   const subEl    = document.getElementById("folderModalSubtitle");
@@ -376,7 +379,7 @@ function openEventFolder(category) {
 
   if (!titleEl || !bodyEl) return;
 
-  titleEl.innerHTML = `<i class="bi bi-folder-fill me-2"></i>${category}`;
+  titleEl.innerHTML = `<i class="bi bi-folder-fill me-2"></i>${dateStr}`;
   subEl.textContent = `${items.length} photo${items.length !== 1 ? "s" : ""} in this album`;
 
   bodyEl.innerHTML = `
@@ -467,34 +470,26 @@ function renderVideos() {
     return;
   }
 
-  // Group videos by category
+  // Group videos by date
   const folders = {};
   videos.forEach(v => {
-    const cat = v.category || "General";
-    if (!folders[cat]) folders[cat] = [];
-    folders[cat].push(v);
+    const d = v.date || "September 02, 2026";
+    if (!folders[d]) folders[d] = [];
+    folders[d].push(v);
   });
 
-  const folderColors = {
-    "Scientific Policy": "#1565c0",
-    "Legal Insights":    "#6a1b9a",
-    "Spiritual Wisdom":  "#e65100",
-    "Rescue Stories":    "#c62828",
-    "default":           "#00695c"
-  };
-
-  Object.entries(folders).forEach(([category, items]) => {
-    const color = folderColors[category] || folderColors["default"];
-    const coverThumb = items[0].thumbnail;
+  Object.entries(folders).forEach(([dateStr, items], idx) => {
+    const colorList = ["#1565c0", "#6a1b9a", "#e65100", "#c62828", "#00695c", "#2e7d32"];
+    const color = colorList[idx % colorList.length];
 
     const cardCol = document.createElement("div");
-    cardCol.className = "col-md-6 col-lg-4";
+    cardCol.className = "col-md-6 col-lg-4 animate-on-scroll";
     cardCol.innerHTML = `
-      <div class="folder-card" onclick="openVideoFolder('${escapeHtml(category)}')" style="--folder-color: ${color}; cursor: pointer;">
+      <div class="folder-card" onclick="openVideoFolder('${escapeHtml(dateStr)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
         <div class="folder-body p-4 text-center">
           <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
-          <h5 class="fw-bold mb-2 folder-title">${category}</h5>
+          <h5 class="fw-bold mb-2 folder-title">${dateStr}</h5>
           <span class="badge bg-light text-dark border px-3 py-2">${items.length} video${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
@@ -503,9 +498,9 @@ function renderVideos() {
   });
 }
 
-function openVideoFolder(category) {
+function openVideoFolder(dateStr) {
   const videos = window.vokalStorage.getVideos();
-  const items = videos.filter(v => v.category === category);
+  const items = videos.filter(v => (v.date || "September 02, 2026") === dateStr);
 
   const titleEl = document.getElementById("folderModalTitle");
   const subEl   = document.getElementById("folderModalSubtitle");
@@ -513,7 +508,7 @@ function openVideoFolder(category) {
 
   if (!titleEl || !bodyEl) return;
 
-  titleEl.innerHTML = `<i class="bi bi-camera-video-fill me-2"></i>${category}`;
+  titleEl.innerHTML = `<i class="bi bi-camera-video-fill me-2"></i>${dateStr}`;
   subEl.textContent = `${items.length} video${items.length !== 1 ? "s" : ""} in this folder`;
 
   bodyEl.innerHTML = `
@@ -609,35 +604,26 @@ function renderLetters() {
     return;
   }
 
-  // Group letters by department
+  // Group letters by date
   const folders = {};
   letters.forEach(l => {
-    const dept = l.department || "General";
-    if (!folders[dept]) folders[dept] = [];
-    folders[dept].push(l);
+    const d = l.date || "Recent";
+    if (!folders[d]) folders[d] = [];
+    folders[d].push(l);
   });
 
-  const folderColors = {
-    "Chief Minister's Office (CMO)": "#c62828",
-    "Kerala Police Headquarters":    "#1565c0",
-    "LSGD Kerala":                   "#2e7d32",
-    "Animal Husbandry Dept":         "#ff8f00",
-    "default":                       "#4a148c"
-  };
-
-  Object.entries(folders).forEach(([dept, items]) => {
-    const color = folderColors[dept] || folderColors["default"];
-    const statusColors = { success: "#4caf50", warning: "#ff9800", primary: "#1565c0", info: "#0288d1", secondary: "#607d8b" };
-    const badgeList = items.map(l => `<span class="badge me-1 mb-1" style="background:${statusColors[l.statusColor || 'primary'] || '#607d8b'}; font-size:0.7rem;">${l.status}</span>`).join("");
+  Object.entries(folders).forEach(([dateStr, items], idx) => {
+    const colorList = ["#c62828", "#1565c0", "#2e7d32", "#ff8f00", "#4a148c", "#880e4f"];
+    const color = colorList[idx % colorList.length];
 
     const cardCol = document.createElement("div");
-    cardCol.className = "col-md-6 col-lg-4";
+    cardCol.className = "col-md-6 col-lg-4 animate-on-scroll";
     cardCol.innerHTML = `
-      <div class="folder-card" onclick="openLetterFolder('${escapeHtml(dept)}')" style="--folder-color: ${color}; cursor: pointer;">
+      <div class="folder-card" onclick="openLetterFolder('${escapeHtml(dateStr)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
         <div class="folder-body p-4 text-center">
           <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
-          <h5 class="fw-bold mb-2 folder-title">${dept}</h5>
+          <h5 class="fw-bold mb-2 folder-title">${dateStr}</h5>
           <span class="badge bg-light text-dark border px-3 py-2">${items.length} letter${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
@@ -646,9 +632,9 @@ function renderLetters() {
   });
 }
 
-function openLetterFolder(dept) {
+function openLetterFolder(dateStr) {
   const letters = window.vokalStorage.getLetters();
-  const items = letters.filter(l => l.department === dept);
+  const items = letters.filter(l => (l.date || "Recent") === dateStr);
 
   const titleEl = document.getElementById("folderModalTitle");
   const subEl   = document.getElementById("folderModalSubtitle");
@@ -656,7 +642,7 @@ function openLetterFolder(dept) {
 
   if (!titleEl || !bodyEl) return;
 
-  titleEl.innerHTML = `<i class="bi bi-envelope-paper-fill me-2"></i>${dept}`;
+  titleEl.innerHTML = `<i class="bi bi-envelope-paper-fill me-2"></i>${dateStr}`;
   subEl.textContent = `${items.length} letter${items.length !== 1 ? "s" : ""} in this folder`;
 
   bodyEl.innerHTML = `
@@ -1238,4 +1224,21 @@ function escapeHtml(string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+// Initialize scroll animations
+function initScrollAnimations() {
+  const elements = document.querySelectorAll('.animate-on-scroll');
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('is-visible');
+        }, idx * 100); // Stagger effect
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  elements.forEach(el => observer.observe(el));
 }
