@@ -340,20 +340,15 @@ function renderEvents() {
     const colorList = ["#4caf50", "#1565c0", "#e91e63", "#ff9800", "#9c27b0", "#00897b", "#607d8b"];
     const color = colorList[idx % colorList.length];
 
-    const coverImage = items[0]?.image || 'assets/default_placeholder.jpg';
     const cardCol = document.createElement("div");
     cardCol.className = "col-md-4 col-lg-3 col-sm-6";
     cardCol.innerHTML = `
-      <div class="vk-card h-100 folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openEventFolder(this.getAttribute('data-folder'))" style="cursor: pointer;">
-        <div class="event-card-img-wrap">
-          <img src="${coverImage}" alt="${escapeHtml(dateStr)}" class="folder-cover-img" loading="lazy">
-          <div class="folder-extra-badge">
-            <i class="bi bi-images me-1"></i>${items.length} photo${items.length !== 1 ? "s" : ""}
-          </div>
-        </div>
-        <div class="event-body text-center p-3">
-          <h6 class="fw-bold mb-1">${dateStr}</h6>
-          <span class="badge bg-light text-dark border px-2 py-1 mt-1" style="font-size: 0.75rem;">View Album</span>
+      <div class="folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openEventFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
+        <div class="folder-tab"></div>
+        <div class="folder-body p-3 text-center">
+          <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
+          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} photo${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
@@ -475,20 +470,15 @@ function renderVideos() {
     const colorList = ["#1565c0", "#6a1b9a", "#e65100", "#c62828", "#00695c", "#2e7d32"];
     const color = colorList[idx % colorList.length];
 
-    const coverImage = items[0]?.thumbnail || 'https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=400&q=80';
     const cardCol = document.createElement("div");
     cardCol.className = "col-md-4 col-lg-3 col-sm-6";
     cardCol.innerHTML = `
-      <div class="vk-card h-100 folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openVideoFolder(this.getAttribute('data-folder'))" style="cursor: pointer;">
-        <div class="event-card-img-wrap">
-          <img src="${coverImage}" alt="${escapeHtml(dateStr)}" class="folder-cover-img" loading="lazy">
-          <div class="folder-extra-badge">
-            <i class="bi bi-play-circle-fill me-1"></i>${items.length} video${items.length !== 1 ? "s" : ""}
-          </div>
-        </div>
-        <div class="event-body text-center p-3">
-          <h6 class="fw-bold mb-1">${dateStr}</h6>
-          <span class="badge bg-light text-dark border px-2 py-1 mt-1" style="font-size: 0.75rem;">View Album</span>
+      <div class="folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openVideoFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
+        <div class="folder-tab"></div>
+        <div class="folder-body p-3 text-center">
+          <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
+          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} video${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
@@ -614,20 +604,15 @@ function renderLetters() {
     const colorList = ["#c62828", "#1565c0", "#2e7d32", "#ff8f00", "#4a148c", "#880e4f"];
     const color = colorList[idx % colorList.length];
 
-    const coverImage = items[0]?.fileUrl?.startsWith('data:image') ? items[0].fileUrl : 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=400&q=80';
     const cardCol = document.createElement("div");
     cardCol.className = "col-md-4 col-lg-3 col-sm-6";
     cardCol.innerHTML = `
-      <div class="vk-card h-100 folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openLetterFolder(this.getAttribute('data-folder'))" style="cursor: pointer;">
-        <div class="event-card-img-wrap">
-          <img src="${coverImage}" alt="${escapeHtml(dateStr)}" class="folder-cover-img" loading="lazy">
-          <div class="folder-extra-badge">
-            <i class="bi bi-envelope-paper-fill me-1"></i>${items.length} letter${items.length !== 1 ? "s" : ""}
-          </div>
-        </div>
-        <div class="event-body text-center p-3">
-          <h6 class="fw-bold mb-1">${dateStr}</h6>
-          <span class="badge bg-light text-dark border px-2 py-1 mt-1" style="font-size: 0.75rem;">View Album</span>
+      <div class="folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openLetterFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
+        <div class="folder-tab"></div>
+        <div class="folder-body p-3 text-center">
+          <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
+          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} letter${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
