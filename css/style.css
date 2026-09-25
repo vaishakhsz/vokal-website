@@ -356,6 +356,10 @@ h1, h2, h3, h4, .brand-font {
   position: relative;
 }
 
+.section-title.text-dark {
+  color: #1a1a2e !important;
+}
+
 .section-divider {
   width: 60px;
   height: 4px;
