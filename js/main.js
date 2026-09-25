@@ -773,11 +773,15 @@ function initAdminAuthSystem() {
       const passwordInput = document.getElementById("adminLoginPass").value.trim();
 
       if (usernameInput === "admin" && passwordInput === "admin123") {
-        sessionStorage.setItem("vokal_admin_auth", "true");
-        if (loginError) loginError.classList.add("d-none");
-        loginForm.reset();
-        showAdminControlPanel();
-        showToast("Welcome Admin! Logged in successfully.", "success");
+        try {
+          sessionStorage.setItem("vokal_admin_auth", "true");
+          if (loginError) loginError.classList.add("d-none");
+          loginForm.reset();
+          showAdminControlPanel();
+          showToast("Welcome Admin! Logged in successfully.", "success");
+        } catch(err) {
+          alert("Login error: " + err.message);
+        }
       } else {
         if (loginError) {
           loginError.textContent = "Invalid username or password. Please try again.";

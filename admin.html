@@ -563,12 +563,16 @@
     }
 
     function loadAdminDashboard() {
-      renderAdminPhotos();
-      renderAdminLetters();
-      renderAdminVideos();
-      renderAdminInquiries();
-      updateAdminCounts();
-      updateFolderDropdowns();
+      try {
+        renderAdminPhotos();
+        renderAdminLetters();
+        renderAdminVideos();
+        renderAdminInquiries();
+        updateAdminCounts();
+        updateFolderDropdowns();
+      } catch (err) {
+        alert("Dashboard Load Error: " + err.message + "\nStack: " + err.stack);
+      }
     }
 
     function updateAdminCounts() {
