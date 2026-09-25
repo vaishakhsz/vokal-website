@@ -8,16 +8,6 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   
-  <script>
-    window.onerror = function(msg, url, lineNo, columnNo, error) {
-      alert("GLOBAL ERROR: " + msg + "\nLine: " + lineNo + "\nCol: " + columnNo);
-      return false;
-    };
-    window.addEventListener('unhandledrejection', function(event) {
-      alert("UNHANDLED PROMISE: " + event.reason);
-    });
-  </script>
-  
   <!-- Google Fonts: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -545,8 +535,6 @@
           e.preventDefault();
           const u = document.getElementById("standaloneUser").value.trim();
           const p = document.getElementById("standalonePass").value.trim();
-          
-          alert("Login Attempt: " + u + " / " + p);
 
           if (u === "admin" && p === "admin123") {
             sessionStorage.setItem("vokal_admin_auth", "true");
@@ -1056,7 +1044,7 @@
         const existing = photos.find(p => p.id === id);
         if (!existing) { showToast("Photo not found.", "danger"); return; }
 
-        const res = await fetch(\`api/events.php?api_key=\${encodeURIComponent(VOKAL_API_KEY)}\`, {
+        const res = await fetch(`api/events.php?api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
           method: "POST",
           headers: authHeaders,
           body: JSON.stringify({
