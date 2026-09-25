@@ -63,7 +63,6 @@ const VOKAL_DEFAULT_DATA = {
       portrait: "assets/masters/amma_1.jpg",
       images: [
         "assets/masters/amma_1.jpg",
-        "assets/masters/amma_2.jpg",
         "assets/masters/amma_3.jpg",
         "assets/masters/amma_4.jpg"
       ],
