@@ -341,14 +341,14 @@ function renderEvents() {
     const color = colorList[idx % colorList.length];
 
     const cardCol = document.createElement("div");
-    cardCol.className = "col-md-6 col-lg-4 animate-on-scroll";
+    cardCol.className = "col-md-4 col-lg-3 col-sm-6 animate-on-scroll";
     cardCol.innerHTML = `
       <div class="folder-card" onclick="openEventFolder('${escapeHtml(dateStr)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
-        <div class="folder-body p-4 text-center">
-          <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
-          <h5 class="fw-bold mb-2 folder-title">${dateStr}</h5>
-          <span class="badge bg-light text-dark border px-3 py-2">${items.length} photo${items.length !== 1 ? "s" : ""}</span>
+        <div class="folder-body p-3 text-center">
+          <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
+          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} photo${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
@@ -471,14 +471,14 @@ function renderVideos() {
     const color = colorList[idx % colorList.length];
 
     const cardCol = document.createElement("div");
-    cardCol.className = "col-md-6 col-lg-4 animate-on-scroll";
+    cardCol.className = "col-md-4 col-lg-3 col-sm-6 animate-on-scroll";
     cardCol.innerHTML = `
       <div class="folder-card" onclick="openVideoFolder('${escapeHtml(dateStr)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
-        <div class="folder-body p-4 text-center">
-          <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
-          <h5 class="fw-bold mb-2 folder-title">${dateStr}</h5>
-          <span class="badge bg-light text-dark border px-3 py-2">${items.length} video${items.length !== 1 ? "s" : ""}</span>
+        <div class="folder-body p-3 text-center">
+          <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
+          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} video${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
@@ -605,14 +605,14 @@ function renderLetters() {
     const color = colorList[idx % colorList.length];
 
     const cardCol = document.createElement("div");
-    cardCol.className = "col-md-6 col-lg-4 animate-on-scroll";
+    cardCol.className = "col-md-4 col-lg-3 col-sm-6 animate-on-scroll";
     cardCol.innerHTML = `
       <div class="folder-card" onclick="openLetterFolder('${escapeHtml(dateStr)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
-        <div class="folder-body p-4 text-center">
-          <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
-          <h5 class="fw-bold mb-2 folder-title">${dateStr}</h5>
-          <span class="badge bg-light text-dark border px-3 py-2">${items.length} letter${items.length !== 1 ? "s" : ""}</span>
+        <div class="folder-body p-3 text-center">
+          <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
+          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} letter${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
     `;
