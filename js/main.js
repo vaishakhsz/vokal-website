@@ -1234,24 +1234,24 @@ function initScrollAnimations() {
 
 // Initialize ScrollSpy for Navbar
 function initScrollSpy() {
-  const sections = document.querySelectorAll(section[id]);
-  const navLinks = document.querySelectorAll(.navbar-nav .nav-link-btn);
+  const sections = document.querySelectorAll("section[id]");
+  const navLinks = document.querySelectorAll(".navbar-nav .nav-link-btn");
   if(!navLinks.length) return;
 
-  window.addEventListener(scroll, () => {
-    let current = ";
- sections.forEach(section => {
- const sectionTop = section.offsetTop;
- if (scrollY >= sectionTop - 200) {
- current = section.getAttribute(id);
- }
- });
+  window.addEventListener("scroll", () => {
+    let current = "";
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      if (scrollY >= sectionTop - 200) {
+        current = section.getAttribute("id");
+      }
+    });
 
- navLinks.forEach(link => {
- link.classList.remove(active);
- if (current && link.getAttribute(href).includes(current)) {
- link.classList.add(active);
- }
- });
- });
+    navLinks.forEach(link => {
+      link.classList.remove("active");
+      if (current && link.getAttribute("href").includes(current)) {
+        link.classList.add("active");
+      }
+    });
+  });
 }
