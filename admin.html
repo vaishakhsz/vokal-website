@@ -526,7 +526,7 @@
 
   <!-- Admin Dashboard Logic -->
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    function initAdminPage() {
       const overlay = document.getElementById("adminAuthOverlay");
       const loginForm = document.getElementById("adminStandaloneLoginForm");
       const loginError = document.getElementById("adminAuthError");
@@ -545,6 +545,8 @@
           e.preventDefault();
           const u = document.getElementById("standaloneUser").value.trim();
           const p = document.getElementById("standalonePass").value.trim();
+          
+          alert("Login Attempt: " + u + " / " + p);
 
           if (u === "admin" && p === "admin123") {
             sessionStorage.setItem("vokal_admin_auth", "true");
@@ -563,7 +565,13 @@
       }
 
       evaluateAuth();
-    });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initAdminPage);
+    } else {
+      initAdminPage();
+    }
 
     function logOffAdmin() {
       if (confirm("Are you sure you want to log off from the Admin Hub?")) {
