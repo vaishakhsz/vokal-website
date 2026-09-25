@@ -576,6 +576,11 @@
         renderAdminInquiries();
         updateAdminCounts();
         updateFolderDropdowns();
+        
+        // Ensure new elements get observed
+        if (typeof initScrollAnimations === 'function') {
+          setTimeout(initScrollAnimations, 100);
+        }
       } catch (err) {
         alert("Dashboard Load Error: " + err.message + "\nStack: " + err.stack);
       }
