@@ -328,38 +328,26 @@ function renderEvents() {
     return;
   }
 
-  // Group events by category
+  // Group events by date
   const folders = {};
   events.forEach(event => {
-    const cat = event.category || "Uncategorised";
-    if (!folders[cat]) folders[cat] = [];
-    folders[cat].push(event);
+    const d = event.date || "Recent";
+    if (!folders[d]) folders[d] = [];
+    folders[d].push(event);
   });
 
-  // Folder icon colours per category
-  const folderColors = {
-    "Vaccination & Care": "#4caf50",
-    "Legal & Advocacy":   "#1565c0",
-    "Emergency Rescue":   "#e91e63",
-    "Community Support":  "#ff9800",
-    "Public Campaign":    "#9c27b0",
-    "Humane Education":   "#00897b",
-    "default":            "#607d8b"
-  };
-
-  Object.entries(folders).forEach(([category, items]) => {
-    const color = folderColors[category] || folderColors["default"];
-    const coverImg = items[0].image;
-    const extra = items.length > 1 ? `+${items.length - 1} more` : "";
+  Object.entries(folders).forEach(([dateStr, items], idx) => {
+    const colorList = ["#4caf50", "#1565c0", "#e91e63", "#ff9800", "#9c27b0", "#00897b", "#607d8b"];
+    const color = colorList[idx % colorList.length];
 
     const cardCol = document.createElement("div");
-    cardCol.className = "col-md-6 col-lg-4";
+    cardCol.className = "col-md-6 col-lg-4 animate-on-scroll";
     cardCol.innerHTML = `
-      <div class="folder-card" onclick="openEventFolder('${escapeHtml(category)}')" style="--folder-color: ${color}; cursor: pointer;">
+      <div class="folder-card" onclick="openEventFolder('${escapeHtml(dateStr)}')" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
         <div class="folder-body p-4 text-center">
           <i class="bi bi-folder-fill display-3 mb-3 d-block" style="color: ${color};"></i>
-          <h5 class="fw-bold mb-2 folder-title">${category}</h5>
+          <h5 class="fw-bold mb-2 folder-title">${dateStr}</h5>
           <span class="badge bg-light text-dark border px-3 py-2">${items.length} photo${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
