@@ -1280,3 +1280,11 @@ h1, h2, h3, h4, .brand-font {
 .animate-on-scroll.is-visible {
   animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
+
+/* Scrollspy & Hover Effects */
+.mission-box, .core-value-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.mission-box:hover, .core-value-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.12) !important; }
+
+.navbar-nav .nav-link-btn { background-color: transparent; color: #444; border: 1px solid transparent; transition: all 0.3s ease; }
+.navbar-nav .nav-link-btn:hover { background-color: rgba(233, 30, 99, 0.08); color: var(--vk-accent); }
+.navbar-nav .nav-link-btn.active { background-color: var(--vk-accent) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3); }
