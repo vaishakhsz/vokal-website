@@ -1109,21 +1109,23 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .vsquare-credit-label {
-  color: rgba(255, 255, 255, 0.9) !important;
-  font-weight: 600;
-  font-size: 0.72rem;
-  letter-spacing: 0.2px;
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 500;
+  font-style: italic;
+  font-size: 0.75rem;
+  letter-spacing: 0.3px;
   margin: 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .vsquare-logo-link {
   display: inline-block;
   text-decoration: none;
-  transition: transform 0.2s ease;
+  transition: transform 0.25s ease;
 }
 
 .vsquare-logo-link:hover img {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
 .vsquare-url-badge {
@@ -1132,30 +1134,41 @@ h1, h2, h3, h4, .brand-font {
   gap: 5px;
   font-weight: 600;
   font-size: 0.74rem;
+  font-style: italic;
   color: #ffffff !important;
-  background: rgba(0, 0, 0, 0.25) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  padding: 3px 12px;
-  border-radius: 50px;
+  background: rgba(0, 0, 0, 0.28) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  padding: 3px 14px;
+  border-radius: 6px;
+  transform: skewX(-10deg);
   line-height: 1.25;
   text-decoration: none !important;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
   transition: all 0.25s ease;
 }
 
+.vsquare-url-badge > span,
+.vsquare-url-badge > i {
+  display: inline-flex;
+  align-items: center;
+  transform: skewX(10deg);
+}
+
 .vsquare-url-badge:hover {
-  background: rgba(0, 0, 0, 0.45) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
   color: #67e8f9 !important;
   border-color: #67e8f9 !important;
-  transform: translateY(-1px);
+  transform: skewX(-10deg) translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 .vsquare-phone-link {
   color: #ffffff !important;
   font-weight: 600;
   font-size: 0.72rem;
+  font-style: italic;
   text-decoration: none !important;
   transition: opacity 0.2s ease;
   display: inline-flex;
