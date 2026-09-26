@@ -699,12 +699,7 @@ h1, h2, h3, h4, .brand-font {
 
 /* Master Thumbnails / Navigator Tabs */
 .masters-nav-pill-row {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 16px;
-  background: #f0f5fb;
-  border-top: 1px solid rgba(25, 82, 141, 0.08);
+  display: none !important;
 }
 
 .master-nav-btn {

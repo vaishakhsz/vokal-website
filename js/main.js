@@ -34,10 +34,10 @@ function renderSpiritualMastersSlider() {
   const counterBadge = document.getElementById("masterCounterBadge");
   const carouselEl = document.getElementById("spiritualMastersCarousel");
 
-  if (!carouselInner || !navContainer || !carouselEl) return;
+  if (!carouselInner || !carouselEl) return;
 
   carouselInner.innerHTML = "";
-  navContainer.innerHTML = "";
+  if (navContainer) navContainer.innerHTML = "";
   if (dotsContainer) dotsContainer.innerHTML = "";
 
   masters.forEach((master, index) => {
@@ -94,19 +94,21 @@ function renderSpiritualMastersSlider() {
     `;
     carouselInner.appendChild(slide);
 
-    // 2. Bottom Nav Pill Button
-    const navBtn = document.createElement("button");
-    navBtn.type = "button";
-    navBtn.className = `master-nav-btn ${isActive}`;
-    navBtn.innerHTML = `
-      <img src="${master.portrait || master.image}" alt="${master.name}">
-      <span>${master.name}</span>
-    `;
-    navBtn.addEventListener("click", () => {
-      carouselInstance.to(index);
-      handleMasterSlideChange(index);
-    });
-    navContainer.appendChild(navBtn);
+    // 2. Bottom Nav Pill Button (if present)
+    if (navContainer) {
+      const navBtn = document.createElement("button");
+      navBtn.type = "button";
+      navBtn.className = `master-nav-btn ${isActive}`;
+      navBtn.innerHTML = `
+        <img src="${master.portrait || master.image}" alt="${master.name}">
+        <span>${master.name}</span>
+      `;
+      navBtn.addEventListener("click", () => {
+        carouselInstance.to(index);
+        handleMasterSlideChange(index);
+      });
+      navContainer.appendChild(navBtn);
+    }
 
     // 3. Indicator Dots
     if (dotsContainer) {
@@ -272,11 +274,13 @@ function renderSpiritualMastersSlider() {
       counterBadge.textContent = `Master ${targetIndex + 1} of ${masters.length}: ${currentMaster.name}`;
     }
 
-    // Update Nav Pills
-    const navButtons = navContainer.querySelectorAll(".master-nav-btn");
-    navButtons.forEach((btn, idx) => {
-      btn.classList.toggle("active", idx === targetIndex);
-    });
+    // Update Nav Pills (if present)
+    if (navContainer) {
+      const navButtons = navContainer.querySelectorAll(".master-nav-btn");
+      navButtons.forEach((btn, idx) => {
+        btn.classList.toggle("active", idx === targetIndex);
+      });
+    }
 
     // Update Indicator Dots
     if (dotsContainer) {
