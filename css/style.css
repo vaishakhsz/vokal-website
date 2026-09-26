@@ -1013,24 +1013,24 @@ h1, h2, h3, h4, .brand-font {
   box-shadow: 0 10px 25px rgba(233, 30, 99, 0.25);
 }
 
-/* --- FOOTER (SOLID IN-BETWEEN PINK & ULTRA-COMPACT) --- */
+/* --- FOOTER (SOLID IN-BETWEEN PINK & STREAMLINED HEIGHT) --- */
 .footer-vokal {
   background: #e91e63;
   border-top: 1px solid rgba(255, 255, 255, 0.25);
   color: #ffffff;
-  padding: 12px 0 8px;
-  font-size: 0.76rem;
+  padding: 16px 0 10px;
+  font-size: 0.80rem;
 }
 
 .footer-logo-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
+  padding: 3px;
   border-radius: 50%;
   background: #ffffff;
   border: 1.5px solid #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
   transition: transform 0.3s ease;
 }
 
@@ -1040,10 +1040,10 @@ h1, h2, h3, h4, .brand-font {
 
 .footer-vokal h6 {
   color: #ffffff;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
 }
 
 .footer-vokal p,
@@ -1060,9 +1060,9 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .footer-lead-text {
-  color: rgba(255, 255, 255, 0.92) !important;
-  font-size: 0.72rem;
-  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-size: 0.76rem;
+  line-height: 1.4;
 }
 
 .footer-vokal a {
@@ -1078,48 +1078,85 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .footer-office-box {
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
-  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
   max-width: 320px;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+}
+
+.footer-office-box small {
+  color: #ffffff !important;
+}
+
+.footer-office-box small.fw-bold {
+  color: #ffffff !important;
 }
 
 .footer-divider {
   border-color: rgba(255, 255, 255, 0.22);
-  margin: 6px 0 6px;
+  margin: 10px 0 8px;
 }
 
-/* --- VSQUARE INFOTECH FOOTER CREDIT STAMP (COMPACT & INLINE) --- */
-.vsquare-credit-badge {
+/* --- VSQUARE INFOTECH FOOTER CREDIT STAMP --- */
+.vsquare-credit-stack {
   font-family: 'Outfit', sans-serif;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.vsquare-credit-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.2px;
+  margin: 0;
+}
+
+.vsquare-logo-link {
+  display: inline-block;
+  text-decoration: none;
   transition: transform 0.2s ease;
 }
 
-.vsquare-credit-badge:hover {
+.vsquare-logo-link:hover img {
+  transform: scale(1.05);
+}
+
+.vsquare-url-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: #0062e3 !important;
+  background: #ffffff !important;
+  padding: 2px 10px;
+  border-radius: 50px;
+  line-height: 1.25;
+  text-decoration: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+}
+
+.vsquare-url-badge:hover {
+  background: #0062e3 !important;
+  color: #ffffff !important;
   transform: translateY(-1px);
 }
 
-.footer-vokal .vsquare-credit-badge a {
-  color: #212529;
+.vsquare-phone-link {
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 0.72rem;
   text-decoration: none !important;
-  transition: color 0.2s ease;
+  transition: opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
 }
 
-.footer-vokal .vsquare-credit-badge a:hover {
-  color: #0062e3 !important;
+.vsquare-phone-link:hover {
+  opacity: 0.85;
   text-decoration: underline !important;
-  opacity: 1 !important;
-}
-
-.footer-vokal .vsquare-credit-badge a[href*="vsquareinfotech"]:hover {
-  color: #004db3 !important;
-}
-
-.footer-vokal .vsquare-credit-badge a[href*="wa.me"]:hover i {
-  filter: brightness(1.2);
 }
 
 /* Responsive tweaks */
