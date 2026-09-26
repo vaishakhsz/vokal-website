@@ -1124,8 +1124,14 @@ h1, h2, h3, h4, .brand-font {
   transition: transform 0.25s ease;
 }
 
+.vsquare-logo-link img {
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
 .vsquare-logo-link:hover img {
-  transform: scale(1.06);
+  transform: scale(1.05);
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.6));
 }
 
 .vsquare-url-badge {
