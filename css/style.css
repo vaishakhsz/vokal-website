@@ -697,30 +697,44 @@ h1, h2, h3, h4, .brand-font {
   overflow-y: auto;
 }
 
-/* Master Thumbnails / Navigator Tabs */
+/* Master Thumbnails / Icons of Special People (No slider, clean wrap) */
 .masters-nav-pill-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-top: 1px solid rgba(25, 82, 141, 0.08);
+  overflow: visible !important;
+  scrollbar-width: none !important;
+}
+
+.masters-nav-pill-row::-webkit-scrollbar {
   display: none !important;
 }
 
 .master-nav-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 18px;
+  gap: 8px;
+  padding: 7px 16px;
   background: #fff;
   border: 1px solid #cbd5e1;
   border-radius: 50px;
   cursor: pointer;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: #475569;
   transition: var(--transition);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .master-nav-btn img {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -729,7 +743,7 @@ h1, h2, h3, h4, .brand-font {
   background: var(--vk-primary);
   color: #fff;
   border-color: var(--vk-primary);
-  box-shadow: 0 4px 12px rgba(25, 82, 141, 0.25);
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.35);
 }
 
 /* Slider Controls */
