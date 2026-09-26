@@ -49,12 +49,13 @@ const VOKAL_DEFAULT_DATA = {
     ]
   },
 
-  // 5 SPIRITUAL MASTERS (AMMA FIRST AS REQUESTED):
+  // 6 SPIRITUAL MASTERS (AMMA FIRST AS REQUESTED):
   // 1. Mata Amritanandamayi Devi (Amma)
   // 2. Gautama Buddha
   // 3. Bhagwan Mahavira (Jainism)
-  // 4. Jesus Christ
-  // 5. Prophet Muhammad
+  // 4. Guru Nanak Dev Ji (Sikhism)
+  // 5. Jesus Christ
+  // 6. Prophet Muhammad
   spiritualMasters: [
     {
       id: "master-amritanandamayi",
@@ -92,6 +93,16 @@ const VOKAL_DEFAULT_DATA = {
       quote: "“Ahimsa Paramo Dharma — Non-injury is the highest religion. All beings are fond of life, like pleasure, hate pain, shun destruction, and desire to live. Putting oneself in the place of another, one should neither kill nor cause to kill.” — Acharanga Sutra (1.4.1)",
       tradition: "Jainism / Supreme Ahimsa & Jiva-Daya (Reverence for Sentient Life)",
       teaching: "Bhagwan Mahavira established absolute non-violence (Ahimsa) and compassion for all living souls (Jiva-Daya) as the supreme spiritual path. Jain philosophy teaches that every living creature—from the smallest being to street animals and birds—possesses an immortal consciousness (Jiva) desiring happiness and fearing suffering. Causing harm, cruelty, or distress to any voiceless creature incurs grave spiritual harm. For millennia, the Jain tradition has pioneered panjrapoles (animal shelters), bird feeders, and active daily welfare for abandoned and sick animals."
+    },
+    {
+      id: "master-nanak",
+      name: "Guru Nanak Dev Ji",
+      title: "First Sikh Guru & Beacon of Universal Compassion (Daya) & Divine Oneness",
+      image: "assets/masters/guru_nanak.jpg?v=2.0",
+      portrait: "assets/masters/guru_nanak.jpg?v=2.0",
+      quote: "“Dukh na dei kisai jia pat sio ghar javo — Do not cause suffering to any living being; return to your true home with honor.” — Guru Granth Sahib (Ang 322)",
+      tradition: "Sikhism / Sarbat Da Bhala (Well-Being of All) & Daya (Compassion)",
+      teaching: "Guru Nanak Dev Ji and the Sikh Gurus taught that the Divine Light (Jot) permeates every creature across creation. True righteousness is born entirely out of compassion (<em>'Dhaul dharamu daya ka pootu'</em> — Japji Sahib). Because the Creator dwells within all beings, tormenting, abusing, or causing distress to any defenseless animal is an affront to the Divine. Sikh tradition champions <em>Sarbat Da Bhala</em> (welfare of all creation) and mandates active protection, feeding, and tender mercy toward all sentient life."
     },
     {
       id: "master-jesus",
