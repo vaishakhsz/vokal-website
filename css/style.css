@@ -239,24 +239,27 @@ h1, h2, h3, h4, .brand-font {
 }
 
 .hero-emblem-centered {
-  width: clamp(175px, 25vw, 225px);
-  height: clamp(175px, 25vw, 225px);
+  width: clamp(220px, 32vw, 320px);
+  height: clamp(220px, 32vw, 320px);
   object-fit: contain;
   background: #ffffff;
   border-radius: 50%;
   overflow: hidden;
-  padding: 6px;
+  padding: 8px;
   border: 4px solid rgba(212, 175, 55, 0.95);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 35px rgba(212, 175, 55, 0.5);
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5), 0 0 35px rgba(212, 175, 55, 0.45);
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
   animation: heroLogoFloat 4s ease-in-out infinite alternate;
   display: block;
   margin: 0 auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  cursor: pointer;
 }
 
 .hero-emblem-centered:hover {
-  transform: scale(1.06);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6), 0 0 50px rgba(212, 175, 55, 0.7);
+  transform: scale(1.05);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.6), 0 0 50px rgba(212, 175, 55, 0.65);
 }
 
 @keyframes heroLogoFloat {
