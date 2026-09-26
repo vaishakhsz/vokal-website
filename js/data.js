@@ -87,8 +87,8 @@ const VOKAL_DEFAULT_DATA = {
       id: "master-mahavira",
       name: "Bhagwan Mahavira",
       title: "24th Tirthankara & Pioneer of Ahimsa Paramo Dharma (Universal Non-Violence)",
-      image: "assets/masters/bhagwan_mahavira.jpg",
-      portrait: "assets/masters/bhagwan_mahavira.jpg",
+      image: "assets/masters/bhagwan_mahavira.jpg?v=2.0",
+      portrait: "assets/masters/bhagwan_mahavira.jpg?v=2.0",
       quote: "“Ahimsa Paramo Dharma — Non-injury is the highest religion. All beings are fond of life, like pleasure, hate pain, shun destruction, and desire to live. Putting oneself in the place of another, one should neither kill nor cause to kill.” — Acharanga Sutra (1.4.1)",
       tradition: "Jainism / Supreme Ahimsa & Jiva-Daya (Reverence for Sentient Life)",
       teaching: "Bhagwan Mahavira established absolute non-violence (Ahimsa) and compassion for all living souls (Jiva-Daya) as the supreme spiritual path. Jain philosophy teaches that every living creature—from the smallest being to street animals and birds—possesses an immortal consciousness (Jiva) desiring happiness and fearing suffering. Causing harm, cruelty, or distress to any voiceless creature incurs grave spiritual harm. For millennia, the Jain tradition has pioneered panjrapoles (animal shelters), bird feeders, and active daily welfare for abandoned and sick animals."
