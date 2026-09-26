@@ -49,11 +49,12 @@ const VOKAL_DEFAULT_DATA = {
     ]
   },
 
-  // EXACT 4 SPIRITUAL MASTERS (AMMA FIRST AS REQUESTED):
+  // 5 SPIRITUAL MASTERS (AMMA FIRST AS REQUESTED):
   // 1. Mata Amritanandamayi Devi (Amma)
   // 2. Gautama Buddha
-  // 3. Jesus Christ
-  // 4. Prophet Muhammad
+  // 3. Bhagwan Mahavira (Jainism)
+  // 4. Jesus Christ
+  // 5. Prophet Muhammad
   spiritualMasters: [
     {
       id: "master-amritanandamayi",
@@ -81,6 +82,16 @@ const VOKAL_DEFAULT_DATA = {
       quote: "Just as a mother protects her only child with her life, even so let one cultivate a boundless love towards all beings in the entire universe. All beings tremble at violence; all fear death. Putting oneself in the place of another, one should neither kill nor cause to kill.",
       tradition: "Buddhism / Karuna (Compassion) & Ahimsa",
       teaching: "Lord Buddha placed universal harmlessness and loving-kindness (Metta) at the very core of enlightened life. He taught that causing suffering to animals creates heavy karmic bondage, while protecting, feeding, and respecting sentient creatures purifies the mind and leads to liberation."
+    },
+    {
+      id: "master-mahavira",
+      name: "Bhagwan Mahavira",
+      title: "24th Tirthankara & Pioneer of Ahimsa Paramo Dharma (Universal Non-Violence)",
+      image: "assets/masters/bhagwan_mahavira.jpg",
+      portrait: "assets/masters/bhagwan_mahavira.jpg",
+      quote: "“Ahimsa Paramo Dharma — Non-injury is the highest religion. All beings are fond of life, like pleasure, hate pain, shun destruction, and desire to live. Putting oneself in the place of another, one should neither kill nor cause to kill.” — Acharanga Sutra (1.4.1)",
+      tradition: "Jainism / Supreme Ahimsa & Jiva-Daya (Reverence for Sentient Life)",
+      teaching: "Bhagwan Mahavira established absolute non-violence (Ahimsa) and compassion for all living souls (Jiva-Daya) as the supreme spiritual path. Jain philosophy teaches that every living creature—from the smallest being to street animals and birds—possesses an immortal consciousness (Jiva) desiring happiness and fearing suffering. Causing harm, cruelty, or distress to any voiceless creature incurs grave spiritual harm. For millennia, the Jain tradition has pioneered panjrapoles (animal shelters), bird feeders, and active daily welfare for abandoned and sick animals."
     },
     {
       id: "master-jesus",
