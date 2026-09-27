@@ -56,26 +56,44 @@ if ($method === 'POST') {
 }
 
 if ($method === 'DELETE') {
-    $id = $_REQUEST['id'] ?? null;
-    if (!$id) {
-        sendJsonResponse(['success' => false, 'error' => 'ID is required'], 400);
+    $id = $_GET['id'] ?? $_POST['id'] ?? ($_REQUEST['id'] ?? null);
+    $name = $_GET['name'] ?? $_POST['name'] ?? ($_REQUEST['name'] ?? null);
+    $type = $_GET['type'] ?? $_POST['type'] ?? ($_REQUEST['type'] ?? null);
+
+    if (!$id && !$name) {
+        $raw = file_get_contents('php://input');
+        if ($raw) {
+            $input = json_decode($raw, true);
+            $id = $input['id'] ?? null;
+            $name = $input['name'] ?? null;
+            $type = $input['type'] ?? null;
+        }
+    }
+
+    if (!$id && !$name) {
+        sendJsonResponse(['success' => false, 'error' => 'ID or folder name is required'], 400);
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT name, type FROM folders WHERE id = ?");
-        $stmt->execute([$id]);
+        if ($id) {
+            $stmt = $pdo->prepare("SELECT id, name, type FROM folders WHERE id = ?");
+            $stmt->execute([$id]);
+        } else {
+            $stmt = $pdo->prepare("SELECT id, name, type FROM folders WHERE name = ? AND type = ?");
+            $stmt->execute([$name, $type]);
+        }
         $folder = $stmt->fetch();
 
         if ($folder) {
-            $pdo->prepare("DELETE FROM folders WHERE id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM folders WHERE id = ?")->execute([$folder['id']]);
             
             // Delete associated items
             if ($folder['type'] === 'event') {
-                $pdo->prepare("DELETE FROM events_photos WHERE category = ?")->execute([$folder['name']]);
+                $pdo->prepare("DELETE FROM events_photos WHERE category = ? OR event_date = ?")->execute([$folder['name'], $folder['name']]);
             } elseif ($folder['type'] === 'video') {
                 $pdo->prepare("DELETE FROM videos WHERE category = ?")->execute([$folder['name']]);
             } elseif ($folder['type'] === 'letter') {
-                $pdo->prepare("DELETE FROM letters_govt WHERE department = ?")->execute([$folder['name']]);
+                $pdo->prepare("DELETE FROM letters_govt WHERE department = ? OR submission_date = ?")->execute([$folder['name'], $folder['name']]);
             }
         }
         sendJsonResponse(['success' => true]);

@@ -319,10 +319,10 @@ function renderEvents() {
   const container = document.getElementById("eventsGrid");
   if (!container) return;
 
-  const events = window.vokalStorage.getEvents();
+  const folderList = window.vokalStorage.getFoldersWithItems('event');
   container.innerHTML = "";
 
-  if (events.length === 0) {
+  if (folderList.length === 0) {
     container.innerHTML = `
       <div class="col-12 text-center py-5 text-muted">
         <i class="bi bi-folder2-open display-4 text-muted d-block mb-3"></i>
@@ -333,26 +333,20 @@ function renderEvents() {
     return;
   }
 
-  // Group events by date
-  const folders = {};
-  events.forEach(event => {
-    const d = event.date || "Recent";
-    if (!folders[d]) folders[d] = [];
-    folders[d].push(event);
-  });
-
-  Object.entries(folders).forEach(([dateStr, items], idx) => {
+  folderList.forEach((folder, idx) => {
     const colorList = ["#4caf50", "#1565c0", "#e91e63", "#ff9800", "#9c27b0", "#00897b", "#607d8b"];
     const color = colorList[idx % colorList.length];
+    const safeName = folder.name;
+    const items = folder.items;
 
     const cardCol = document.createElement("div");
     cardCol.className = "col-md-4 col-lg-3 col-sm-6";
     cardCol.innerHTML = `
-      <div class="folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openEventFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
+      <div class="folder-card" data-folder="${escapeHtml(safeName)}" onclick="openEventFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
         <div class="folder-body p-3 text-center">
           <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
-          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <h6 class="fw-bold mb-2 folder-title text-truncate" title="${escapeHtml(safeName)}">${escapeHtml(safeName)}</h6>
           <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} photo${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
@@ -363,8 +357,9 @@ function renderEvents() {
 
 // Open a folder and show all photos inside the shared modal
 function openEventFolder(dateStr) {
-  const events = window.vokalStorage.getEvents();
-  const items = events.filter(e => (e.date || "Recent") === dateStr);
+  const folderList = window.vokalStorage.getFoldersWithItems('event');
+  const folder = folderList.find(f => f.name === dateStr);
+  const items = folder ? folder.items : [];
 
   const titleEl  = document.getElementById("folderModalTitle");
   const subEl    = document.getElementById("folderModalSubtitle");
@@ -372,38 +367,88 @@ function openEventFolder(dateStr) {
 
   if (!titleEl || !bodyEl) return;
 
-  titleEl.innerHTML = `<i class="bi bi-folder-fill me-2"></i>${dateStr}`;
+  titleEl.innerHTML = `<i class="bi bi-folder-fill me-2"></i>${escapeHtml(dateStr)}`;
   subEl.textContent = `${items.length} photo${items.length !== 1 ? "s" : ""} in this album`;
 
-  bodyEl.innerHTML = `
-    <div class="row g-3">
-      ${items.map(event => `
-        <div class="col-md-6 col-lg-4">
-          <div class="vk-card h-100">
-            <div class="event-card-img-wrap" style="cursor:pointer;" onclick="openPhotoLightbox('${event.image}', '${escapeHtml(event.title)}', '${escapeHtml(event.description)}', '${escapeHtml(event.date)}')">
-              <img src="${event.image}" alt="${escapeHtml(event.title)}" class="card-img-top event-card-img" loading="lazy">
-              <span class="event-category-badge">${event.category}</span>
-              ${event.isUserUploaded ? '<span class="badge text-white position-absolute top-0 end-0 m-2" style="background:#ff4081;font-size:0.7rem;"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
-            </div>
-            <div class="event-body">
-              <div class="event-meta">
-                <span><i class="bi bi-calendar3 me-1 text-primary"></i>${event.date}</span>
-                <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i>${event.location}</span>
+  if (items.length === 0) {
+    bodyEl.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-images display-4 text-muted d-block mb-3"></i>
+        <h5>This album is empty</h5>
+        <p class="small text-secondary mb-0">No photos have been uploaded to this album yet.</p>
+        ${isAdminLoggedIn() ? `
+          <div class="mt-3">
+            <a href="admin.html" class="btn btn-vokal-primary btn-sm fw-bold"><i class="bi bi-plus-lg me-1"></i> Upload Photo in Admin Hub</a>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } else {
+    bodyEl.innerHTML = `
+      <div class="row g-3">
+        ${items.map(event => `
+          <div class="col-md-6 col-lg-4">
+            <div class="vk-card h-100">
+              <div class="event-card-img-wrap" style="cursor:pointer;" onclick="openPhotoLightbox('${event.image}', '${escapeHtml(event.title)}', '${escapeHtml(event.description)}', '${escapeHtml(event.date)}')">
+                <img src="${event.image}" alt="${escapeHtml(event.title)}" class="card-img-top event-card-img" loading="lazy">
+                <span class="event-category-badge">${escapeHtml(event.category || dateStr)}</span>
+                ${event.isUserUploaded ? '<span class="badge text-white position-absolute top-0 end-0 m-2" style="background:#ff4081;font-size:0.7rem;"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
               </div>
-              <h6 class="fw-bold mb-1 text-dark">${event.title}</h6>
-              <p class="text-muted small mb-2">${event.description.length > 100 ? event.description.substring(0, 97) + "..." : event.description}</p>
-              <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                <button class="btn btn-link text-decoration-none p-0 text-success fw-bold small"
-                  onclick="openPhotoLightbox('${event.image}','${escapeHtml(event.title)}','${escapeHtml(event.description)}','${escapeHtml(event.date)}')">
-                  <i class="bi bi-arrows-fullscreen me-1"></i>Full Photo
-                </button>
+              <div class="event-body">
+                <div class="event-meta">
+                  <span><i class="bi bi-calendar3 me-1 text-primary"></i>${escapeHtml(event.date)}</span>
+                  <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i>${escapeHtml(event.location)}</span>
+                </div>
+                <h6 class="fw-bold mb-1 text-dark">${escapeHtml(event.title)}</h6>
+                <p class="text-muted small mb-2">${escapeHtml(event.description.length > 100 ? event.description.substring(0, 97) + "..." : event.description)}</p>
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                  <button class="btn btn-link text-decoration-none p-0 text-success fw-bold small"
+                    onclick="openPhotoLightbox('${event.image}','${escapeHtml(event.title)}','${escapeHtml(event.description)}','${escapeHtml(event.date)}')">
+                    <i class="bi bi-arrows-fullscreen me-1"></i>Full Photo
+                  </button>
+                  ${isAdminLoggedIn() ? `
+                    <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserEvent('${event.id}')">
+                      <i class="bi bi-trash3 me-1"></i>Delete
+                    </button>
+                  ` : ''}
+                </div>
               </div>
             </div>
           </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  // Update modal footer with Admin actions if logged in
+  let footerEl = document.getElementById("folderModalFooter");
+  if (!footerEl) {
+    footerEl = document.createElement("div");
+    footerEl.id = "folderModalFooter";
+    footerEl.className = "modal-footer bg-light d-flex justify-content-between flex-wrap gap-2";
+    document.querySelector("#folderViewerModal .modal-content")?.appendChild(footerEl);
+  }
+
+  if (footerEl) {
+    if (isAdminLoggedIn()) {
+      footerEl.style.display = "flex";
+      footerEl.innerHTML = `
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-danger btn-sm fw-bold" onclick="publicDeleteFolder('${escapeHtml(dateStr)}', 'event')">
+            <i class="bi bi-trash3-fill me-1"></i> Delete Album
+          </button>
+          <button class="btn btn-outline-primary btn-sm fw-bold" onclick="publicRenameFolder('${escapeHtml(dateStr)}', 'event')">
+            <i class="bi bi-pencil-fill me-1"></i> Rename Album
+          </button>
         </div>
-      `).join("")}
-    </div>
-  `;
+        <a href="admin.html" class="btn btn-vokal-primary btn-sm fw-bold">
+          <i class="bi bi-speedometer2 me-1"></i> Manage in Admin Portal
+        </a>
+      `;
+    } else {
+      footerEl.style.display = "none";
+    }
+  }
 
   const modal = new bootstrap.Modal(document.getElementById("folderViewerModal"));
   modal.show();
@@ -422,10 +467,11 @@ function deleteUserEvent(id) {
     // Also refresh the folder modal if open
     const folderModal = document.getElementById("folderViewerModal");
     if (folderModal && folderModal.classList.contains("show")) {
-      const title = document.getElementById("folderModalTitle").textContent.replace(/^\s*\S+\s+/, "");
-      openEventFolder(title.trim());
+      const titleEl = document.getElementById("folderModalTitle");
+      const title = titleEl ? titleEl.textContent.trim() : "";
+      openEventFolder(title);
     }
-    showToast("Photo removed successfully", "info");
+    showToast("Photo removed successfully. The album remains intact.", "info");
   }
 }
 
@@ -449,10 +495,10 @@ function renderVideos() {
   const container = document.getElementById("videosGrid");
   if (!container) return;
 
-  const videos = window.vokalStorage.getVideos();
+  const folderList = window.vokalStorage.getFoldersWithItems('video');
   container.innerHTML = "";
 
-  if (videos.length === 0) {
+  if (folderList.length === 0) {
     container.innerHTML = `
       <div class="col-12 text-center py-5 text-muted">
         <i class="bi bi-camera-video display-4 text-muted d-block mb-3"></i>
@@ -463,26 +509,20 @@ function renderVideos() {
     return;
   }
 
-  // Group videos by date
-  const folders = {};
-  videos.forEach(v => {
-    const d = v.date || "September 02, 2026";
-    if (!folders[d]) folders[d] = [];
-    folders[d].push(v);
-  });
-
-  Object.entries(folders).forEach(([dateStr, items], idx) => {
+  folderList.forEach((folder, idx) => {
     const colorList = ["#1565c0", "#6a1b9a", "#e65100", "#c62828", "#00695c", "#2e7d32"];
     const color = colorList[idx % colorList.length];
+    const safeName = folder.name;
+    const items = folder.items;
 
     const cardCol = document.createElement("div");
     cardCol.className = "col-md-4 col-lg-3 col-sm-6";
     cardCol.innerHTML = `
-      <div class="folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openVideoFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
+      <div class="folder-card" data-folder="${escapeHtml(safeName)}" onclick="openVideoFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
         <div class="folder-body p-3 text-center">
           <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
-          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <h6 class="fw-bold mb-2 folder-title text-truncate" title="${escapeHtml(safeName)}">${escapeHtml(safeName)}</h6>
           <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} video${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
@@ -492,8 +532,9 @@ function renderVideos() {
 }
 
 function openVideoFolder(dateStr) {
-  const videos = window.vokalStorage.getVideos();
-  const items = videos.filter(v => (v.date || "September 02, 2026") === dateStr);
+  const folderList = window.vokalStorage.getFoldersWithItems('video');
+  const folder = folderList.find(f => f.name === dateStr);
+  const items = folder ? folder.items : [];
 
   const titleEl = document.getElementById("folderModalTitle");
   const subEl   = document.getElementById("folderModalSubtitle");
@@ -501,37 +542,86 @@ function openVideoFolder(dateStr) {
 
   if (!titleEl || !bodyEl) return;
 
-  titleEl.innerHTML = `<i class="bi bi-camera-video-fill me-2"></i>${dateStr}`;
+  titleEl.innerHTML = `<i class="bi bi-camera-video-fill me-2"></i>${escapeHtml(dateStr)}`;
   subEl.textContent = `${items.length} video${items.length !== 1 ? "s" : ""} in this folder`;
 
-  bodyEl.innerHTML = `
-    <div class="row g-3">
-      ${items.map(video => `
-        <div class="col-md-6">
-          <div class="vk-card h-100">
-            <div class="video-card-thumb" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
-              <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}" loading="lazy">
-              <div class="video-play-btn"><i class="bi bi-play-fill ms-1"></i></div>
-              <span class="video-duration-badge"><i class="bi bi-clock me-1"></i>${video.duration}</span>
-            </div>
-            <div class="p-3">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-light text-dark border px-2 py-1">${video.category}</span>
-                ${video.isUserUploaded ? '<span class="badge text-white" style="background: #ff4081;"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
+  if (items.length === 0) {
+    bodyEl.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-camera-video display-4 text-muted d-block mb-3"></i>
+        <h5>This folder is empty</h5>
+        <p class="small text-secondary mb-0">No videos have been added to this folder yet.</p>
+        ${isAdminLoggedIn() ? `
+          <div class="mt-3">
+            <a href="admin.html" class="btn btn-vokal-primary btn-sm fw-bold"><i class="bi bi-plus-lg me-1"></i> Add Video in Admin Hub</a>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } else {
+    bodyEl.innerHTML = `
+      <div class="row g-3">
+        ${items.map(video => `
+          <div class="col-md-6">
+            <div class="vk-card h-100">
+              <div class="video-card-thumb" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
+                <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}" loading="lazy">
+                <div class="video-play-btn"><i class="bi bi-play-fill ms-1"></i></div>
+                <span class="video-duration-badge"><i class="bi bi-clock me-1"></i>${video.duration}</span>
               </div>
-              <h6 class="fw-bold mb-2">${video.title}</h6>
-              <p class="text-muted small mb-2">${video.description}</p>
-              <div class="d-flex justify-content-between align-items-center">
-                <button class="btn btn-vokal-outline btn-sm" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
-                  <i class="bi bi-play-circle-fill me-1"></i> Watch
-                </button>
+              <div class="p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge bg-light text-dark border px-2 py-1">${escapeHtml(video.category || dateStr)}</span>
+                  ${video.isUserUploaded ? '<span class="badge text-white" style="background: #ff4081;"><i class="bi bi-star-fill"></i> Uploaded</span>' : ''}
+                </div>
+                <h6 class="fw-bold mb-2">${escapeHtml(video.title)}</h6>
+                <p class="text-muted small mb-2">${escapeHtml(video.description)}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <button class="btn btn-vokal-outline btn-sm" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
+                    <i class="bi bi-play-circle-fill me-1"></i> Watch
+                  </button>
+                  ${isAdminLoggedIn() ? `
+                    <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserVideo('${video.id}')">
+                      <i class="bi bi-trash3 me-1"></i>Delete
+                    </button>
+                  ` : ''}
+                </div>
               </div>
             </div>
           </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  let footerEl = document.getElementById("folderModalFooter");
+  if (!footerEl) {
+    footerEl = document.createElement("div");
+    footerEl.id = "folderModalFooter";
+    footerEl.className = "modal-footer bg-light d-flex justify-content-between flex-wrap gap-2";
+    document.querySelector("#folderViewerModal .modal-content")?.appendChild(footerEl);
+  }
+
+  if (footerEl) {
+    if (isAdminLoggedIn()) {
+      footerEl.style.display = "flex";
+      footerEl.innerHTML = `
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-danger btn-sm fw-bold" onclick="publicDeleteFolder('${escapeHtml(dateStr)}', 'video')">
+            <i class="bi bi-trash3-fill me-1"></i> Delete Folder
+          </button>
+          <button class="btn btn-outline-primary btn-sm fw-bold" onclick="publicRenameFolder('${escapeHtml(dateStr)}', 'video')">
+            <i class="bi bi-pencil-fill me-1"></i> Rename Folder
+          </button>
         </div>
-      `).join("")}
-    </div>
-  `;
+        <a href="admin.html" class="btn btn-vokal-primary btn-sm fw-bold">
+          <i class="bi bi-speedometer2 me-1"></i> Manage in Admin Portal
+        </a>
+      `;
+    } else {
+      footerEl.style.display = "none";
+    }
+  }
 
   const modal = new bootstrap.Modal(document.getElementById("folderViewerModal"));
   modal.show();
@@ -572,7 +662,13 @@ function deleteUserVideo(id) {
     window.vokalStorage.deleteVideo(id);
     renderVideos();
     renderInPageAdmin();
-    showToast("Video link deleted", "info");
+    const folderModal = document.getElementById("folderViewerModal");
+    if (folderModal && folderModal.classList.contains("show")) {
+      const titleEl = document.getElementById("folderModalTitle");
+      const title = titleEl ? titleEl.textContent.trim() : "";
+      openVideoFolder(title);
+    }
+    showToast("Video link deleted. The folder remains intact.", "info");
   }
 }
 
@@ -583,10 +679,10 @@ function renderLetters() {
   const container = document.getElementById("lettersGrid");
   if (!container) return;
 
-  const letters = window.vokalStorage.getLetters();
+  const folderList = window.vokalStorage.getFoldersWithItems('letter');
   container.innerHTML = "";
 
-  if (letters.length === 0) {
+  if (folderList.length === 0) {
     container.innerHTML = `
       <div class="col-12 text-center py-5 text-muted">
         <i class="bi bi-folder2-open display-4 text-muted d-block mb-3"></i>
@@ -597,26 +693,20 @@ function renderLetters() {
     return;
   }
 
-  // Group letters by date
-  const folders = {};
-  letters.forEach(l => {
-    const d = l.date || "Recent";
-    if (!folders[d]) folders[d] = [];
-    folders[d].push(l);
-  });
-
-  Object.entries(folders).forEach(([dateStr, items], idx) => {
+  folderList.forEach((folder, idx) => {
     const colorList = ["#c62828", "#1565c0", "#2e7d32", "#ff8f00", "#4a148c", "#880e4f"];
     const color = colorList[idx % colorList.length];
+    const safeName = folder.name;
+    const items = folder.items;
 
     const cardCol = document.createElement("div");
     cardCol.className = "col-md-4 col-lg-3 col-sm-6";
     cardCol.innerHTML = `
-      <div class="folder-card" data-folder="${escapeHtml(dateStr)}" onclick="openLetterFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
+      <div class="folder-card" data-folder="${escapeHtml(safeName)}" onclick="openLetterFolder(this.getAttribute('data-folder'))" style="--folder-color: ${color}; cursor: pointer;">
         <div class="folder-tab"></div>
         <div class="folder-body p-3 text-center">
           <i class="bi bi-folder-fill display-5 mb-2 d-block" style="color: ${color};"></i>
-          <h6 class="fw-bold mb-2 folder-title">${dateStr}</h6>
+          <h6 class="fw-bold mb-2 folder-title text-truncate" title="${escapeHtml(safeName)}">${escapeHtml(safeName)}</h6>
           <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">${items.length} letter${items.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
@@ -626,8 +716,9 @@ function renderLetters() {
 }
 
 function openLetterFolder(dateStr) {
-  const letters = window.vokalStorage.getLetters();
-  const items = letters.filter(l => (l.date || "Recent") === dateStr);
+  const folderList = window.vokalStorage.getFoldersWithItems('letter');
+  const folder = folderList.find(f => f.name === dateStr);
+  const items = folder ? folder.items : [];
 
   const titleEl = document.getElementById("folderModalTitle");
   const subEl   = document.getElementById("folderModalSubtitle");
@@ -635,76 +726,144 @@ function openLetterFolder(dateStr) {
 
   if (!titleEl || !bodyEl) return;
 
-  titleEl.innerHTML = `<i class="bi bi-envelope-paper-fill me-2"></i>${dateStr}`;
+  titleEl.innerHTML = `<i class="bi bi-envelope-paper-fill me-2"></i>${escapeHtml(dateStr)}`;
   subEl.textContent = `${items.length} letter${items.length !== 1 ? "s" : ""} in this folder`;
 
-  bodyEl.innerHTML = `
-    <div class="row g-3">
-      ${items.map(letter => {
-        const demandsHtml = (letter.keyDemands || []).map(d => `<li>${escapeHtml(d)}</li>`).join("");
-        return `
-          <div class="col-12">
-            <div class="letter-card">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="letter-ref-badge">${letter.refNo}</span>
-                <span class="badge bg-${letter.statusColor || 'primary'}">${letter.status}</span>
-              </div>
-              <h5 class="fw-bold mt-2 text-dark">${letter.subject}</h5>
-              <div class="text-muted small mb-2">
-                <strong><i class="bi bi-building me-1"></i> To:</strong> ${letter.recipient} (${letter.department})
-              </div>
-              <div class="text-muted small mb-3">
-                <i class="bi bi-calendar-event me-1"></i> Submitted on: <strong>${letter.date}</strong>
-              </div>
-              <p class="text-secondary small mb-2">${letter.summary}</p>
-              <h6 class="fw-bold small text-dark mt-2 mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Key Demands &amp; Petitions:</h6>
-              <ul class="letter-demands-list mb-3">${demandsHtml}</ul>
-              <div class="mt-auto pt-3 border-top d-flex gap-2 flex-wrap justify-content-between align-items-center">
-                <div class="d-flex gap-2">
-                  <button class="btn btn-sm btn-vokal-primary" onclick="viewLetterModal('${letter.id}')">
-                    <i class="bi bi-file-earmark-text me-1"></i> View Details
-                  </button>
-                  <a href="${letter.docUrl}" download="${letter.refNo.replace(/\//g, '_')}.txt" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-download me-1"></i> Download
-                  </a>
+  if (items.length === 0) {
+    bodyEl.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-folder2-open display-4 text-muted d-block mb-3"></i>
+        <h5>This folder is empty</h5>
+        <p class="small text-secondary mb-0">No representations have been uploaded to this folder yet.</p>
+        ${isAdminLoggedIn() ? `
+          <div class="mt-3">
+            <a href="admin.html" class="btn btn-vokal-primary btn-sm fw-bold"><i class="bi bi-plus-lg me-1"></i> Upload Letter in Admin Hub</a>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } else {
+    bodyEl.innerHTML = `
+      <div class="row g-3">
+        ${items.map(letter => {
+          const demandsHtml = (letter.keyDemands || []).map(d => `<li>${escapeHtml(d)}</li>`).join("");
+          return `
+            <div class="col-12">
+              <div class="letter-card">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="letter-ref-badge">${escapeHtml(letter.refNo)}</span>
+                  <span class="badge bg-${letter.statusColor || 'primary'}">${escapeHtml(letter.status)}</span>
+                </div>
+                <h5 class="fw-bold mt-2 text-dark">${escapeHtml(letter.subject)}</h5>
+                <div class="text-muted small mb-2">
+                  <strong><i class="bi bi-building me-1"></i> To:</strong> ${escapeHtml(letter.recipient)} (${escapeHtml(letter.department)})
+                </div>
+                <div class="text-muted small mb-3">
+                  <i class="bi bi-calendar-event me-1"></i> Submitted on: <strong>${escapeHtml(letter.date)}</strong>
+                </div>
+                <p class="text-secondary small mb-2">${escapeHtml(letter.summary)}</p>
+                <h6 class="fw-bold small text-dark mt-2 mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Key Demands &amp; Petitions:</h6>
+                <ul class="letter-demands-list mb-3">${demandsHtml}</ul>
+                <div class="mt-auto pt-3 border-top d-flex gap-2 flex-wrap justify-content-between align-items-center">
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-vokal-primary" onclick="viewLetterModal('${letter.id}')">
+                      <i class="bi bi-file-earmark-text me-1"></i> View Details
+                    </button>
+                    <a href="${letter.docUrl}" download="${letter.refNo.replace(/\//g, '_')}.txt" class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-download me-1"></i> Download
+                    </a>
+                  </div>
+                  ${isAdminLoggedIn() ? `
+                    <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserLetter('${letter.id}')">
+                      <i class="bi bi-trash3 me-1"></i>Delete
+                    </button>
+                  ` : ''}
                 </div>
               </div>
             </div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  let footerEl = document.getElementById("folderModalFooter");
+  if (!footerEl) {
+    footerEl = document.createElement("div");
+    footerEl.id = "folderModalFooter";
+    footerEl.className = "modal-footer bg-light d-flex justify-content-between flex-wrap gap-2";
+    document.querySelector("#folderViewerModal .modal-content")?.appendChild(footerEl);
+  }
+
+  if (footerEl) {
+    if (isAdminLoggedIn()) {
+      footerEl.style.display = "flex";
+      footerEl.innerHTML = `
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-danger btn-sm fw-bold" onclick="publicDeleteFolder('${escapeHtml(dateStr)}', 'letter')">
+            <i class="bi bi-trash3-fill me-1"></i> Delete Folder
+          </button>
+          <button class="btn btn-outline-primary btn-sm fw-bold" onclick="publicRenameFolder('${escapeHtml(dateStr)}', 'letter')">
+            <i class="bi bi-pencil-fill me-1"></i> Rename Folder
+          </button>
+        </div>
+        <a href="admin.html" class="btn btn-vokal-primary btn-sm fw-bold">
+          <i class="bi bi-speedometer2 me-1"></i> Manage in Admin Portal
+        </a>
+      `;
+    } else {
+      footerEl.style.display = "none";
+    }
+  }
 
   const modal = new bootstrap.Modal(document.getElementById("folderViewerModal"));
   modal.show();
 }
 
-function viewLetterModal(letterId) {
-  const letters = window.vokalStorage.getLetters();
-  const letter = letters.find(l => l.id === letterId);
-  if (!letter) return;
+async function publicDeleteFolder(folderName, type) {
+  if (!isAdminLoggedIn()) return;
+  const folders = window.vokalStorage.getFolders();
+  const f = folders.find(x => x.name === folderName);
+  if (!confirm(`Are you sure you want to permanently delete the folder "${folderName}" and all items inside it?`)) return;
 
-  const modalEl = document.getElementById("letterDetailsModal");
-  if (!modalEl) return;
+  try {
+    if (f && f.id) {
+      await window.vokalStorage.deleteFolder(f.id);
+    } else {
+      let allF = window.vokalStorage.getFolders().filter(x => x.name !== folderName);
+      localStorage.setItem("vokal_folders_data", JSON.stringify(allF));
+    }
+    bootstrap.Modal.getInstance(document.getElementById("folderViewerModal"))?.hide();
+    renderEvents();
+    renderVideos();
+    renderLetters();
+    showToast(`Folder "${folderName}" deleted successfully.`, "success");
+  } catch (err) {
+    showToast("Delete failed: " + err.message, "danger");
+  }
+}
 
-  document.getElementById("modalLetterRef").textContent = letter.refNo;
-  document.getElementById("modalLetterSubject").textContent = letter.subject;
-  document.getElementById("modalLetterRecipient").textContent = `${letter.recipient} - ${letter.department}`;
-  document.getElementById("modalLetterDate").textContent = letter.date;
-  document.getElementById("modalLetterStatus").textContent = letter.status;
-  document.getElementById("modalLetterStatus").className = `badge bg-${letter.statusColor || 'primary'}`;
-  document.getElementById("modalLetterSummary").textContent = letter.summary;
+async function publicRenameFolder(folderName, type) {
+  if (!isAdminLoggedIn()) return;
+  const folders = window.vokalStorage.getFolders();
+  const f = folders.find(x => x.name === folderName);
+  const newName = prompt(`Enter new name for folder "${folderName}":`, folderName);
+  if (!newName || newName.trim() === "" || newName.trim() === folderName) return;
 
-  const demandsList = document.getElementById("modalLetterDemands");
-  demandsList.innerHTML = (letter.keyDemands || []).map(d => `<li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>${escapeHtml(d)}</li>`).join("");
-
-  const downloadBtn = document.getElementById("modalLetterDownloadBtn");
-  downloadBtn.href = letter.docUrl;
-  downloadBtn.download = `${letter.refNo.replace(/\//g, '_')}.txt`;
-
-  const modal = new bootstrap.Modal(modalEl);
-  modal.show();
+  try {
+    if (f && f.id) {
+      await window.vokalStorage.editFolder(f.id, newName.trim(), type);
+    } else {
+      await window.vokalStorage.addFolder(newName.trim(), type);
+    }
+    bootstrap.Modal.getInstance(document.getElementById("folderViewerModal"))?.hide();
+    renderEvents();
+    renderVideos();
+    renderLetters();
+    showToast(`Folder renamed to "${newName.trim()}" successfully!`, "success");
+  } catch (err) {
+    showToast("Rename failed: " + err.message, "danger");
+  }
 }
 
 function deleteUserLetter(id) {
@@ -717,7 +876,13 @@ function deleteUserLetter(id) {
     window.vokalStorage.deleteLetter(id);
     renderLetters();
     renderInPageAdmin();
-    showToast("Letter representation removed", "info");
+    const folderModal = document.getElementById("folderViewerModal");
+    if (folderModal && folderModal.classList.contains("show")) {
+      const titleEl = document.getElementById("folderModalTitle");
+      const title = titleEl ? titleEl.textContent.trim() : "";
+      openLetterFolder(title);
+    }
+    showToast("Letter representation removed. The folder remains intact.", "info");
   }
 }
 

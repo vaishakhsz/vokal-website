@@ -130,6 +130,12 @@ class VokalStorageManager {
           localStorage.setItem("vokal_folders_data", JSON.stringify(json.data));
           if (typeof renderAdminFolders === "function") renderAdminFolders();
           if (typeof updateFolderDropdowns === "function") updateFolderDropdowns();
+          if (typeof renderAdminPhotos === "function") renderAdminPhotos();
+          if (typeof renderAdminLetters === "function") renderAdminLetters();
+          if (typeof renderAdminVideos === "function") renderAdminVideos();
+          if (typeof renderEvents === "function") renderEvents();
+          if (typeof renderVideos === "function") renderVideos();
+          if (typeof renderLetters === "function") renderLetters();
         }
       }
     } catch (e) {
@@ -486,60 +492,211 @@ class VokalStorageManager {
     }
   }
 
+  /**
+   * Retrieves all folders along with their contained items for a given type ('event', 'video', 'letter').
+   * IMPORTANT: Empty folders (0 items) are always preserved and returned!
+   */
+  getFoldersWithItems(type) {
+    const normType = (type === 'photo' || type === 'event') ? 'event' : type;
+    const registeredFolders = (this.getFolders() || []).filter(f => f.type === normType);
+
+    let allItems = [];
+    if (normType === 'event') {
+      allItems = this.getEvents() || [];
+    } else if (normType === 'video') {
+      allItems = this.getVideos() || [];
+    } else if (normType === 'letter') {
+      allItems = this.getLetters() || [];
+    }
+
+    const folderMap = new Map();
+
+    // 1. Add all registered folders first so they are ALWAYS present, even if empty (0 items)!
+    registeredFolders.forEach(f => {
+      folderMap.set(f.name, {
+        id: f.id,
+        name: f.name,
+        type: normType,
+        items: [],
+        isRegistered: true,
+        createdAt: f.created_at || ''
+      });
+    });
+
+    // 2. Distribute items into folders
+    allItems.forEach(item => {
+      const cat = (normType === 'letter' ? (item.department || item.category) : item.category) || '';
+      const date = item.date || '';
+
+      let matchedKey = null;
+      if (cat && folderMap.has(cat)) {
+        matchedKey = cat;
+      } else if (date && folderMap.has(date)) {
+        matchedKey = date;
+      }
+
+      if (matchedKey) {
+        folderMap.get(matchedKey).items.push(item);
+      } else {
+        // Legacy or uncataloged item: group under category or date or 'General'
+        const fallbackKey = cat || date || 'General';
+        if (!folderMap.has(fallbackKey)) {
+          folderMap.set(fallbackKey, {
+            id: 'legacy-' + fallbackKey.replace(/[^a-zA-Z0-9]/g, '_'),
+            name: fallbackKey,
+            type: normType,
+            items: [],
+            isRegistered: false,
+            createdAt: item.createdAt || ''
+          });
+        }
+        folderMap.get(fallbackKey).items.push(item);
+      }
+    });
+
+    return Array.from(folderMap.values());
+  }
+
   async addFolder(name, type) {
+    const normType = (type === 'photo' || type === 'event') ? 'event' : type;
+    let newFolder = {
+      id: "fld-" + Date.now(),
+      name: name,
+      type: normType,
+      created_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
+    };
+
     try {
       const res = await fetch("api/folders.php", {
         method: "POST",
         headers: authHeaders,
-        body: JSON.stringify({ name, type })
+        body: JSON.stringify({ name, type: normType })
       });
-      const json = await res.json();
-      if (json.success) {
-        await this.syncWithServer();
-        return json;
+      const json = await res.json().catch(() => null);
+      if (json && json.success) {
+        newFolder.id = json.id || newFolder.id;
       }
-      throw new Error(json.error || "Failed to create folder");
     } catch (e) {
-      console.error(e);
-      throw e;
+      console.warn("Server addFolder warning:", e);
     }
+
+    // Immediately cache in localStorage
+    let folders = this.getFolders();
+    folders = folders.filter(f => !(f.name === name && f.type === normType));
+    folders.unshift(newFolder);
+    localStorage.setItem("vokal_folders_data", JSON.stringify(folders));
+
+    try {
+      await this.syncWithServer();
+    } catch (e) {}
+
+    return newFolder;
   }
 
   async editFolder(id, name, type) {
+    const normType = (type === 'photo' || type === 'event') ? 'event' : (type || 'event');
+    let folders = this.getFolders();
+    const existing = folders.find(f => String(f.id) === String(id));
+    const oldName = existing ? existing.name : null;
+
     try {
       const res = await fetch("api/folders.php", {
         method: "POST",
         headers: authHeaders,
-        body: JSON.stringify({ id, name, type })
+        body: JSON.stringify({ id, name, type: normType })
       });
-      const json = await res.json();
-      if (json.success) {
-        await this.syncWithServer();
-        return json;
+      const json = await res.json().catch(() => null);
+      if (!res.ok || (json && !json.success)) {
+        console.warn("Server editFolder notice:", json);
       }
-      throw new Error(json.error || "Failed to edit folder");
     } catch (e) {
-      console.error(e);
-      throw e;
+      console.warn("Server editFolder error:", e);
     }
+
+    // Update in localStorage
+    folders = folders.map(f => {
+      if (String(f.id) === String(id)) {
+        return { ...f, name: name, type: normType };
+      }
+      return f;
+    });
+    localStorage.setItem("vokal_folders_data", JSON.stringify(folders));
+
+    // Cascade rename to local items so items remain in folder!
+    if (oldName && oldName !== name) {
+      if (normType === 'event') {
+        let events = this.getEvents();
+        events.forEach(e => {
+          if (e.category === oldName) e.category = name;
+          if (e.date === oldName) e.date = name;
+        });
+        localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
+      } else if (normType === 'video') {
+        let videos = this.getVideos();
+        videos.forEach(v => {
+          if (v.category === oldName) v.category = name;
+          if (v.date === oldName) v.date = name;
+        });
+        localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
+      } else if (normType === 'letter') {
+        let letters = this.getLetters();
+        letters.forEach(l => {
+          if (l.department === oldName) l.department = name;
+          if (l.category === oldName) l.category = name;
+          if (l.date === oldName) l.date = name;
+        });
+        localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(letters));
+      }
+    }
+
+    try {
+      await this.syncWithServer();
+    } catch (e) {}
+
+    return { success: true, id, name, type: normType };
   }
 
   async deleteFolder(id) {
+    let folders = this.getFolders();
+    const deleted = folders.find(f => String(f.id) === String(id));
+
     try {
       const res = await fetch(`api/folders.php?id=${encodeURIComponent(id)}&api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
         method: "DELETE",
         headers: authHeaders
       });
-      const json = await res.json();
-      if (json.success) {
-        await this.syncWithServer();
-        return true;
+      const json = await res.json().catch(() => null);
+      if (!res.ok || (json && !json.success)) {
+        console.warn("Server folder deletion notice:", json);
       }
-      throw new Error(json.error || "Failed to delete folder");
     } catch (e) {
-      console.error(e);
-      throw e;
+      console.warn("Folder server delete warning:", e);
     }
+
+    // Remove from localStorage
+    folders = folders.filter(f => String(f.id) !== String(id));
+    localStorage.setItem("vokal_folders_data", JSON.stringify(folders));
+
+    // Also remove contained items from localStorage
+    if (deleted) {
+      const fName = deleted.name;
+      if (deleted.type === 'event') {
+        let evts = this.getEvents().filter(e => e.category !== fName && e.date !== fName);
+        localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(evts));
+      } else if (deleted.type === 'video') {
+        let vids = this.getVideos().filter(v => v.category !== fName && v.date !== fName);
+        localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(vids));
+      } else if (deleted.type === 'letter') {
+        let lets = this.getLetters().filter(l => l.department !== fName && l.category !== fName && l.date !== fName);
+        localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(lets));
+      }
+    }
+
+    try {
+      await this.syncWithServer();
+    } catch (e) {}
+
+    return true;
   }
 
   // --- INQUIRIES & CRUELTY REPORTS ---
@@ -578,3 +735,16 @@ class VokalStorageManager {
 
 // Global instance
 window.vokalStorage = new VokalStorageManager();
+
+if (typeof window.escapeHtml !== 'function') {
+  window.escapeHtml = function(string) {
+    if (!string) return "";
+    return String(string)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+}
+

@@ -432,7 +432,7 @@
                   </div>
                   <div class="col-md-6">
                     <label class="form-label small fw-bold">Folder *</label>
-                    <input type="text" id="letterDepartment" class="form-control" required>
+                    <select id="letterDept" class="form-select" required></select>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label small fw-bold">Status *</label>
@@ -516,9 +516,9 @@
   <!-- Bootstrap 5.3 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- VOKAL Scripts -->
-  <script src="js/data.js?v=6.1"></script>
-  <script src="js/storage.js?v=6.1"></script>
-  <script src="js/main.js?v=6.1"></script>
+  <script src="js/data.js?v=8.0"></script>
+  <script src="js/storage.js?v=8.0"></script>
+  <script src="js/main.js?v=8.0"></script>
 
   <!-- Admin Dashboard Logic -->
   <script>
@@ -605,6 +605,8 @@
       document.getElementById("inquiryCountBadge").textContent = inquiries.length;
     }
 
+    let currentOpenFolder = null;
+
     function renderAdminFolders() {
       const tbody = document.getElementById("adminFoldersTableBody");
       if (!tbody) return;
@@ -612,23 +614,26 @@
       tbody.innerHTML = "";
 
       if (folders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No folders created yet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No custom folders created yet. Click "Create Folder" above to add one.</td></tr>`;
         return;
       }
 
       folders.forEach(f => {
         const tr = document.createElement("tr");
         tr.id = `folder-row-${f.id}`;
+        const typeBadge = f.type === 'event' ? '<span class="badge bg-primary text-uppercase">Photos</span>' :
+                          f.type === 'letter' ? '<span class="badge bg-success text-uppercase">Letters</span>' :
+                          '<span class="badge bg-danger text-uppercase">Videos</span>';
         tr.innerHTML = `
-          <td class="fw-bold"><i class="bi bi-folder-fill text-warning me-2"></i>${f.name}</td>
-          <td><span class="badge bg-secondary text-uppercase">${f.type}</span></td>
-          <td>${f.created_at}</td>
+          <td class="fw-bold"><i class="bi bi-folder-fill text-warning me-2"></i>${escapeHtml(f.name)}</td>
+          <td>${typeBadge}</td>
+          <td>${escapeHtml(f.created_at || 'Just now')}</td>
           <td>
             <div class="d-flex gap-1">
-              <button class="btn btn-outline-primary btn-sm" title="Edit" onclick="showEditFolderModal('${f.id}')">
+              <button class="btn btn-outline-primary btn-sm" title="Rename Folder" data-id="${f.id}" data-name="${escapeHtml(f.name)}" data-type="${f.type}" onclick="adminRenameFolderBtn(this)">
                 <i class="bi bi-pencil-fill"></i>
               </button>
-              <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="adminDeleteFolder('${f.id}')">
+              <button class="btn btn-outline-danger btn-sm" title="Delete Folder" data-id="${f.id}" data-name="${escapeHtml(f.name)}" data-type="${f.type}" onclick="adminDeleteFolderBtn(this)">
                 <i class="bi bi-trash3"></i>
               </button>
             </div>
@@ -638,31 +643,79 @@
       });
     }
 
-    async function adminDeleteFolder(folderName, type) {
-      if (!confirm(`Permanently delete the folder "${folderName}" AND ALL items inside it? This cannot be undone.`)) return;
+    function adminRenameFolderBtn(btn) {
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const type = btn.getAttribute('data-type');
+      promptRenameFolder(id, name, type);
+    }
+
+    function adminDeleteFolderBtn(btn) {
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const type = btn.getAttribute('data-type');
+      adminDeleteFolder(id, name, type);
+    }
+
+    function adminOpenFolderBtn(btn) {
+      const name = btn.getAttribute('data-folder');
+      const type = btn.getAttribute('data-type');
+      openAdminFolder(name, type);
+    }
+
+    async function adminDeleteFolder(folderIdOrName, folderName, type) {
+      let fId = folderIdOrName;
+      let fName = folderName || folderIdOrName;
+      let fType = type;
+
+      const folders = window.vokalStorage.getFolders();
+      let folderObj = folders.find(f => String(f.id) === String(fId));
+      if (!folderObj && fName) {
+        folderObj = folders.find(f => f.name === fName && (!fType || f.type === fType));
+      }
+      if (!folderObj && fName) {
+        folderObj = folders.find(f => f.name === fName);
+      }
+
+      if (folderObj) {
+        fId = folderObj.id;
+        fName = folderObj.name;
+        fType = folderObj.type;
+      }
+
+      if (!confirm(`Are you sure you want to permanently delete the folder "${fName}" and all items inside it?\n\nThis will remove the folder from the database, website, and all dropdown options.`)) {
+        return;
+      }
+
       try {
-        let items = [];
-        if (type === 'photo') {
-          items = window.vokalStorage.getEvents().filter(x => (x.date || 'Recent') === folderName);
-          for (let p of items) { await window.vokalStorage.deleteEvent(p.id); }
-        } else if (type === 'letter') {
-          items = window.vokalStorage.getLetters().filter(x => (x.date || 'Recent') === folderName);
-          for (let l of items) { await window.vokalStorage.deleteLetter(l.id); }
-        } else if (type === 'video') {
-          items = window.vokalStorage.getVideos().filter(x => (x.date || 'September 02, 2026') === folderName);
-          for (let v of items) { await window.vokalStorage.deleteVideo(v.id); }
+        if (fId && !String(fId).startsWith('legacy-')) {
+          await window.vokalStorage.deleteFolder(fId);
+        } else {
+          let allF = window.vokalStorage.getFolders().filter(f => f.name !== fName);
+          localStorage.setItem("vokal_folders_data", JSON.stringify(allF));
+          if (fType === 'photo' || fType === 'event') {
+            let evts = window.vokalStorage.getEvents().filter(e => e.category !== fName && e.date !== fName);
+            localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(evts));
+          } else if (fType === 'video') {
+            let vids = window.vokalStorage.getVideos().filter(v => v.category !== fName && v.date !== fName);
+            localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(vids));
+          } else if (fType === 'letter') {
+            let lets = window.vokalStorage.getLetters().filter(l => l.department !== fName && l.category !== fName && l.date !== fName);
+            localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(lets));
+          }
         }
 
+        currentOpenFolder = null;
         bootstrap.Modal.getInstance(document.getElementById('adminFolderItemsModal'))?.hide();
         loadAdminDashboard();
-        showToast(`Folder and ${items.length} items deleted successfully.`, "success");
+        showToast(`Folder "${fName}" and its items were permanently deleted.`, "success");
       } catch (err) {
+        console.error("Folder delete error:", err);
         showToast("Delete failed: " + err.message, "danger");
       }
     }
 
-    function showAdminFolderModal() {
-      // Create modal if not exists
+    function showAdminFolderModal(defaultType = 'event') {
       let modalEl = document.getElementById("editFolderModal");
       if (!modalEl) {
         modalEl = document.createElement("div");
@@ -673,16 +726,16 @@
           <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 rounded-4 shadow-lg">
               <div class="modal-header bg-warning">
-                <h5 class="modal-title fw-bold"><i class="bi bi-folder-plus me-2"></i>Manage Folder</h5>
+                <h5 class="modal-title fw-bold" id="editFolderModalTitle"><i class="bi bi-folder-plus me-2"></i>Create New Folder</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
               </div>
               <div class="modal-body p-4">
                 <input type="hidden" id="editFolderId">
                 <div class="mb-3">
-                  <label class="form-label fw-bold small">Folder Name (e.g. Date)</label>
-                  <input type="text" id="editFolderName" class="form-control" required>
+                  <label class="form-label fw-bold small">Folder Name *</label>
+                  <input type="text" id="editFolderName" class="form-control" placeholder="e.g. October 2026, Animal Rescue, etc." required>
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" id="editFolderTypeGroup">
                   <label class="form-label fw-bold small">Content Type</label>
                   <select id="editFolderType" class="form-select">
                     <option value="event">Photos / Events</option>
@@ -704,26 +757,31 @@
       }
 
       document.getElementById("editFolderId").value = "";
-      
-      // Auto-populate current date like "23 Sep 2026"
-      const now = new Date();
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const dateString = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-      document.getElementById("editFolderName").value = dateString;
-      
-      document.getElementById("editFolderType").value = "event";
+      document.getElementById("editFolderName").value = "";
+      document.getElementById("editFolderType").value = defaultType || "event";
+      document.getElementById("editFolderTypeGroup").style.display = "block";
+      const titleEl = document.getElementById("editFolderModalTitle");
+      if (titleEl) titleEl.innerHTML = '<i class="bi bi-folder-plus me-2"></i>Create New Folder';
 
       new bootstrap.Modal(modalEl).show();
+    }
+
+    function promptRenameFolder(id, currentName, type) {
+      showAdminFolderModal(type);
+      document.getElementById("editFolderId").value = id;
+      document.getElementById("editFolderName").value = currentName;
+      document.getElementById("editFolderType").value = type || "event";
+      const titleEl = document.getElementById("editFolderModalTitle");
+      if (titleEl) titleEl.innerHTML = '<i class="bi bi-pencil-fill me-2"></i>Rename Folder';
+      const typeGroup = document.getElementById("editFolderTypeGroup");
+      if (typeGroup) typeGroup.style.display = "none";
     }
 
     function showEditFolderModal(id) {
       const folders = window.vokalStorage.getFolders();
       const f = folders.find(x => String(x.id) === String(id));
       if (!f) return;
-      showAdminFolderModal();
-      document.getElementById("editFolderId").value = f.id;
-      document.getElementById("editFolderName").value = f.name;
-      document.getElementById("editFolderType").value = f.type;
+      promptRenameFolder(f.id, f.name, f.type);
     }
 
     async function saveAdminFolder() {
@@ -731,67 +789,108 @@
       const name = document.getElementById("editFolderName").value.trim();
       const type = document.getElementById("editFolderType").value;
       
-      if (!name) { showToast("Folder name is required.", "warning"); return; }
+      if (!name) { 
+        showToast("Folder name is required.", "warning"); 
+        return; 
+      }
 
       try {
-        if (id) {
+        if (id && id !== 'undefined' && !String(id).startsWith('legacy-')) {
           await window.vokalStorage.editFolder(id, name, type);
-          showToast("Folder updated successfully!", "success");
+          showToast(`Folder renamed to "${name}" successfully!`, "success");
         } else {
-          await window.vokalStorage.addFolder(name, type);
-          showToast("Folder created successfully!", "success");
+          if (id && String(id).startsWith('legacy-')) {
+            await window.vokalStorage.addFolder(name, type);
+            const oldName = id.replace('legacy-', '').replace(/_/g, ' ');
+            if (type === 'event') {
+              let evts = window.vokalStorage.getEvents();
+              evts.forEach(e => {
+                if (e.category === oldName || e.date === oldName) e.category = name;
+              });
+              localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(evts));
+            }
+            showToast(`Folder renamed to "${name}" successfully!`, "success");
+          } else {
+            await window.vokalStorage.addFolder(name, type);
+            showToast(`Folder "${name}" created successfully!`, "success");
+          }
         }
         bootstrap.Modal.getInstance(document.getElementById("editFolderModal"))?.hide();
         loadAdminDashboard();
+        if (currentOpenFolder) {
+          openAdminFolder(name, type);
+        }
       } catch (e) {
         showToast("Error: " + e.message, "danger");
       }
     }
 
     function updateFolderDropdowns() {
-      const folders = window.vokalStorage.getFolders();
-      
-      const photoFolders = folders.filter(f => f.type === 'event');
-      const photoOptions = photoFolders.length > 0 ? photoFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('') : '<option value="General">General</option>';
+      const photoFolders = window.vokalStorage.getFoldersWithItems('event');
+      const photoOptions = photoFolders.length > 0 
+        ? photoFolders.map(f => `<option value="${escapeHtml(f.name)}">${escapeHtml(f.name)}</option>`).join('') 
+        : '<option value="General">General</option>';
       if (document.getElementById("photoCategory")) document.getElementById("photoCategory").innerHTML = photoOptions;
       if (document.getElementById("editPhotoCategory")) document.getElementById("editPhotoCategory").innerHTML = photoOptions;
 
-      const videoFolders = folders.filter(f => f.type === 'video');
-      const videoOptions = videoFolders.length > 0 ? videoFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('') : '<option value="General">General</option>';
+      const videoFolders = window.vokalStorage.getFoldersWithItems('video');
+      const videoOptions = videoFolders.length > 0 
+        ? videoFolders.map(f => `<option value="${escapeHtml(f.name)}">${escapeHtml(f.name)}</option>`).join('') 
+        : '<option value="General">General</option>';
       if (document.getElementById("videoCategory")) document.getElementById("videoCategory").innerHTML = videoOptions;
 
-      const letterFolders = folders.filter(f => f.type === 'letter');
-      const letterOptions = letterFolders.length > 0 ? letterFolders.map(f => `<option value="${f.name}">${f.name}</option>`).join('') : '<option value="General">General</option>';
+      const letterFolders = window.vokalStorage.getFoldersWithItems('letter');
+      const letterOptions = letterFolders.length > 0 
+        ? letterFolders.map(f => `<option value="${escapeHtml(f.name)}">${escapeHtml(f.name)}</option>`).join('') 
+        : '<option value="General Administration">General Administration</option>';
       if (document.getElementById("letterDept")) document.getElementById("letterDept").innerHTML = letterOptions;
     }
 
     function renderAdminPhotos() {
       const grid = document.getElementById("adminPhotosGrid");
       if (!grid) return;
-      const photos = window.vokalStorage.getEvents();
+      const folderList = window.vokalStorage.getFoldersWithItems('event');
       grid.innerHTML = "";
 
-      if (photos.length === 0) {
-        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No event photos in database.</div>`;
+      if (folderList.length === 0) {
+        grid.innerHTML = `
+          <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-folder-plus display-4 text-secondary d-block mb-3"></i>
+            <h5>No photo folders yet</h5>
+            <p class="small text-muted">Create a folder or upload a photo to get started.</p>
+            <button class="btn btn-warning fw-bold btn-sm mt-2" onclick="showAdminFolderModal('event')">
+              <i class="bi bi-folder-plus me-1"></i> Create First Folder
+            </button>
+          </div>
+        `;
         return;
       }
 
-      const grouped = {};
-      photos.forEach(p => {
-        const d = p.date || "Recent";
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(p);
-      });
-
-      Object.entries(grouped).forEach(([folderName, items]) => {
+      folderList.forEach(folder => {
         const col = document.createElement("div");
         col.className = "col-md-6 col-lg-4 animate-on-scroll";
+        const itemCount = folder.items.length;
+        const countBadge = itemCount === 0 
+          ? `<span class="badge bg-secondary-subtle text-secondary border">0 Photos (Empty)</span>`
+          : `<span class="badge bg-light text-dark border">${itemCount} Photo${itemCount !== 1 ? 's' : ''}</span>`;
+        
         col.innerHTML = `
-          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'photo')" style="cursor: pointer;">
-            <div class="card-body p-4 text-center">
+          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui position-relative">
+            <div class="card-body p-4 text-center" role="button" data-folder="${escapeHtml(folder.name)}" data-type="photo" onclick="adminOpenFolderBtn(this)">
               <i class="bi bi-folder-fill display-4 text-primary mb-3 d-block"></i>
-              <h5 class="fw-bold mb-1">${folderName}</h5>
-              <span class="badge bg-light text-dark border">${items.length} Photos</span>
+              <h5 class="fw-bold mb-1 text-truncate" title="${escapeHtml(folder.name)}">${escapeHtml(folder.name)}</h5>
+              ${countBadge}
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3 d-flex justify-content-center gap-2">
+              <button class="btn btn-sm btn-outline-secondary px-2 py-1" data-folder="${escapeHtml(folder.name)}" data-type="photo" onclick="adminOpenFolderBtn(this)">
+                <i class="bi bi-folder2-open me-1"></i> Open
+              </button>
+              <button class="btn btn-sm btn-outline-primary px-2 py-1" data-id="${folder.id}" data-name="${escapeHtml(folder.name)}" data-type="event" onclick="adminRenameFolderBtn(this)">
+                <i class="bi bi-pencil-fill me-1"></i> Rename
+              </button>
+              <button class="btn btn-sm btn-outline-danger px-2 py-1" data-id="${folder.id}" data-name="${escapeHtml(folder.name)}" data-type="photo" onclick="adminDeleteFolderBtn(this)">
+                <i class="bi bi-trash3 me-1"></i> Delete
+              </button>
             </div>
           </div>
         `;
@@ -802,30 +901,48 @@
     function renderAdminLetters() {
       const grid = document.getElementById("adminLettersGrid");
       if (!grid) return;
-      const letters = window.vokalStorage.getLetters();
+      const folderList = window.vokalStorage.getFoldersWithItems('letter');
       grid.innerHTML = "";
 
-      if (letters.length === 0) {
-        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No letters in database.</div>`;
+      if (folderList.length === 0) {
+        grid.innerHTML = `
+          <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-folder-plus display-4 text-secondary d-block mb-3"></i>
+            <h5>No letter folders yet</h5>
+            <p class="small text-muted">Create a folder or upload a letter to get started.</p>
+            <button class="btn btn-warning fw-bold btn-sm mt-2" onclick="showAdminFolderModal('letter')">
+              <i class="bi bi-folder-plus me-1"></i> Create First Folder
+            </button>
+          </div>
+        `;
         return;
       }
 
-      const grouped = {};
-      letters.forEach(l => {
-        const d = l.date || "Recent";
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(l);
-      });
-
-      Object.entries(grouped).forEach(([folderName, items]) => {
+      folderList.forEach(folder => {
         const col = document.createElement("div");
         col.className = "col-md-6 col-lg-4 animate-on-scroll";
+        const itemCount = folder.items.length;
+        const countBadge = itemCount === 0 
+          ? `<span class="badge bg-secondary-subtle text-secondary border">0 Letters (Empty)</span>`
+          : `<span class="badge bg-light text-dark border">${itemCount} Letter${itemCount !== 1 ? 's' : ''}</span>`;
+
         col.innerHTML = `
-          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'letter')" style="cursor: pointer;">
-            <div class="card-body p-4 text-center">
+          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui position-relative">
+            <div class="card-body p-4 text-center" role="button" data-folder="${escapeHtml(folder.name)}" data-type="letter" onclick="adminOpenFolderBtn(this)">
               <i class="bi bi-folder-fill display-4 text-success mb-3 d-block"></i>
-              <h5 class="fw-bold mb-1">${folderName}</h5>
-              <span class="badge bg-light text-dark border">${items.length} Letters</span>
+              <h5 class="fw-bold mb-1 text-truncate" title="${escapeHtml(folder.name)}">${escapeHtml(folder.name)}</h5>
+              ${countBadge}
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3 d-flex justify-content-center gap-2">
+              <button class="btn btn-sm btn-outline-secondary px-2 py-1" data-folder="${escapeHtml(folder.name)}" data-type="letter" onclick="adminOpenFolderBtn(this)">
+                <i class="bi bi-folder2-open me-1"></i> Open
+              </button>
+              <button class="btn btn-sm btn-outline-primary px-2 py-1" data-id="${folder.id}" data-name="${escapeHtml(folder.name)}" data-type="letter" onclick="adminRenameFolderBtn(this)">
+                <i class="bi bi-pencil-fill me-1"></i> Rename
+              </button>
+              <button class="btn btn-sm btn-outline-danger px-2 py-1" data-id="${folder.id}" data-name="${escapeHtml(folder.name)}" data-type="letter" onclick="adminDeleteFolderBtn(this)">
+                <i class="bi bi-trash3 me-1"></i> Delete
+              </button>
             </div>
           </div>
         `;
@@ -836,30 +953,48 @@
     function renderAdminVideos() {
       const grid = document.getElementById("adminVideosGrid");
       if (!grid) return;
-      const videos = window.vokalStorage.getVideos();
+      const folderList = window.vokalStorage.getFoldersWithItems('video');
       grid.innerHTML = "";
 
-      if (videos.length === 0) {
-        grid.innerHTML = `<div class="col-12 text-center text-muted py-4">No videos in database.</div>`;
+      if (folderList.length === 0) {
+        grid.innerHTML = `
+          <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-folder-plus display-4 text-secondary d-block mb-3"></i>
+            <h5>No video folders yet</h5>
+            <p class="small text-muted">Create a folder or add a video to get started.</p>
+            <button class="btn btn-warning fw-bold btn-sm mt-2" onclick="showAdminFolderModal('video')">
+              <i class="bi bi-folder-plus me-1"></i> Create First Folder
+            </button>
+          </div>
+        `;
         return;
       }
 
-      const grouped = {};
-      videos.forEach(v => {
-        const d = v.date || "September 02, 2026";
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(v);
-      });
-
-      Object.entries(grouped).forEach(([folderName, items]) => {
+      folderList.forEach(folder => {
         const col = document.createElement("div");
         col.className = "col-md-6 col-lg-4 animate-on-scroll";
+        const itemCount = folder.items.length;
+        const countBadge = itemCount === 0 
+          ? `<span class="badge bg-secondary-subtle text-secondary border">0 Videos (Empty)</span>`
+          : `<span class="badge bg-light text-dark border">${itemCount} Video${itemCount !== 1 ? 's' : ''}</span>`;
+
         col.innerHTML = `
-          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui" onclick="openAdminFolder('${folderName}', 'video')" style="cursor: pointer;">
-            <div class="card-body p-4 text-center">
+          <div class="card border-0 shadow-sm rounded-4 h-100 folder-card-ui position-relative">
+            <div class="card-body p-4 text-center" role="button" data-folder="${escapeHtml(folder.name)}" data-type="video" onclick="adminOpenFolderBtn(this)">
               <i class="bi bi-folder-fill display-4 text-danger mb-3 d-block"></i>
-              <h5 class="fw-bold mb-1">${folderName}</h5>
-              <span class="badge bg-light text-dark border">${items.length} Videos</span>
+              <h5 class="fw-bold mb-1 text-truncate" title="${escapeHtml(folder.name)}">${escapeHtml(folder.name)}</h5>
+              ${countBadge}
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3 d-flex justify-content-center gap-2">
+              <button class="btn btn-sm btn-outline-secondary px-2 py-1" data-folder="${escapeHtml(folder.name)}" data-type="video" onclick="adminOpenFolderBtn(this)">
+                <i class="bi bi-folder2-open me-1"></i> Open
+              </button>
+              <button class="btn btn-sm btn-outline-primary px-2 py-1" data-id="${folder.id}" data-name="${escapeHtml(folder.name)}" data-type="video" onclick="adminRenameFolderBtn(this)">
+                <i class="bi bi-pencil-fill me-1"></i> Rename
+              </button>
+              <button class="btn btn-sm btn-outline-danger px-2 py-1" data-id="${folder.id}" data-name="${escapeHtml(folder.name)}" data-type="video" onclick="adminDeleteFolderBtn(this)">
+                <i class="bi bi-trash3 me-1"></i> Delete
+              </button>
             </div>
           </div>
         `;
@@ -869,52 +1004,59 @@
 
     // Modal to view folder contents and upload directly
     function openAdminFolder(folderName, type) {
-      let items = [];
+      currentOpenFolder = { name: folderName, type: type };
+      const normType = (type === 'photo' || type === 'event') ? 'event' : type;
+      const folderList = window.vokalStorage.getFoldersWithItems(normType);
+      const folder = folderList.find(f => f.name === folderName);
+      const items = folder ? folder.items : [];
+      const folderId = folder ? folder.id : '';
+
       let html = '';
       let titleIcon = '';
       let btnLabel = '';
+      let itemLabel = '';
 
-      if (type === 'photo') {
-        items = window.vokalStorage.getEvents().filter(x => (x.date || 'Recent') === folderName);
+      if (normType === 'event') {
         titleIcon = 'bi-images text-primary';
         btnLabel = 'Upload Photo';
+        itemLabel = 'Photo';
         html = items.map(p => `
           <div class="d-flex align-items-center gap-3 p-3 border-bottom">
             <img src="${p.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
             <div class="flex-grow-1">
-              <h6 class="fw-bold mb-1">${p.title}</h6>
-              <small class="text-muted">${p.date} • ${p.location}</small>
+              <h6 class="fw-bold mb-1">${escapeHtml(p.title)}</h6>
+              <small class="text-muted">${escapeHtml(p.date)} • ${escapeHtml(p.location)}</small>
             </div>
             <div class="d-flex gap-1">
-              <button class="btn btn-outline-primary btn-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('adminFolderItemsModal'))?.hide(); showEditPhotoModal('${p.id}');"><i class="bi bi-pencil-fill"></i></button>
+              <button class="btn btn-outline-primary btn-sm" onclick="showEditPhotoModal('${p.id}');"><i class="bi bi-pencil-fill"></i></button>
               <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteEvent('${p.id}');"><i class="bi bi-trash3"></i></button>
             </div>
           </div>
         `).join('');
-      } else if (type === 'letter') {
-        items = window.vokalStorage.getLetters().filter(x => (x.date || 'Recent') === folderName);
+      } else if (normType === 'letter') {
         titleIcon = 'bi-file-earmark-text-fill text-success';
         btnLabel = 'Upload Letter';
+        itemLabel = 'Letter';
         html = items.map(l => `
           <div class="d-flex align-items-center gap-3 p-3 border-bottom">
             <div class="fs-1 text-success"><i class="bi bi-file-pdf-fill"></i></div>
             <div class="flex-grow-1">
-              <h6 class="fw-bold mb-1">${l.subject}</h6>
-              <small class="text-muted">Ref: ${l.refNo} • ${l.date}</small>
+              <h6 class="fw-bold mb-1">${escapeHtml(l.subject)}</h6>
+              <small class="text-muted">Ref: ${escapeHtml(l.refNo)} • ${escapeHtml(l.date)}</small>
             </div>
             <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteLetter('${l.id}');"><i class="bi bi-trash3"></i></button>
           </div>
         `).join('');
-      } else if (type === 'video') {
-        items = window.vokalStorage.getVideos().filter(x => (x.date || 'September 02, 2026') === folderName);
+      } else if (normType === 'video') {
         titleIcon = 'bi-youtube text-danger';
         btnLabel = 'Add Video';
+        itemLabel = 'Video';
         html = items.map(v => `
           <div class="d-flex align-items-center gap-3 p-3 border-bottom">
             <img src="${v.thumbnail}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 8px;">
             <div class="flex-grow-1">
-              <h6 class="fw-bold mb-1">${v.title}</h6>
-              <small class="text-muted">${v.duration}</small>
+              <h6 class="fw-bold mb-1">${escapeHtml(v.title)}</h6>
+              <small class="text-muted">${escapeHtml(v.duration)}</small>
             </div>
             <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteVideo('${v.id}');"><i class="bi bi-trash3"></i></button>
           </div>
@@ -922,7 +1064,16 @@
       }
 
       if (items.length === 0) {
-        html = `<div class="text-center py-5 text-muted">Folder is empty. Click below to add.</div>`;
+        html = `
+          <div class="text-center py-5 px-3">
+            <i class="bi bi-folder2-open display-3 text-secondary mb-3 d-block opacity-50"></i>
+            <h5 class="fw-bold text-dark">This folder is empty</h5>
+            <p class="text-muted small mb-3">No ${normType === 'event' ? 'photos' : normType === 'letter' ? 'letters' : 'videos'} inside "${escapeHtml(folderName)}" yet.</p>
+            <button class="btn btn-vokal-primary fw-bold btn-sm" data-folder="${escapeHtml(folderName)}" data-type="${type}" onclick="uploadDirectlyToFolderBtn(this)">
+              <i class="bi bi-plus-lg me-1"></i> ${btnLabel}
+            </button>
+          </div>
+        `;
       }
 
       let modalEl = document.getElementById("adminFolderItemsModal");
@@ -938,17 +1089,25 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
           <div class="modal-content border-0 rounded-4 shadow-lg">
             <div class="modal-header bg-light">
-              <h5 class="modal-title fw-bold"><i class="bi ${titleIcon} me-2"></i>${folderName}</h5>
+              <div>
+                <h5 class="modal-title fw-bold mb-0"><i class="bi ${titleIcon} me-2"></i>${escapeHtml(folderName)}</h5>
+                <small class="text-muted">${items.length} ${itemLabel}${items.length !== 1 ? 's' : ''}</small>
+              </div>
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
               ${html}
             </div>
-            <div class="modal-footer bg-light d-flex justify-content-between">
-              <button class="btn btn-outline-danger btn-sm fw-bold" onclick="adminDeleteFolder('${folderName}', '${type}')">
-                <i class="bi bi-trash3-fill me-1"></i> Delete Folder
-              </button>
-              <button class="btn btn-vokal-primary btn-sm fw-bold" onclick="uploadDirectlyToFolder('${folderName}', '${type}')">
+            <div class="modal-footer bg-light d-flex justify-content-between flex-wrap gap-2">
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-danger btn-sm fw-bold" data-id="${folderId}" data-name="${escapeHtml(folderName)}" data-type="${type}" onclick="adminDeleteFolderBtn(this)">
+                  <i class="bi bi-trash3-fill me-1"></i> Delete Folder
+                </button>
+                <button class="btn btn-outline-primary btn-sm fw-bold" data-id="${folderId}" data-name="${escapeHtml(folderName)}" data-type="${normType}" onclick="adminRenameFolderBtn(this)">
+                  <i class="bi bi-pencil-fill me-1"></i> Rename Folder
+                </button>
+              </div>
+              <button class="btn btn-vokal-primary btn-sm fw-bold" data-folder="${escapeHtml(folderName)}" data-type="${type}" onclick="uploadDirectlyToFolderBtn(this)">
                 <i class="bi bi-plus-lg me-1"></i> ${btnLabel}
               </button>
             </div>
@@ -959,14 +1118,29 @@
       new bootstrap.Modal(modalEl).show();
     }
 
+    function uploadDirectlyToFolderBtn(btn) {
+      const folderName = btn.getAttribute('data-folder');
+      const type = btn.getAttribute('data-type');
+      uploadDirectlyToFolder(folderName, type);
+    }
+
     function uploadDirectlyToFolder(folderName, type) {
       bootstrap.Modal.getInstance(document.getElementById("adminFolderItemsModal"))?.hide();
       showAdminUploadModal(type);
       
       setTimeout(() => {
-        if (type === 'photo') document.getElementById("photoCategory").value = folderName;
-        if (type === 'letter') document.getElementById("letterDept").value = folderName;
-        if (type === 'video') document.getElementById("videoCategory").value = folderName;
+        if (type === 'photo' || type === 'event') {
+          const el = document.getElementById("photoCategory");
+          if (el) el.value = folderName;
+        }
+        if (type === 'letter') {
+          const el = document.getElementById("letterDept");
+          if (el) el.value = folderName;
+        }
+        if (type === 'video') {
+          const el = document.getElementById("videoCategory");
+          if (el) el.value = folderName;
+        }
       }, 300);
     }
 
@@ -975,7 +1149,6 @@
       const p = photos.find(x => x.id === id);
       if (!p) return;
 
-      // Build edit modal dynamically
       let modalEl = document.getElementById("editPhotoModal");
       if (!modalEl) {
         modalEl = document.createElement("div");
@@ -1002,7 +1175,6 @@
                   <div class="col-md-4">
                     <label class="form-label fw-bold small">Folder *</label>
                     <select id="editPhotoCategory" class="form-select">
-                      <!-- Dynamically populated -->
                     </select>
                   </div>
                   <div class="col-md-6">
@@ -1033,7 +1205,6 @@
 
       document.getElementById("editPhotoId").value = p.id;
       document.getElementById("editPhotoTitle").value = p.title;
-      // Populate folders in edit photo modal dynamically
       updateFolderDropdowns();
       
       setTimeout(() => {
@@ -1087,6 +1258,9 @@
           }
           bootstrap.Modal.getInstance(document.getElementById("editPhotoModal"))?.hide();
           loadAdminDashboard();
+          if (currentOpenFolder) {
+            openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
+          }
           showToast("Photo updated successfully!", "success");
         } else {
           showToast("Update failed: " + (json.error || "Unknown error"), "danger");
@@ -1101,8 +1275,10 @@
       try {
         await window.vokalStorage.deleteEvent(id);
         loadAdminDashboard();
-        showToast("Photo deleted from database successfully.", "success");
-        bootstrap.Modal.getInstance(document.getElementById("adminFolderItemsModal"))?.hide();
+        if (currentOpenFolder) {
+          openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
+        }
+        showToast("Photo deleted successfully. The folder remains intact.", "success");
       } catch (err) {
         showToast("Delete failed: " + err.message, "danger");
       }
@@ -1113,8 +1289,10 @@
       try {
         await window.vokalStorage.deleteLetter(id);
         loadAdminDashboard();
-        showToast("Letter deleted from database successfully.", "success");
-        bootstrap.Modal.getInstance(document.getElementById("adminFolderItemsModal"))?.hide();
+        if (currentOpenFolder) {
+          openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
+        }
+        showToast("Letter deleted successfully. The folder remains intact.", "success");
       } catch (err) {
         showToast("Delete failed: " + err.message, "danger");
       }
@@ -1125,8 +1303,10 @@
       try {
         await window.vokalStorage.deleteVideo(id);
         loadAdminDashboard();
-        showToast("Video link deleted from database successfully.", "success");
-        bootstrap.Modal.getInstance(document.getElementById("adminFolderItemsModal"))?.hide();
+        if (currentOpenFolder) {
+          openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
+        }
+        showToast("Video link deleted successfully. The folder remains intact.", "success");
       } catch (err) {
         showToast("Delete failed: " + err.message, "danger");
       }
