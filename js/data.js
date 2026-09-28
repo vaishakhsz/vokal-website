@@ -61,12 +61,12 @@ const VOKAL_DEFAULT_DATA = {
       id: "master-amritanandamayi",
       name: "Mata Amritanandamayi Devi (Amma)",
       title: "Universal Mother of Compassion & Reverence for Nature",
-      image: "assets/masters/amma_1.jpg",
-      portrait: "assets/masters/amma_1.jpg",
+      image: "assets/masters/amma_1.jpg?v=3.0",
+      portrait: "assets/masters/amma_1.jpg?v=3.0",
       images: [
-        "assets/masters/amma_1.jpg",
-        "assets/masters/amma_3.jpg",
-        "assets/masters/amma_4.jpg"
+        "assets/masters/amma_1.jpg?v=3.0",
+        "assets/masters/amma_3.jpg?v=3.0",
+        "assets/masters/amma_4.jpg?v=3.0"
       ],
       photoIntervalSeconds: 10,
       totalDurationSeconds: 40,
@@ -78,8 +78,8 @@ const VOKAL_DEFAULT_DATA = {
       id: "master-buddha",
       name: "Gautama Buddha",
       title: "The Awakened Teacher of Boundless Karuna & Universal Harmlessness",
-      image: "assets/masters/gautama_buddha.jpg",
-      portrait: "assets/masters/gautama_buddha.jpg",
+      image: "assets/masters/gautama_buddha.jpg?v=3.0",
+      portrait: "assets/masters/gautama_buddha.jpg?v=3.0",
       quote: "Just as a mother protects her only child with her life, even so let one cultivate a boundless love towards all beings in the entire universe. All beings tremble at violence; all fear death. Putting oneself in the place of another, one should neither kill nor cause to kill.",
       tradition: "Buddhism / Karuna (Compassion) & Ahimsa",
       teaching: "Lord Buddha placed universal harmlessness and loving-kindness (Metta) at the very core of enlightened life. He taught that causing suffering to animals creates heavy karmic bondage, while protecting, feeding, and respecting sentient creatures purifies the mind and leads to liberation."
@@ -88,8 +88,8 @@ const VOKAL_DEFAULT_DATA = {
       id: "master-mahavira",
       name: "Bhagwan Mahavira",
       title: "24th Tirthankara & Pioneer of Ahimsa Paramo Dharma (Universal Non-Violence)",
-      image: "assets/masters/bhagwan_mahavira.jpg?v=2.0",
-      portrait: "assets/masters/bhagwan_mahavira.jpg?v=2.0",
+      image: "assets/masters/bhagwan_mahavira.jpg?v=3.0",
+      portrait: "assets/masters/bhagwan_mahavira.jpg?v=3.0",
       quote: "“Ahimsa Paramo Dharma — Non-injury is the highest religion. All beings are fond of life, like pleasure, hate pain, shun destruction, and desire to live. Putting oneself in the place of another, one should neither kill nor cause to kill.” — Acharanga Sutra (1.4.1)",
       tradition: "Jainism / Supreme Ahimsa & Jiva-Daya (Reverence for Sentient Life)",
       teaching: "Bhagwan Mahavira established absolute non-violence (Ahimsa) and compassion for all living souls (Jiva-Daya) as the supreme spiritual path. Jain philosophy teaches that every living creature—from the smallest being to street animals and birds—possesses an immortal consciousness (Jiva) desiring happiness and fearing suffering. Causing harm, cruelty, or distress to any voiceless creature incurs grave spiritual harm. For millennia, the Jain tradition has pioneered panjrapoles (animal shelters), bird feeders, and active daily welfare for abandoned and sick animals."
@@ -98,8 +98,8 @@ const VOKAL_DEFAULT_DATA = {
       id: "master-nanak",
       name: "Guru Nanak Dev Ji",
       title: "First Sikh Guru & Beacon of Universal Compassion (Daya) & Divine Oneness",
-      image: "assets/masters/guru_nanak.jpg?v=2.0",
-      portrait: "assets/masters/guru_nanak.jpg?v=2.0",
+      image: "assets/masters/guru_nanak.jpg?v=3.0",
+      portrait: "assets/masters/guru_nanak.jpg?v=3.0",
       quote: "“Dukh na dei kisai jia pat sio ghar javo — Do not cause suffering to any living being; return to your true home with honor.” — Guru Granth Sahib (Ang 322)",
       tradition: "Sikhism / Sarbat Da Bhala (Well-Being of All) & Daya (Compassion)",
       teaching: "Guru Nanak Dev Ji and the Sikh Gurus taught that the Divine Light (Jot) permeates every creature across creation. True righteousness is born entirely out of compassion (<em>'Dhaul dharamu daya ka pootu'</em> — Japji Sahib). Because the Creator dwells within all beings, tormenting, abusing, or causing distress to any defenseless animal is an affront to the Divine. Sikh tradition champions <em>Sarbat Da Bhala</em> (welfare of all creation) and mandates active protection, feeding, and tender mercy toward all sentient life."
@@ -108,8 +108,8 @@ const VOKAL_DEFAULT_DATA = {
       id: "master-jesus",
       name: "Jesus Christ",
       title: "The Good Shepherd & Guardian of Innocent Life",
-      image: "assets/masters/jesus_christ.jpg",
-      portrait: "assets/masters/jesus_christ.jpg",
+      image: "assets/masters/jesus_christ.jpg?v=3.0",
+      portrait: "assets/masters/jesus_christ.jpg?v=3.0",
       quote: "Are not five sparrows sold for two pennies? Yet not one of them is forgotten in God's sight. The righteous care for the needs of their animals, but the kindest acts of the wicked are cruel. Blessed are the merciful, for they shall receive mercy.",
       tradition: "Christianity / Divine Mercy & Faithful Stewardship",
       teaching: "Jesus Christ revealed that the Almighty watches tenderly over even the smallest, most defenseless bird. True spiritual discipleship demands mercy and gentle stewardship over creation. To neglect, torture, or abandon voiceless animals contradicts the unconditional love of God."
@@ -118,8 +118,8 @@ const VOKAL_DEFAULT_DATA = {
       id: "master-muhammad",
       name: "Prophet Muhammad",
       title: "Mercy to All Creation (Rahmatan lil-Alamin) • Authentic Hadith Traditions",
-      image: "assets/masters/prophet_muhammad.jpg",
-      portrait: "assets/masters/prophet_muhammad.jpg",
+      image: "assets/masters/prophet_muhammad.jpg?v=3.0",
+      portrait: "assets/masters/prophet_muhammad.jpg?v=3.0",
       quote: "“There is a reward for serving any living being.” — Prophet Muhammad (Sahih al-Bukhari 2363, 6009 & Sahih Muslim 2244)",
       tradition: "Islam / Rahmah (Universal Mercy) & Verified Sunnah",
       teaching: `<p class="mb-0"><strong><i class="bi bi-book-half me-1" style="color: #ff4081;"></i> Sahih al-Bukhari & Sahih Muslim:</strong><br>That beautiful principle comes directly from the Hadith, which are the verified records of the sayings and actions of the Prophet Muhammad. While the Quran contains general commands to be merciful, the specific teaching that feeding or giving water to a stray dog counts as a rewarded act of charity (Sadaqah) is documented in the most trusted Hadith collections: In <em>Sahih al-Bukhari</em> (Hadith 2363 & 6009) and <em>Sahih Muslim</em> (Hadith 2244), the Prophet narrated the story of the man who climbed down a well to fetch water in his shoe for a panting dog, establishing the universal rule: <strong>"There is a reward for serving any living being."</strong> Another authentic narration records that a woman whose past sins were entirely forgiven by Allah simply because she used her shoe to draw water from a well for a dog that was circling it out of extreme thirst (<em>Sahih al-Bukhari</em> 3467).</p>`

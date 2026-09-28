@@ -599,13 +599,18 @@ h1, h2, h3, h4, .brand-font {
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  background: #fdf2f4;
 }
 
 .master-portrait-wrap img {
   width: 100%;
-  height: 420px;
+  height: 100%;
   object-fit: cover;
-  object-position: top center;
+  object-position: center center;
   display: block;
   transition: transform 0.6s ease, opacity 0.3s ease;
 }
@@ -1385,11 +1390,18 @@ h1, h2, h3, h4, .brand-font {
   .master-slide-grid {
     gap: 16px;
   }
+  .master-portrait-wrap {
+    max-width: 320px;
+    border-radius: 16px;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+  }
   .master-portrait-wrap img {
-    height: 260px;
-    border-radius: 14px;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
     object-fit: cover;
-    object-position: top center;
+    object-position: center center;
   }
   .master-floating-arrow {
     width: 34px;
