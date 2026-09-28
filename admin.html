@@ -511,38 +511,12 @@
         </div>
       </div>
     </div>
-  <!-- Rename File / Item Modal -->
-  <div class="modal fade" id="renameFileModal" tabindex="-1" style="z-index: 1065;" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 rounded-4 shadow-lg">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title fw-bold" id="renameFileModalTitle"><i class="bi bi-pencil-square me-2"></i>Rename File</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body p-4">
-          <input type="hidden" id="renameFileId">
-          <input type="hidden" id="renameFileType">
-          <div class="mb-3">
-            <label class="form-label fw-bold small text-muted text-uppercase" id="renameFileLabel">New Title / Name</label>
-            <input type="text" id="renameFileInput" class="form-control form-control-lg" placeholder="Enter new title or file name" onkeydown="if(event.key==='Enter'){event.preventDefault();saveRenamedItem();}">
-          </div>
-        </div>
-        <div class="modal-footer bg-light">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary fw-bold px-3" onclick="saveRenamedItem()">
-            <i class="bi bi-check-circle me-1"></i> Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Bootstrap 5.3 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- VOKAL Scripts -->
-  <script src="js/data.js?v=8.2"></script>
-  <script src="js/storage.js?v=8.2"></script>
-  <script src="js/main.js?v=8.2"></script>
+  <script src="js/data.js?v=8.3"></script>
+  <script src="js/storage.js?v=8.3"></script>
+  <script src="js/main.js?v=8.3"></script>
 
   <!-- Admin Dashboard Logic -->
   <script>
@@ -688,49 +662,75 @@
     }
 
     function adminRenameItemBtn(btn) {
+      startInlineRename(btn);
+    }
+
+    function startInlineRename(btn) {
       const id = btn.getAttribute('data-id');
       const name = btn.getAttribute('data-name');
       const type = btn.getAttribute('data-type');
-      promptRenameItem(id, name, type);
-    }
 
-    function promptRenameItem(id, currentName, type) {
-      let modalEl = document.getElementById("renameFileModal");
-      if (!modalEl) return;
-      document.getElementById("renameFileId").value = id;
-      document.getElementById("renameFileType").value = type;
-      document.getElementById("renameFileInput").value = currentName || "";
-      
-      const titleEl = document.getElementById("renameFileModalTitle");
-      const labelEl = document.getElementById("renameFileLabel");
-      const typeLabel = (type === 'letter') ? 'Letter' : (type === 'video') ? 'Video' : 'Photo';
-      
-      if (titleEl) titleEl.innerHTML = `<i class="bi bi-pencil-square me-2"></i>Rename ${typeLabel}`;
-      if (labelEl) labelEl.textContent = `New ${typeLabel} Title / Name`;
-      
-      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-      modal.show();
-      setTimeout(() => {
-        const input = document.getElementById("renameFileInput");
-        if (input) { input.focus(); input.select(); }
-      }, 300);
-    }
-
-    async function saveRenamedItem() {
-      const id = document.getElementById("renameFileId").value;
-      const type = document.getElementById("renameFileType").value;
-      const newName = document.getElementById("renameFileInput").value.trim();
-      
-      if (!newName) {
-        showToast("Name cannot be empty.", "warning");
+      const infoEl = document.getElementById(`item-info-${id}`);
+      const btnsEl = document.getElementById(`item-btns-${id}`);
+      if (!infoEl || !btnsEl) {
+        promptRenameItem(id, name, type);
         return;
       }
-      
+
+      if (!infoEl.hasAttribute('data-original-html')) {
+        infoEl.setAttribute('data-original-html', infoEl.innerHTML);
+      }
+      if (!btnsEl.hasAttribute('data-original-html')) {
+        btnsEl.setAttribute('data-original-html', btnsEl.innerHTML);
+      }
+
+      infoEl.innerHTML = `
+        <div class="py-1">
+          <input type="text" class="form-control form-control-sm fw-bold border-primary shadow-sm" id="inline-input-${id}" value="${escapeHtml(name)}" placeholder="Enter new title/name" onkeydown="if(event.key==='Enter') saveInlineItemRename('${id}', '${type}'); else if(event.key==='Escape') cancelInlineItemRename('${id}');">
+        </div>
+      `;
+
+      btnsEl.innerHTML = `
+        <button class="btn btn-success btn-sm px-2 fw-bold text-nowrap" onclick="saveInlineItemRename('${id}', '${type}')" title="Save name">
+          <i class="bi bi-check-lg me-1"></i> Save
+        </button>
+        <button class="btn btn-outline-secondary btn-sm px-2 text-nowrap" onclick="cancelInlineItemRename('${id}')" title="Cancel">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      `;
+
+      setTimeout(() => {
+        const input = document.getElementById(`inline-input-${id}`);
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 50);
+    }
+
+    function cancelInlineItemRename(id) {
+      const infoEl = document.getElementById(`item-info-${id}`);
+      const btnsEl = document.getElementById(`item-btns-${id}`);
+      if (infoEl && infoEl.hasAttribute('data-original-html')) {
+        infoEl.innerHTML = infoEl.getAttribute('data-original-html');
+      }
+      if (btnsEl && btnsEl.hasAttribute('data-original-html')) {
+        btnsEl.innerHTML = btnsEl.getAttribute('data-original-html');
+      }
+    }
+
+    async function saveInlineItemRename(id, type) {
+      const input = document.getElementById(`inline-input-${id}`);
+      if (!input) return;
+      const newName = input.value.trim();
+      if (!newName) {
+        showToast("Name cannot be empty.", "warning");
+        input.focus();
+        return;
+      }
+
       try {
         await window.vokalStorage.renameItem(id, newName, type);
-        const modalEl = document.getElementById("renameFileModal");
-        if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
-        
         loadAdminDashboard();
         if (currentOpenFolder) {
           openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
@@ -739,9 +739,24 @@
         const typeLabel = (type === 'letter') ? 'Letter' : (type === 'video') ? 'Video' : 'Photo';
         showToast(`${typeLabel} renamed to "${newName}" successfully!`, "success");
       } catch (err) {
-        cleanupOrphanBackdrops();
         showToast("Rename failed: " + err.message, "danger");
       }
+    }
+
+    function promptRenameItem(id, currentName, type) {
+      const typeLabel = (type === 'letter') ? 'Letter' : (type === 'video') ? 'Video' : 'Photo';
+      const newName = prompt(`Rename ${typeLabel}:\nEnter new title / name:`, currentName);
+      if (!newName || !newName.trim() || newName.trim() === currentName) return;
+      window.vokalStorage.renameItem(id, newName.trim(), type).then(() => {
+        loadAdminDashboard();
+        if (currentOpenFolder) {
+          openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
+        }
+        cleanupOrphanBackdrops();
+        showToast(`${typeLabel} renamed to "${newName.trim()}" successfully!`, "success");
+      }).catch(err => {
+        showToast("Rename failed: " + err.message, "danger");
+      });
     }
 
     async function adminDeleteFolder(folderIdOrName, folderName, type) {
@@ -836,6 +851,12 @@
     }
 
     function promptRenameFolder(id, currentName, type) {
+      const itemsModal = document.getElementById("adminFolderItemsModal");
+      if (itemsModal && itemsModal.classList.contains("show")) {
+        bootstrap.Modal.getInstance(itemsModal)?.hide();
+      }
+      cleanupOrphanBackdrops();
+
       showAdminFolderModal(type);
       document.getElementById("editFolderId").value = id;
       if (document.getElementById("editFolderOldName")) document.getElementById("editFolderOldName").value = currentName;
@@ -1079,6 +1100,13 @@
       }, 50);
     }
 
+    document.addEventListener("hidden.bs.modal", cleanupOrphanBackdrops);
+    document.addEventListener("click", (e) => {
+      if (e.target && e.target.classList.contains("modal-backdrop")) {
+        cleanupOrphanBackdrops();
+      }
+    });
+
     // Modal to view folder contents and upload directly
     function openAdminFolder(folderName, type) {
       currentOpenFolder = { name: folderName, type: type };
@@ -1098,13 +1126,13 @@
         btnLabel = 'Upload Photo';
         itemLabel = 'Photo';
         html = items.map(p => `
-          <div class="d-flex align-items-center gap-3 p-3 border-bottom">
-            <img src="${p.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
-            <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-3 p-3 border-bottom" id="item-row-${p.id}">
+            <img src="${p.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
+            <div class="flex-grow-1" id="item-info-${p.id}">
               <h6 class="fw-bold mb-1">${escapeHtml(p.title)}</h6>
               <small class="text-muted">${escapeHtml(p.date)} • ${escapeHtml(p.location)}</small>
             </div>
-            <div class="d-flex gap-1">
+            <div class="d-flex gap-1 flex-shrink-0" id="item-btns-${p.id}">
               <button class="btn btn-outline-primary btn-sm px-2" data-id="${p.id}" data-name="${escapeHtml(p.title)}" data-type="event" onclick="adminRenameItemBtn(this)" title="Rename Photo">
                 <i class="bi bi-pencil-square me-1"></i> Rename
               </button>
@@ -1122,13 +1150,13 @@
         btnLabel = 'Upload Letter';
         itemLabel = 'Letter';
         html = items.map(l => `
-          <div class="d-flex align-items-center gap-3 p-3 border-bottom">
-            <div class="fs-1 text-success"><i class="bi bi-file-pdf-fill"></i></div>
-            <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-3 p-3 border-bottom" id="item-row-${l.id}">
+            <div class="fs-1 text-success flex-shrink-0"><i class="bi bi-file-pdf-fill"></i></div>
+            <div class="flex-grow-1" id="item-info-${l.id}">
               <h6 class="fw-bold mb-1">${escapeHtml(l.subject)}</h6>
               <small class="text-muted">Ref: ${escapeHtml(l.refNo)} • ${escapeHtml(l.date)}</small>
             </div>
-            <div class="d-flex gap-1">
+            <div class="d-flex gap-1 flex-shrink-0" id="item-btns-${l.id}">
               <button class="btn btn-outline-primary btn-sm px-2" data-id="${l.id}" data-name="${escapeHtml(l.subject)}" data-type="letter" onclick="adminRenameItemBtn(this)" title="Rename Letter">
                 <i class="bi bi-pencil-square me-1"></i> Rename
               </button>
@@ -1143,13 +1171,13 @@
         btnLabel = 'Add Video';
         itemLabel = 'Video';
         html = items.map(v => `
-          <div class="d-flex align-items-center gap-3 p-3 border-bottom">
-            <img src="${v.thumbnail}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 8px;">
-            <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-3 p-3 border-bottom" id="item-row-${v.id}">
+            <img src="${v.thumbnail}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
+            <div class="flex-grow-1" id="item-info-${v.id}">
               <h6 class="fw-bold mb-1">${escapeHtml(v.title)}</h6>
               <small class="text-muted">${escapeHtml(v.duration || 'Video Link')}</small>
             </div>
-            <div class="d-flex gap-1">
+            <div class="d-flex gap-1 flex-shrink-0" id="item-btns-${v.id}">
               <a href="${escapeHtml(v.originalUrl || v.videoUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm px-2" title="Watch / Preview Video">
                 <i class="bi bi-play-circle me-1"></i> Watch
               </a>
