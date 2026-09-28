@@ -29,55 +29,66 @@
   <!-- Custom CSS with Rose Pink & Lotus Theme -->
   <link rel="stylesheet" href="css/style.css?v=8.7">
 
-  <!-- Customized Image Adjustments for Spiritual Masters -->
+  <!-- Precision Framing & Border Removal for Spiritual Masters -->
   <style>
-    #spiritualMastersCarousel .carousel-item {
+    /* Contain all scaled crops within their respective cards */
+    #spiritualMastersCarousel,
+    #spiritualMastersCarousel .carousel-inner,
+    #spiritualMastersCarousel .carousel-item,
+    #spiritualMastersCarousel .carousel-item > div,
+    #spiritualMastersCarousel .carousel-item figure,
+    #spiritualMastersCarousel .carousel-item .col-md-5,
+    #spiritualMastersCarousel .carousel-item .col-lg-5,
+    #spiritualMastersCarousel .carousel-item .col-12 {
       overflow: hidden !important;
-      background: transparent !important;
     }
 
-    /* Universal baseline: zero borders, clean container fitting */
-    #spiritualMastersCarousel .carousel-item img,
-    #spiritualMastersCarousel img,
-    .masters-carousel img,
-    .master-portrait-img,
-    .master-card-img {
-      border: 0 !important;
-      outline: none !important;
-      box-shadow: none !important;
+    #spiritualMastersCarousel img {
       display: block !important;
       margin: 0 auto !important;
-      max-height: 480px !important;
-      width: 100% !important;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      max-height: 470px !important;
     }
 
-    /* 1. Amma's 3rd image: crop unwanted baked-in frame/borders cleanly */
-    #spiritualMastersCarousel .carousel-inner .carousel-item:nth-child(3) img {
-      height: 450px !important;
+    /* 1. Amma's 3rd Image: Trim khaki border cleanly */
+    #spiritualMastersCarousel .carousel-item:first-child img:nth-of-type(3),
+    #spiritualMastersCarousel .carousel-item:first-child .row > div:nth-child(3) img,
+    #spiritualMastersCarousel .carousel-item:first-child .col-*:nth-child(3) img,
+    .amma-khaki-crop {
       object-fit: cover !important;
-      object-position: center 15% !important;
-      transform: scale(1.08) !important;
+      transform: scale(1.15) !important;
       transform-origin: center center !important;
     }
 
-    /* 2. Lord Mahavira (Master 3): full uncropped image, strictly no borders */
-    #spiritualMastersCarousel .carousel-inner .carousel-item:nth-child(3) img,
-    #spiritualMastersCarousel .carousel-inner [data-master-id="mahavira"] img,
-    #spiritualMastersCarousel .carousel-inner [data-master-name*="Mahavira"] img {
-      height: 470px !important;
+    /* 2. Lord Mahavira (Master 3): Full uncropped view with white border dissolved & trimmed */
+    #spiritualMastersCarousel .carousel-item:nth-child(3) img,
+    #spiritualMastersCarousel img[src*="mahavir" i],
+    #spiritualMastersCarousel img[alt*="mahavir" i] {
+      width: auto !important;
+      max-width: 100% !important;
+      height: 460px !important;
       object-fit: contain !important;
       object-position: center center !important;
-      transform: scale(1) !important;
+      transform: scale(1.08) !important;
+      mix-blend-mode: multiply !important;
     }
 
-    /* 3. Prophet Muhammad / Islamic Calligraphy (Master 6): full uncropped image, strictly no borders */
-    #spiritualMastersCarousel .carousel-inner .carousel-item:nth-child(6) img,
-    #spiritualMastersCarousel .carousel-inner [data-master-id="muhammad"] img,
-    #spiritualMastersCarousel .carousel-inner [data-master-name*="Muhammad"] img {
-      height: 470px !important;
+    /* 3. Prophet Muhammad (Master 6): Full uncropped calligraphy/view with white border dissolved & trimmed */
+    #spiritualMastersCarousel .carousel-item:nth-child(6) img,
+    #spiritualMastersCarousel img[src*="muhammad" i],
+    #spiritualMastersCarousel img[src*="prophet" i],
+    #spiritualMastersCarousel img[src*="islam" i],
+    #spiritualMastersCarousel img[alt*="muhammad" i],
+    #spiritualMastersCarousel img[alt*="prophet" i] {
+      width: auto !important;
+      max-width: 100% !important;
+      height: 460px !important;
       object-fit: contain !important;
       object-position: center center !important;
-      transform: scale(1) !important;
+      transform: scale(1.08) !important;
+      mix-blend-mode: multiply !important;
     }
   </style>
 </head>
@@ -902,6 +913,74 @@
   <script src="js/data.js?v=8.3"></script>
   <script src="js/storage.js?v=8.3"></script>
   <script src="js/main.js?v=8.3"></script>
+
+  <!-- Script to ensure dynamic images loaded from data.js have borders trimmed cleanly -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      function applySpiritualBordersCleanup() {
+        const carousel = document.getElementById("spiritualMastersCarousel");
+        if (!carousel) return;
+
+        const allImages = Array.from(carousel.querySelectorAll("img"));
+
+        allImages.forEach((img) => {
+          const src = (img.getAttribute("src") || "").toLowerCase();
+          const alt = (img.getAttribute("alt") || "").toLowerCase();
+
+          // 1. Lord Mahavira: Full portrait/posture without white outer borders
+          if (src.includes("mahavir") || alt.includes("mahavir")) {
+            img.style.objectFit = "contain";
+            img.style.transform = "scale(1.08)";
+            img.style.mixBlendMode = "multiply";
+            img.style.maxHeight = "460px";
+            if (img.parentElement) img.parentElement.style.overflow = "hidden";
+          }
+
+          // 2. Prophet Muhammad: Full sacred calligraphy without white outer borders
+          if (src.includes("muhammad") || src.includes("prophet") || src.includes("islam") || alt.includes("muhammad") || alt.includes("prophet")) {
+            img.style.objectFit = "contain";
+            img.style.transform = "scale(1.08)";
+            img.style.mixBlendMode = "multiply";
+            img.style.maxHeight = "460px";
+            if (img.parentElement) img.parentElement.style.overflow = "hidden";
+          }
+        });
+
+        // 3. Amma's 3rd Image: Target and crop off the khaki border
+        const ammaImages = allImages.filter(img => {
+          const s = (img.getAttribute("src") || "").toLowerCase();
+          const a = (img.getAttribute("alt") || "").toLowerCase();
+          return s.includes("amma") || s.includes("amrita") || a.includes("amma");
+        });
+
+        if (ammaImages.length >= 3) {
+          const targetThird = ammaImages[2];
+          targetThird.style.objectFit = "cover";
+          targetThird.style.transform = "scale(1.15)";
+          targetThird.style.transformOrigin = "center center";
+          if (targetThird.parentElement) targetThird.parentElement.style.overflow = "hidden";
+        } else {
+          // If all Amma images are inside the first slide/container:
+          const firstSlide = carousel.querySelector(".carousel-item:first-child");
+          if (firstSlide) {
+            const slideImages = firstSlide.querySelectorAll("img");
+            if (slideImages.length >= 3) {
+              const targetThird = slideImages[2];
+              targetThird.style.objectFit = "cover";
+              targetThird.style.transform = "scale(1.15)";
+              targetThird.style.transformOrigin = "center center";
+              if (targetThird.parentElement) targetThird.parentElement.style.overflow = "hidden";
+            }
+          }
+        }
+      }
+
+      // Execute on DOM ready and after dynamic injection
+      applySpiritualBordersCleanup();
+      setTimeout(applySpiritualBordersCleanup, 250);
+      setTimeout(applySpiritualBordersCleanup, 800);
+    });
+  </script>
 </body>
 </html>
 
