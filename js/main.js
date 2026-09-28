@@ -629,17 +629,67 @@ function openVideoFolder(dateStr) {
 
 function playVideoModal(url, title, desc) {
   const modalEl = document.getElementById("videoPlayerModal");
+  if (!modalEl) return;
+
+  const parsed = (typeof parseVideoUrl === 'function') 
+    ? parseVideoUrl(url) 
+    : (window.parseVideoUrl ? window.parseVideoUrl(url) : { embedUrl: url, directUrl: url, platform: 'Video', canEmbed: true, isFile: false });
+
   const iframe = document.getElementById("videoPlayerIframe");
+  const html5 = document.getElementById("videoPlayerHtml5");
   const titleEl = document.getElementById("videoPlayerTitle");
   const descEl = document.getElementById("videoPlayerDesc");
+  const badgeEl = document.getElementById("videoPlayerBadge");
+  const extBtn = document.getElementById("videoPlayerExternalBtn");
 
-  if (!modalEl || !iframe) return;
+  if (titleEl) titleEl.textContent = title || "VOKAL Video";
+  if (descEl) descEl.textContent = desc || "";
+  if (badgeEl) {
+    badgeEl.textContent = parsed.platform;
+    if (parsed.platform === 'YouTube') {
+      badgeEl.className = "badge bg-danger px-2 py-1";
+      badgeEl.style.background = "";
+    } else if (parsed.platform === 'Facebook') {
+      badgeEl.className = "badge bg-primary px-2 py-1";
+      badgeEl.style.background = "";
+    } else if (parsed.platform === 'Instagram') {
+      badgeEl.className = "badge px-2 py-1";
+      badgeEl.style.background = "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)";
+    } else {
+      badgeEl.className = "badge bg-secondary px-2 py-1";
+      badgeEl.style.background = "";
+    }
+  }
 
-  iframe.src = url;
-  titleEl.textContent = title;
-  descEl.textContent = desc;
+  if (extBtn) {
+    extBtn.href = parsed.directUrl || url;
+    extBtn.innerHTML = `<i class="bi bi-box-arrow-up-right me-1"></i> Open on ${parsed.platform}`;
+    extBtn.style.display = "inline-flex";
+  }
 
-  const modal = new bootstrap.Modal(modalEl);
+  if (parsed.isFile) {
+    if (iframe) {
+      iframe.src = "";
+      iframe.classList.add("d-none");
+    }
+    if (html5) {
+      html5.src = parsed.directUrl;
+      html5.classList.remove("d-none");
+      html5.play().catch(() => {});
+    }
+  } else {
+    if (html5) {
+      html5.pause();
+      html5.src = "";
+      html5.classList.add("d-none");
+    }
+    if (iframe) {
+      iframe.classList.remove("d-none");
+      iframe.src = parsed.embedUrl;
+    }
+  }
+
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
   modal.show();
 }
 
@@ -649,6 +699,11 @@ function setupVideoPlayerModal() {
   modalEl.addEventListener("hidden.bs.modal", () => {
     const iframe = document.getElementById("videoPlayerIframe");
     if (iframe) iframe.src = "";
+    const html5 = document.getElementById("videoPlayerHtml5");
+    if (html5) {
+      html5.pause();
+      html5.src = "";
+    }
   });
 }
 

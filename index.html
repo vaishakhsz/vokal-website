@@ -316,7 +316,7 @@
       
       <div class="row g-5 align-items-center">
         <div class="col-lg-6 animate-on-scroll">
-          <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80" alt="Protecting Nature" class="img-fluid rounded-4 shadow-lg" loading="lazy">
+          <img src="assets/organic_fertilizers.jpg" alt="Protecting Nature &amp; Environment" class="img-fluid rounded-4 shadow-lg" loading="lazy" style="object-fit: cover; object-position: center; width: 100%; height: 420px;">
         </div>
         <div class="col-lg-6 animate-on-scroll">
           <span class="section-tag"><i class="bi bi-tree me-1"></i> Environment</span>
@@ -349,7 +349,7 @@
     <div class="container my-2">
       <div class="row g-5 align-items-center flex-lg-row-reverse">
         <div class="col-lg-6 animate-on-scroll">
-          <img src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=900&q=80" alt="Protecting Water Resources" class="img-fluid rounded-4 shadow-lg" loading="lazy">
+          <img src="assets/save_water.jpg" alt="Preserving &amp; Protecting Water Resources" class="img-fluid rounded-4 shadow-lg" loading="lazy" style="object-fit: cover; object-position: center; width: 100%; height: 420px;">
         </div>
         <div class="col-lg-6 animate-on-scroll">
           <span class="section-tag"><i class="bi bi-droplet-fill me-1"></i> Water Resources</span>
@@ -382,7 +382,7 @@
     <div class="container my-2">
       <div class="row g-5 align-items-center">
         <div class="col-lg-6 animate-on-scroll">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/School_children_line_Cochin_Kerala_India.jpg" alt="Kerala School Children - Cochin" class="img-fluid rounded-4 shadow-lg" loading="lazy" style="object-fit:cover; object-position: center; width:100%; height: 400px;">
+          <img src="assets/people_empowerment.jpg" alt="People's Empowerment" class="img-fluid rounded-4 shadow-lg" loading="lazy" style="object-fit: cover; object-position: center; width: 100%; height: 420px;">
         </div>
         <div class="col-lg-6 animate-on-scroll">
           <span class="section-tag"><i class="bi bi-people me-1"></i> Community</span>
@@ -415,7 +415,7 @@
     <div class="container my-2">
       <div class="row g-5 align-items-center flex-lg-row-reverse">
         <div class="col-lg-6 animate-on-scroll">
-          <img src="assets/diverse_animals_group.jpg" alt="Animal Compassion" class="img-fluid rounded-4 shadow-lg" loading="lazy">
+          <img src="assets/diverse_animals_group.jpg" alt="Animal Compassion" class="img-fluid rounded-4 shadow-lg" loading="lazy" style="object-fit: cover; object-position: center; width: 100%; height: 420px;">
         </div>
         <div class="col-lg-6 animate-on-scroll">
           <span class="section-tag"><i class="bi bi-heart-fill me-1"></i> Animal Welfare</span>
@@ -721,16 +721,25 @@
   <!-- 12. VIDEO PLAYER MODAL -->
   <div class="modal fade" id="videoPlayerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content bg-dark text-white border-0">
-        <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title fw-bold" id="videoPlayerTitle">Video Showcase</h5>
+      <div class="modal-content bg-dark text-white border-0 rounded-4 shadow-lg overflow-hidden">
+        <div class="modal-header border-0 pb-2 pt-3 px-4 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <span id="videoPlayerBadge" class="badge bg-danger px-2 py-1"><i class="bi bi-play-circle-fill me-1"></i> Video</span>
+            <h5 class="modal-title fw-bold mb-0 text-truncate" style="max-width: 500px;" id="videoPlayerTitle">Video Showcase</h5>
+          </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body p-3">
-          <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow">
-            <iframe id="videoPlayerIframe" src="" title="Video Player" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+        <div class="modal-body p-3 pt-0">
+          <div id="videoPlayerContainer" class="ratio ratio-16x9 rounded-3 overflow-hidden shadow bg-black position-relative">
+            <iframe id="videoPlayerIframe" src="" title="Video Player" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+            <video id="videoPlayerHtml5" controls autoplay class="w-100 h-100 d-none" style="object-fit: contain;"></video>
           </div>
-          <p id="videoPlayerDesc" class="text-light opacity-75 small mt-3 mb-0"></p>
+          <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2 px-1">
+            <p id="videoPlayerDesc" class="text-light opacity-75 small mb-0 flex-grow-1"></p>
+            <a id="videoPlayerExternalBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm fw-bold px-3 py-1 text-nowrap">
+              <i class="bi bi-box-arrow-up-right me-1"></i> Open Video Directly
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -883,3 +892,4 @@
   <script src="js/main.js?v=8.0"></script>
 </body>
 </html>
+

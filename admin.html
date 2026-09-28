@@ -688,29 +688,15 @@
       }
 
       try {
-        if (fId && !String(fId).startsWith('legacy-')) {
-          await window.vokalStorage.deleteFolder(fId);
-        } else {
-          let allF = window.vokalStorage.getFolders().filter(f => f.name !== fName);
-          localStorage.setItem("vokal_folders_data", JSON.stringify(allF));
-          if (fType === 'photo' || fType === 'event') {
-            let evts = window.vokalStorage.getEvents().filter(e => e.category !== fName && e.date !== fName);
-            localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(evts));
-          } else if (fType === 'video') {
-            let vids = window.vokalStorage.getVideos().filter(v => v.category !== fName && v.date !== fName);
-            localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(vids));
-          } else if (fType === 'letter') {
-            let lets = window.vokalStorage.getLetters().filter(l => l.department !== fName && l.category !== fName && l.date !== fName);
-            localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(lets));
-          }
-        }
-
+        await window.vokalStorage.deleteFolder(fId, fName, fType);
         currentOpenFolder = null;
         bootstrap.Modal.getInstance(document.getElementById('adminFolderItemsModal'))?.hide();
+        cleanupOrphanBackdrops();
         loadAdminDashboard();
         showToast(`Folder "${fName}" and its items were permanently deleted.`, "success");
       } catch (err) {
         console.error("Folder delete error:", err);
+        cleanupOrphanBackdrops();
         showToast("Delete failed: " + err.message, "danger");
       }
     }
@@ -731,6 +717,7 @@
               </div>
               <div class="modal-body p-4">
                 <input type="hidden" id="editFolderId">
+                <input type="hidden" id="editFolderOldName">
                 <div class="mb-3">
                   <label class="form-label fw-bold small">Folder Name *</label>
                   <input type="text" id="editFolderName" class="form-control" placeholder="e.g. October 2026, Animal Rescue, etc." required>
@@ -757,18 +744,20 @@
       }
 
       document.getElementById("editFolderId").value = "";
+      if (document.getElementById("editFolderOldName")) document.getElementById("editFolderOldName").value = "";
       document.getElementById("editFolderName").value = "";
       document.getElementById("editFolderType").value = defaultType || "event";
       document.getElementById("editFolderTypeGroup").style.display = "block";
       const titleEl = document.getElementById("editFolderModalTitle");
       if (titleEl) titleEl.innerHTML = '<i class="bi bi-folder-plus me-2"></i>Create New Folder';
 
-      new bootstrap.Modal(modalEl).show();
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
 
     function promptRenameFolder(id, currentName, type) {
       showAdminFolderModal(type);
       document.getElementById("editFolderId").value = id;
+      if (document.getElementById("editFolderOldName")) document.getElementById("editFolderOldName").value = currentName;
       document.getElementById("editFolderName").value = currentName;
       document.getElementById("editFolderType").value = type || "event";
       const titleEl = document.getElementById("editFolderModalTitle");
@@ -786,6 +775,7 @@
 
     async function saveAdminFolder() {
       const id = document.getElementById("editFolderId").value;
+      const oldName = document.getElementById("editFolderOldName") ? document.getElementById("editFolderOldName").value : "";
       const name = document.getElementById("editFolderName").value.trim();
       const type = document.getElementById("editFolderType").value;
       
@@ -795,32 +785,21 @@
       }
 
       try {
-        if (id && id !== 'undefined' && !String(id).startsWith('legacy-')) {
-          await window.vokalStorage.editFolder(id, name, type);
+        if (id && id !== 'undefined') {
+          await window.vokalStorage.editFolder(id, name, type, oldName);
           showToast(`Folder renamed to "${name}" successfully!`, "success");
         } else {
-          if (id && String(id).startsWith('legacy-')) {
-            await window.vokalStorage.addFolder(name, type);
-            const oldName = id.replace('legacy-', '').replace(/_/g, ' ');
-            if (type === 'event') {
-              let evts = window.vokalStorage.getEvents();
-              evts.forEach(e => {
-                if (e.category === oldName || e.date === oldName) e.category = name;
-              });
-              localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(evts));
-            }
-            showToast(`Folder renamed to "${name}" successfully!`, "success");
-          } else {
-            await window.vokalStorage.addFolder(name, type);
-            showToast(`Folder "${name}" created successfully!`, "success");
-          }
+          await window.vokalStorage.addFolder(name, type);
+          showToast(`Folder "${name}" created successfully!`, "success");
         }
         bootstrap.Modal.getInstance(document.getElementById("editFolderModal"))?.hide();
+        cleanupOrphanBackdrops();
         loadAdminDashboard();
         if (currentOpenFolder) {
           openAdminFolder(name, type);
         }
       } catch (e) {
+        cleanupOrphanBackdrops();
         showToast("Error: " + e.message, "danger");
       }
     }
@@ -1002,6 +981,23 @@
       });
     }
 
+    function cleanupOrphanBackdrops() {
+      setTimeout(() => {
+        const openModals = document.querySelectorAll('.modal.show');
+        if (openModals.length === 0) {
+          document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+          document.body.classList.remove('modal-open');
+          document.body.style.removeProperty('padding-right');
+          document.body.style.removeProperty('overflow');
+        } else {
+          const backdrops = document.querySelectorAll('.modal-backdrop');
+          while (backdrops.length > openModals.length) {
+            backdrops[0].remove();
+          }
+        }
+      }, 50);
+    }
+
     // Modal to view folder contents and upload directly
     function openAdminFolder(folderName, type) {
       currentOpenFolder = { name: folderName, type: type };
@@ -1056,9 +1052,16 @@
             <img src="${v.thumbnail}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 8px;">
             <div class="flex-grow-1">
               <h6 class="fw-bold mb-1">${escapeHtml(v.title)}</h6>
-              <small class="text-muted">${escapeHtml(v.duration)}</small>
+              <small class="text-muted">${escapeHtml(v.duration || 'Video Link')}</small>
             </div>
-            <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteVideo('${v.id}');"><i class="bi bi-trash3"></i></button>
+            <div class="d-flex gap-1">
+              <a href="${escapeHtml(v.originalUrl || v.videoUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm" title="Watch / Preview Video">
+                <i class="bi bi-play-circle me-1"></i> Watch
+              </a>
+              <button class="btn btn-outline-danger btn-sm" onclick="adminDeleteVideo('${v.id}');" title="Delete Video Link">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
           </div>
         `).join('');
       }
@@ -1077,6 +1080,37 @@
       }
 
       let modalEl = document.getElementById("adminFolderItemsModal");
+      const isAlreadyOpen = modalEl && modalEl.classList.contains("show");
+
+      if (isAlreadyOpen) {
+        // In-place DOM update prevents duplicate backdrops and blank screens
+        const titleEl = modalEl.querySelector(".modal-title");
+        if (titleEl) titleEl.innerHTML = `<i class="bi ${titleIcon} me-2"></i>${escapeHtml(folderName)}`;
+        const countEl = modalEl.querySelector(".modal-header small");
+        if (countEl) countEl.textContent = `${items.length} ${itemLabel}${items.length !== 1 ? 's' : ''}`;
+        const bodyEl = modalEl.querySelector(".modal-body");
+        if (bodyEl) bodyEl.innerHTML = html;
+        const deleteBtn = modalEl.querySelector("button[onclick*='adminDeleteFolderBtn']");
+        if (deleteBtn) {
+          deleteBtn.setAttribute("data-id", folderId);
+          deleteBtn.setAttribute("data-name", folderName);
+          deleteBtn.setAttribute("data-type", type);
+        }
+        const renameBtn = modalEl.querySelector("button[onclick*='adminRenameFolderBtn']");
+        if (renameBtn) {
+          renameBtn.setAttribute("data-id", folderId);
+          renameBtn.setAttribute("data-name", folderName);
+          renameBtn.setAttribute("data-type", normType);
+        }
+        const addBtn = modalEl.querySelector(".modal-footer button.btn-vokal-primary");
+        if (addBtn) {
+          addBtn.setAttribute("data-folder", folderName);
+          addBtn.setAttribute("data-type", type);
+          addBtn.innerHTML = `<i class="bi bi-plus-lg me-1"></i> ${btnLabel}`;
+        }
+        return;
+      }
+
       if (!modalEl) {
         modalEl = document.createElement("div");
         modalEl.className = "modal fade";
@@ -1115,7 +1149,7 @@
         </div>
       `;
 
-      new bootstrap.Modal(modalEl).show();
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
 
     function uploadDirectlyToFolderBtn(btn) {
@@ -1278,8 +1312,10 @@
         if (currentOpenFolder) {
           openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
         }
+        cleanupOrphanBackdrops();
         showToast("Photo deleted successfully. The folder remains intact.", "success");
       } catch (err) {
+        cleanupOrphanBackdrops();
         showToast("Delete failed: " + err.message, "danger");
       }
     }
@@ -1292,8 +1328,10 @@
         if (currentOpenFolder) {
           openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
         }
+        cleanupOrphanBackdrops();
         showToast("Letter deleted successfully. The folder remains intact.", "success");
       } catch (err) {
+        cleanupOrphanBackdrops();
         showToast("Delete failed: " + err.message, "danger");
       }
     }
@@ -1306,8 +1344,10 @@
         if (currentOpenFolder) {
           openAdminFolder(currentOpenFolder.name, currentOpenFolder.type);
         }
+        cleanupOrphanBackdrops();
         showToast("Video link deleted successfully. The folder remains intact.", "success");
       } catch (err) {
+        cleanupOrphanBackdrops();
         showToast("Delete failed: " + err.message, "danger");
       }
     }

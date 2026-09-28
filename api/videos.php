@@ -45,10 +45,16 @@ switch ($method) {
         $description = !empty($input['description']) ? trim($input['description']) : '';
         $thumbnailUrl = !empty($input['thumbnail']) ? trim($input['thumbnail']) : 'assets/vokal_logo_emblem.png';
 
-        // Auto-generate embed URL for YouTube if applicable
+        // Auto-generate embed URL for various platforms
         $embedUrl = $videoUrl;
-        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/', $videoUrl, $matches)) {
-            $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/ ]{11})/i', $videoUrl, $matches)) {
+            $embedUrl = 'https://www.youtube-nocookie.com/embed/' . $matches[1] . '?autoplay=1&rel=0';
+        } elseif (preg_match('/(?:facebook\.com\/(?:[^\/]+\/videos\/|video\.php\?v=|watch\/?\?v=)|fb\.watch\/)/i', $videoUrl)) {
+            $embedUrl = 'https://www.facebook.com/plugins/video.php?href=' . urlencode($videoUrl) . '&show_text=false&autoplay=true';
+        } elseif (preg_match('/instagram\.com\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i', $videoUrl, $matches)) {
+            $embedUrl = 'https://www.instagram.com/reel/' . $matches[1] . '/embed';
+        } elseif (preg_match('/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)/i', $videoUrl, $matches)) {
+            $embedUrl = 'https://player.vimeo.com/video/' . $matches[1] . '?autoplay=1';
         }
 
         $stmt = $pdo->prepare("

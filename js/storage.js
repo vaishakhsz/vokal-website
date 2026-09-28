@@ -379,17 +379,78 @@ class VokalStorageManager {
     }
   }
 
+// Universal Video URL Parser for YouTube, Facebook, Instagram, Vimeo, and direct files
+function parseVideoUrl(rawUrl) {
+  if (!rawUrl) return { embedUrl: '', directUrl: '', platform: 'Video', canEmbed: false, isFile: false };
+  const url = String(rawUrl).trim();
+
+  // 1. Direct video file (.mp4, .webm, .ogg)
+  if (/\.(mp4|webm|ogg)($|\?)/i.test(url)) {
+    return { embedUrl: url, directUrl: url, platform: 'Video File', canEmbed: true, isFile: true };
+  }
+
+  // 2. YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/ ]{11})/i);
+  if (ytMatch && ytMatch[1]) {
+    return {
+      embedUrl: `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=1&rel=0`,
+      directUrl: url,
+      platform: 'YouTube',
+      canEmbed: true,
+      isFile: false
+    };
+  }
+
+  // 3. Facebook
+  if (/facebook\.com|fb\.watch/i.test(url)) {
+    return {
+      embedUrl: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=true`,
+      directUrl: url,
+      platform: 'Facebook',
+      canEmbed: true,
+      isFile: false
+    };
+  }
+
+  // 4. Instagram
+  const igMatch = url.match(/instagram\.com\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i);
+  if (igMatch && igMatch[1]) {
+    return {
+      embedUrl: `https://www.instagram.com/reel/${igMatch[1]}/embed`,
+      directUrl: url,
+      platform: 'Instagram',
+      canEmbed: true,
+      isFile: false
+    };
+  }
+
+  // 5. Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)/i);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return {
+      embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`,
+      directUrl: url,
+      platform: 'Vimeo',
+      canEmbed: true,
+      isFile: false
+    };
+  }
+
+  const isEmbed = url.includes('/embed') || url.includes('/player') || url.includes('plugins');
+  return {
+    embedUrl: url,
+    directUrl: url,
+    platform: 'External Video',
+    canEmbed: isEmbed,
+    isFile: false
+  };
+}
+window.parseVideoUrl = parseVideoUrl;
+
   async addVideo(videoItem) {
     const videos = this.getVideos();
-    let embedUrl = videoItem.videoUrl;
-
-    if (embedUrl.includes("youtube.com/watch?v=")) {
-      const videoId = embedUrl.split("v=")[1]?.split("&")[0];
-      if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
-    } else if (embedUrl.includes("youtu.be/")) {
-      const videoId = embedUrl.split("youtu.be/")[1]?.split("?")[0];
-      if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}`;
-    }
+    const parsed = parseVideoUrl(videoItem.videoUrl);
+    const embedUrl = parsed.embedUrl || videoItem.videoUrl;
 
     const videoUid = "vid-user-" + Date.now();
     const newVideo = {
@@ -399,6 +460,7 @@ class VokalStorageManager {
       duration: videoItem.duration || "10:00",
       thumbnail: videoItem.thumbnail || "assets/vokal_logo_round.png",
       videoUrl: embedUrl,
+      originalUrl: parsed.directUrl,
       description: videoItem.description || "Video submitted via VOKAL portal.",
       isUserUploaded: true,
       createdAt: new Date().toISOString()
@@ -415,7 +477,7 @@ class VokalStorageManager {
         body: JSON.stringify({
           video_uid: videoUid,
           title: newVideo.title,
-          videoUrl: newVideo.videoUrl,
+          videoUrl: parsed.directUrl,
           category: newVideo.category,
           duration: newVideo.duration,
           description: newVideo.description,
@@ -435,14 +497,10 @@ class VokalStorageManager {
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || (json && !json.success)) {
-        console.warn("Server deletion failed:", json);
-        await this.syncWithServer();
-        throw new Error(json?.error || "Server could not delete video. Please try again.");
+        console.warn("Server deletion notice:", json);
       }
     } catch (e) {
-      console.warn("Error during delete:", e);
-      await this.syncWithServer();
-      throw e;
+      console.warn("Error during deleteVideo server request:", e);
     }
 
     let videos = this.getVideos();
@@ -495,10 +553,17 @@ class VokalStorageManager {
   /**
    * Retrieves all folders along with their contained items for a given type ('event', 'video', 'letter').
    * IMPORTANT: Empty folders (0 items) are always preserved and returned!
+   * Deleted folders are strictly filtered out and never re-synthesized.
    */
   getFoldersWithItems(type) {
     const normType = (type === 'photo' || type === 'event') ? 'event' : type;
-    const registeredFolders = (this.getFolders() || []).filter(f => f.type === normType);
+    let deletedList = [];
+    try {
+      deletedList = JSON.parse(localStorage.getItem('vokal_deleted_folders') || '[]');
+    } catch (e) {}
+
+    const registeredFolders = (this.getFolders() || [])
+      .filter(f => f.type === normType && !deletedList.includes(f.name));
 
     let allItems = [];
     if (normType === 'event') {
@@ -523,10 +588,14 @@ class VokalStorageManager {
       });
     });
 
-    // 2. Distribute items into folders
+    // 2. Distribute items into folders (excluding deleted folders)
     allItems.forEach(item => {
       const cat = (normType === 'letter' ? (item.department || item.category) : item.category) || '';
       const date = item.date || '';
+
+      if (deletedList.includes(cat) || deletedList.includes(date)) {
+        return; // Permanently skip items belonging to deleted folders
+      }
 
       let matchedKey = null;
       if (cat && folderMap.has(cat)) {
@@ -540,17 +609,19 @@ class VokalStorageManager {
       } else {
         // Legacy or uncataloged item: group under category or date or 'General'
         const fallbackKey = cat || date || 'General';
-        if (!folderMap.has(fallbackKey)) {
-          folderMap.set(fallbackKey, {
-            id: 'legacy-' + fallbackKey.replace(/[^a-zA-Z0-9]/g, '_'),
-            name: fallbackKey,
-            type: normType,
-            items: [],
-            isRegistered: false,
-            createdAt: item.createdAt || ''
-          });
+        if (!deletedList.includes(fallbackKey)) {
+          if (!folderMap.has(fallbackKey)) {
+            folderMap.set(fallbackKey, {
+              id: 'legacy-' + fallbackKey.replace(/[^a-zA-Z0-9]/g, '_'),
+              name: fallbackKey,
+              type: normType,
+              items: [],
+              isRegistered: false,
+              createdAt: item.createdAt || ''
+            });
+          }
+          folderMap.get(fallbackKey).items.push(item);
         }
-        folderMap.get(fallbackKey).items.push(item);
       }
     });
 
@@ -559,6 +630,14 @@ class VokalStorageManager {
 
   async addFolder(name, type) {
     const normType = (type === 'photo' || type === 'event') ? 'event' : type;
+
+    // Remove from deleted list if previously deleted
+    try {
+      let deletedList = JSON.parse(localStorage.getItem('vokal_deleted_folders') || '[]');
+      deletedList = deletedList.filter(n => n !== name);
+      localStorage.setItem('vokal_deleted_folders', JSON.stringify(deletedList));
+    } catch (e) {}
+
     let newFolder = {
       id: "fld-" + Date.now(),
       name: name,
@@ -593,17 +672,27 @@ class VokalStorageManager {
     return newFolder;
   }
 
-  async editFolder(id, name, type) {
+  async editFolder(id, name, type, oldName = null) {
     const normType = (type === 'photo' || type === 'event') ? 'event' : (type || 'event');
     let folders = this.getFolders();
     const existing = folders.find(f => String(f.id) === String(id));
-    const oldName = existing ? existing.name : null;
+    const previousName = oldName || (existing ? existing.name : null);
+
+    // Un-blacklist new name, blacklist old name
+    try {
+      let deletedList = JSON.parse(localStorage.getItem('vokal_deleted_folders') || '[]');
+      deletedList = deletedList.filter(n => n !== name);
+      if (previousName && previousName !== name && !deletedList.includes(previousName)) {
+        deletedList.push(previousName);
+      }
+      localStorage.setItem('vokal_deleted_folders', JSON.stringify(deletedList));
+    } catch (e) {}
 
     try {
       const res = await fetch("api/folders.php", {
         method: "POST",
         headers: authHeaders,
-        body: JSON.stringify({ id, name, type: normType })
+        body: JSON.stringify({ id, name, type: normType, old_name: previousName })
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || (json && !json.success)) {
@@ -615,7 +704,7 @@ class VokalStorageManager {
 
     // Update in localStorage
     folders = folders.map(f => {
-      if (String(f.id) === String(id)) {
+      if (String(f.id) === String(id) || (previousName && f.name === previousName)) {
         return { ...f, name: name, type: normType };
       }
       return f;
@@ -623,27 +712,27 @@ class VokalStorageManager {
     localStorage.setItem("vokal_folders_data", JSON.stringify(folders));
 
     // Cascade rename to local items so items remain in folder!
-    if (oldName && oldName !== name) {
+    if (previousName && previousName !== name) {
       if (normType === 'event') {
         let events = this.getEvents();
         events.forEach(e => {
-          if (e.category === oldName) e.category = name;
-          if (e.date === oldName) e.date = name;
+          if (e.category === previousName) e.category = name;
+          if (e.date === previousName) e.date = name;
         });
         localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
       } else if (normType === 'video') {
         let videos = this.getVideos();
         videos.forEach(v => {
-          if (v.category === oldName) v.category = name;
-          if (v.date === oldName) v.date = name;
+          if (v.category === previousName) v.category = name;
+          if (v.date === previousName) v.date = name;
         });
         localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
       } else if (normType === 'letter') {
         let letters = this.getLetters();
         letters.forEach(l => {
-          if (l.department === oldName) l.department = name;
-          if (l.category === oldName) l.category = name;
-          if (l.date === oldName) l.date = name;
+          if (l.department === previousName) l.department = name;
+          if (l.category === previousName) l.category = name;
+          if (l.date === previousName) l.date = name;
         });
         localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(letters));
       }
@@ -656,14 +745,29 @@ class VokalStorageManager {
     return { success: true, id, name, type: normType };
   }
 
-  async deleteFolder(id) {
+  async deleteFolder(id, name = null, type = null) {
     let folders = this.getFolders();
-    const deleted = folders.find(f => String(f.id) === String(id));
+    const deleted = folders.find(f => String(f.id) === String(id)) || { id, name, type };
+    const folderName = name || (deleted ? deleted.name : '');
+    const folderType = type || (deleted ? deleted.type : 'event');
+    const normType = (folderType === 'photo' || folderType === 'event') ? 'event' : folderType;
+
+    // Permanently record in deleted folders list so nothing ever resurrects it
+    if (folderName) {
+      try {
+        let deletedList = JSON.parse(localStorage.getItem('vokal_deleted_folders') || '[]');
+        if (!deletedList.includes(folderName)) {
+          deletedList.push(folderName);
+          localStorage.setItem('vokal_deleted_folders', JSON.stringify(deletedList));
+        }
+      } catch (e) {}
+    }
 
     try {
-      const res = await fetch(`api/folders.php?id=${encodeURIComponent(id)}&api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
+      const res = await fetch(`api/folders.php?id=${encodeURIComponent(id || '')}&name=${encodeURIComponent(folderName)}&type=${encodeURIComponent(normType)}&api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
         method: "DELETE",
-        headers: authHeaders
+        headers: authHeaders,
+        body: JSON.stringify({ id, name: folderName, type: normType })
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || (json && !json.success)) {
@@ -674,20 +778,19 @@ class VokalStorageManager {
     }
 
     // Remove from localStorage
-    folders = folders.filter(f => String(f.id) !== String(id));
+    folders = folders.filter(f => String(f.id) !== String(id) && f.name !== folderName);
     localStorage.setItem("vokal_folders_data", JSON.stringify(folders));
 
     // Also remove contained items from localStorage
-    if (deleted) {
-      const fName = deleted.name;
-      if (deleted.type === 'event') {
-        let evts = this.getEvents().filter(e => e.category !== fName && e.date !== fName);
+    if (folderName) {
+      if (normType === 'event') {
+        let evts = this.getEvents().filter(e => e.category !== folderName && e.date !== folderName);
         localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(evts));
-      } else if (deleted.type === 'video') {
-        let vids = this.getVideos().filter(v => v.category !== fName && v.date !== fName);
+      } else if (normType === 'video') {
+        let vids = this.getVideos().filter(v => v.category !== folderName && v.date !== folderName);
         localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(vids));
-      } else if (deleted.type === 'letter') {
-        let lets = this.getLetters().filter(l => l.department !== fName && l.category !== fName && l.date !== fName);
+      } else if (normType === 'letter') {
+        let lets = this.getLetters().filter(l => l.department !== folderName && l.category !== folderName && l.date !== folderName);
         localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(lets));
       }
     }

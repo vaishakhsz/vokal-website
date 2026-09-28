@@ -17,39 +17,74 @@ if ($method === 'GET') {
 requireApiAuth();
 
 if ($method === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
+    $raw = file_get_contents('php://input');
+    $input = json_decode($raw, true);
+    if (!$input) $input = $_POST;
+    
     $name = trim($input['name'] ?? '');
     $type = trim($input['type'] ?? '');
     $id = $input['id'] ?? null;
+    $oldName = trim($input['old_name'] ?? '');
 
     if (empty($name) || empty($type)) {
         sendJsonResponse(['success' => false, 'error' => 'Name and type are required'], 400);
     }
 
     try {
-        if ($id) {
-            $stmt = $pdo->prepare("SELECT name, type FROM folders WHERE id = ?");
+        $existing = null;
+        if (!empty($id) && is_numeric($id)) {
+            $stmt = $pdo->prepare("SELECT id, name, type FROM folders WHERE id = ?");
             $stmt->execute([$id]);
-            $oldFolder = $stmt->fetch();
-            
+            $existing = $stmt->fetch();
+        }
+        if (!$existing && !empty($oldName)) {
+            $stmt = $pdo->prepare("SELECT id, name, type FROM folders WHERE name = ? AND type = ?");
+            $stmt->execute([$oldName, $type]);
+            $existing = $stmt->fetch();
+        }
+
+        if ($existing) {
+            $prevName = $existing['name'];
             $stmt = $pdo->prepare("UPDATE folders SET name = ? WHERE id = ?");
-            $stmt->execute([$name, $id]);
+            $stmt->execute([$name, $existing['id']]);
             
-            if ($oldFolder && $oldFolder['name'] !== $name) {
-                if ($oldFolder['type'] === 'event') {
-                    $pdo->prepare("UPDATE events_photos SET category = ? WHERE category = ?")->execute([$name, $oldFolder['name']]);
-                } elseif ($oldFolder['type'] === 'video') {
-                    $pdo->prepare("UPDATE videos SET category = ? WHERE category = ?")->execute([$name, $oldFolder['name']]);
-                } elseif ($oldFolder['type'] === 'letter') {
-                    $pdo->prepare("UPDATE letters_govt SET department = ? WHERE department = ?")->execute([$name, $oldFolder['name']]);
+            // Cascade rename items across all related database tables
+            if ($prevName !== $name) {
+                if ($type === 'event') {
+                    $pdo->prepare("UPDATE events_photos SET category = ? WHERE category = ?")->execute([$name, $prevName]);
+                } elseif ($type === 'video') {
+                    $pdo->prepare("UPDATE videos SET category = ? WHERE category = ?")->execute([$name, $prevName]);
+                } elseif ($type === 'letter') {
+                    $pdo->prepare("UPDATE letters_govt SET department = ? WHERE department = ?")->execute([$name, $prevName]);
                 }
             }
+            sendJsonResponse(['success' => true, 'id' => $existing['id'], 'name' => $name, 'type' => $type]);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO folders (name, type) VALUES (?, ?)");
+            // Check if folder already exists with target name & type
+            $stmt = $pdo->prepare("SELECT id FROM folders WHERE name = ? AND type = ?");
             $stmt->execute([$name, $type]);
-            $id = $pdo->lastInsertId();
+            $found = $stmt->fetch();
+            if ($found) {
+                $id = $found['id'];
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO folders (name, type) VALUES (?, ?)");
+                $stmt->execute([$name, $type]);
+                $id = $pdo->lastInsertId();
+            }
+
+            // If an oldName was provided, cascade rename in items tables
+            if (!empty($oldName) && $oldName !== $name) {
+                if ($type === 'event') {
+                    $pdo->prepare("UPDATE events_photos SET category = ? WHERE category = ?")->execute([$name, $oldName]);
+                } elseif ($type === 'video') {
+                    $pdo->prepare("UPDATE videos SET category = ? WHERE category = ?")->execute([$name, $oldName]);
+                } elseif ($type === 'letter') {
+                    $pdo->prepare("UPDATE letters_govt SET department = ? WHERE department = ?")->execute([$name, $oldName]);
+                }
+            }
+
+            sendJsonResponse(['success' => true, 'id' => $id, 'name' => $name, 'type' => $type]);
         }
-        sendJsonResponse(['success' => true, 'id' => $id, 'name' => $name, 'type' => $type]);
     } catch (Exception $e) {
         sendJsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
     }
@@ -64,9 +99,9 @@ if ($method === 'DELETE') {
         $raw = file_get_contents('php://input');
         if ($raw) {
             $input = json_decode($raw, true);
-            $id = $input['id'] ?? null;
-            $name = $input['name'] ?? null;
-            $type = $input['type'] ?? null;
+            $id = $input['id'] ?? $id;
+            $name = $input['name'] ?? $name;
+            $type = $input['type'] ?? $type;
         }
     }
 
@@ -75,27 +110,54 @@ if ($method === 'DELETE') {
     }
 
     try {
-        if ($id) {
+        $foldersToDelete = [];
+
+        // 1. Check by ID if numeric
+        if (!empty($id) && is_numeric($id)) {
             $stmt = $pdo->prepare("SELECT id, name, type FROM folders WHERE id = ?");
             $stmt->execute([$id]);
-        } else {
-            $stmt = $pdo->prepare("SELECT id, name, type FROM folders WHERE name = ? AND type = ?");
-            $stmt->execute([$name, $type]);
+            $row = $stmt->fetch();
+            if ($row) $foldersToDelete[] = $row;
         }
-        $folder = $stmt->fetch();
 
-        if ($folder) {
-            $pdo->prepare("DELETE FROM folders WHERE id = ?")->execute([$folder['id']]);
-            
-            // Delete associated items
-            if ($folder['type'] === 'event') {
-                $pdo->prepare("DELETE FROM events_photos WHERE category = ? OR event_date = ?")->execute([$folder['name'], $folder['name']]);
-            } elseif ($folder['type'] === 'video') {
-                $pdo->prepare("DELETE FROM videos WHERE category = ?")->execute([$folder['name']]);
-            } elseif ($folder['type'] === 'letter') {
-                $pdo->prepare("DELETE FROM letters_govt WHERE department = ? OR submission_date = ?")->execute([$folder['name'], $folder['name']]);
+        // 2. Check by Name & Type
+        if (!empty($name)) {
+            if (!empty($type)) {
+                $stmt = $pdo->prepare("SELECT id, name, type FROM folders WHERE name = ? AND type = ?");
+                $stmt->execute([$name, $type]);
+            } else {
+                $stmt = $pdo->prepare("SELECT id, name, type FROM folders WHERE name = ?");
+                $stmt->execute([$name]);
+            }
+            $rows = $stmt->fetchAll();
+            foreach ($rows as $r) {
+                if (!in_array($r['id'], array_column($foldersToDelete, 'id'))) {
+                    $foldersToDelete[] = $r;
+                }
             }
         }
+
+        // Delete from folders table
+        foreach ($foldersToDelete as $f) {
+            $pdo->prepare("DELETE FROM folders WHERE id = ?")->execute([$f['id']]);
+        }
+
+        // 3. ALWAYS purge associated items from MySQL tables so deleted folders never resurrect!
+        $targetName = !empty($name) ? $name : ($foldersToDelete[0]['name'] ?? null);
+        $targetType = !empty($type) ? $type : ($foldersToDelete[0]['type'] ?? null);
+
+        if ($targetName) {
+            if (!$targetType || $targetType === 'event' || $targetType === 'photo') {
+                $pdo->prepare("DELETE FROM events_photos WHERE category = ? OR event_date = ?")->execute([$targetName, $targetName]);
+            }
+            if (!$targetType || $targetType === 'video') {
+                $pdo->prepare("DELETE FROM videos WHERE category = ?")->execute([$targetName]);
+            }
+            if (!$targetType || $targetType === 'letter') {
+                $pdo->prepare("DELETE FROM letters_govt WHERE department = ? OR submission_date = ?")->execute([$targetName, $targetName]);
+            }
+        }
+
         sendJsonResponse(['success' => true]);
     } catch (Exception $e) {
         sendJsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
