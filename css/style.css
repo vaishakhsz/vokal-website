@@ -26,6 +26,9 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 85px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 * {
@@ -37,7 +40,10 @@ body {
   color: #334155;
   background-color: var(--vk-cream);
   line-height: 1.65;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
+  position: relative;
 }
 
 h1, h2, h3, h4, .brand-font {
@@ -277,6 +283,10 @@ h1, h2, h3, h4, .brand-font {
   font-weight: 600;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+  max-width: 95%;
   gap: 8px;
   margin-bottom: 20px;
   backdrop-filter: blur(6px);
@@ -1186,22 +1196,284 @@ h1, h2, h3, h4, .brand-font {
   text-decoration: underline !important;
 }
 
-/* Responsive tweaks */
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.2rem;
+/* ============================================================
+   RESPONSIVE DESIGN & MOBILE PERFECTION (< 992px, < 768px, < 480px)
+   ============================================================ */
+
+/* Tablet (769px to 991px) */
+@media (max-width: 991px) {
+  .initiative-card-img,
+  #initiatives img, #nature img, #water img, #empowerment img, #animal-compassion img {
+    height: 320px;
   }
-  .section-title {
+}
+
+/* Mobile Devices (<= 768px) */
+@media (max-width: 768px) {
+  /* Prevent Any Horizontal Overflow */
+  body, html {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    position: relative;
+  }
+
+  /* Top Notice Bar */
+  .top-notice-bar {
+    font-size: 0.78rem;
+    padding: 6px 0;
+  }
+  .top-notice-bar .badge {
+    font-size: 0.70rem;
+    padding: 3px 10px;
+  }
+
+  /* Navbar */
+  .navbar-vokal {
+    padding: 8px 0;
+  }
+  .navbar-brand-logo {
+    gap: 8px;
+    max-width: calc(100% - 58px);
+  }
+  .brand-emblem-img {
+    width: 44px;
+    height: 44px;
+  }
+  .brand-title {
+    font-size: 1.25rem;
+  }
+  .brand-subtitle {
+    font-size: 0.62rem;
+    line-height: 1.15;
+    white-space: normal;
+    max-width: 200px;
+  }
+  .brand-reg-no {
+    font-size: 0.58rem;
+  }
+  .navbar-toggler {
+    padding: 4px 8px;
+    font-size: 1.1rem;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    padding: 42px 0 55px;
+  }
+  .hero-emblem-centered {
+    width: clamp(140px, 45vw, 220px);
+  }
+  .hero-badge {
+    font-size: 0.74rem;
+    padding: 6px 14px;
+    line-height: 1.35;
+    white-space: normal;
+    text-align: center;
+    max-width: 95%;
+    border-radius: 20px;
+    gap: 6px;
+  }
+  .hero-title {
     font-size: 1.85rem;
+    line-height: 1.25;
+    margin-bottom: 14px;
+    padding: 0 4px;
+  }
+  .hero-intro-para {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    padding: 0 8px;
+    margin-bottom: 1.25rem;
+  }
+  .hero-section .btn-lg {
+    font-size: 0.92rem;
+    padding: 9px 20px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  /* Section Titles & Dividers */
+  .section-title {
+    font-size: 1.65rem;
+  }
+  .section-tag {
+    font-size: 0.74rem;
+    padding: 4px 12px;
+  }
+
+  /* Environmental Initiatives Images (Uncropped, Natural Aspect Ratios) */
+  .initiative-card-img,
+  #initiatives img, #nature img, #water img, #empowerment img, #animal-compassion img {
+    height: auto !important;
+    max-height: 290px !important;
+    border-radius: 16px;
+    margin: 0 auto 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10);
+    display: block;
+    width: 100%;
+  }
+  .initiative-nature-img {
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    object-position: center 25% !important;
+  }
+  .initiative-water-img {
+    aspect-ratio: 1/1;
+    max-height: 280px !important;
+    object-fit: cover;
+    object-position: center !important;
+  }
+  .initiative-people-img {
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    object-position: center !important;
+  }
+  .initiative-animals-img {
+    aspect-ratio: 16/10;
+    object-fit: cover;
+    object-position: center 55% !important;
+  }
+
+  /* Vision & Mission Cards */
+  .vision-hero-card {
+    padding: 24px 16px;
+    border-radius: 18px;
+  }
+  .vision-hero-card::after {
+    display: none;
+  }
+  .vision-logo-wrap {
+    width: 80px;
+    height: 80px;
+  }
+  .vision-logo-wrap img {
+    width: 68px;
+    height: 68px;
+  }
+  .vision-hero-card p {
+    font-size: 0.98rem !important;
+    line-height: 1.55;
+  }
+  .mission-box {
+    padding: 20px 16px;
+  }
+  .core-values-section {
+    padding: 30px 16px !important;
+  }
+  .core-value-card {
+    padding: 20px 16px !important;
+  }
+
+  /* Spiritual Masters Section */
+  .masters-section {
+    padding: 45px 0;
+  }
+  .masters-slider-container {
+    border-radius: 18px;
+  }
+  .masters-window-topbar {
+    padding: 10px 12px;
+  }
+  #masterCounterBadge {
+    font-size: 0.72rem;
+    white-space: normal;
+    text-align: left;
   }
   .masters-carousel .carousel-item {
-    padding: 20px;
+    padding: 16px 12px;
+  }
+  .master-slide-grid {
+    gap: 16px;
   }
   .master-portrait-wrap img {
-    height: 300px;
+    height: 260px;
+    border-radius: 14px;
+    object-fit: cover;
+    object-position: top center;
   }
+  .master-floating-arrow {
+    width: 34px;
+  }
+  .master-arrow-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  .master-name {
+    font-size: 1.35rem;
+  }
+  .master-quote-box {
+    padding: 14px;
+    font-size: 0.88rem;
+  }
+  .masters-nav-pill-row {
+    padding: 10px 6px;
+    gap: 6px;
+  }
+  .master-nav-btn {
+    padding: 5px 9px;
+    font-size: 0.72rem;
+    gap: 5px;
+  }
+  .master-nav-btn img {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Contact & Form */
+  .contact-section {
+    padding: 45px 0;
+  }
+  .emergency-helpline-box {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+  .contact-section .card {
+    padding: 20px 16px !important;
+  }
+
+  /* Footer */
+  .footer-vokal {
+    padding: 40px 0 20px;
+  }
+  .footer-lead-text {
+    font-size: 0.82rem;
+    padding: 0 4px;
+  }
+  .vsquare-credit-stack {
+    margin-top: 15px;
+  }
+  .vsquare-phone-sep {
+    display: none;
+  }
+
+  /* Admin Portal Container */
   .admin-portal-container {
-    padding: 20px;
+    padding: 16px 12px;
+  }
+}
+
+/* Extra Narrow Mobile (< 480px) */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.60rem;
+  }
+  .brand-title {
+    font-size: 1.15rem;
+  }
+  .brand-subtitle {
+    font-size: 0.58rem;
+    max-width: 170px;
+  }
+  .brand-emblem-img {
+    width: 38px;
+    height: 38px;
+  }
+  .section-title {
+    font-size: 1.48rem;
+  }
+  .top-notice-bar {
+    font-size: 0.74rem;
   }
 }
 
@@ -1283,13 +1555,39 @@ h1, h2, h3, h4, .brand-font {
 }
 
 /* ==========================================
-   CONTENT SECTIONS (Nature, Water, People, Animals)
+   CONTENT SECTIONS & INITIATIVE IMAGES (Nature, Water, People, Animals)
    ========================================== */
-#nature img, #water img, #empowerment img, #animal-compassion img {
-  border-radius: 20px;
-  max-height: 400px;
+.initiative-card-img,
+#initiatives img, #nature img, #water img, #empowerment img, #animal-compassion img {
+  border-radius: 22px;
   width: 100%;
+  height: 400px;
   object-fit: cover;
+  display: block;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.initiative-card-img:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px rgba(233, 30, 99, 0.18);
+}
+
+/* Individual Desktop Focal Point Alignment */
+.initiative-nature-img {
+  object-position: center 30%;
+}
+
+.initiative-water-img {
+  object-position: center;
+}
+
+.initiative-people-img {
+  object-position: center;
+}
+
+.initiative-animals-img {
+  object-position: center 60%;
 }
 
 /* ==========================================
