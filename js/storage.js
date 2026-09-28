@@ -19,6 +19,74 @@ const authHeaders = {
   "X-API-Key": VOKAL_API_KEY
 };
 
+// Universal Video URL Parser for YouTube, Facebook, Instagram, Vimeo, and direct files
+function parseVideoUrl(rawUrl) {
+  if (!rawUrl) return { embedUrl: '', directUrl: '', platform: 'Video', canEmbed: false, isFile: false };
+  const url = String(rawUrl).trim();
+
+  // 1. Direct video file (.mp4, .webm, .ogg)
+  if (/\.(mp4|webm|ogg)($|\?)/i.test(url)) {
+    return { embedUrl: url, directUrl: url, platform: 'Video File', canEmbed: true, isFile: true };
+  }
+
+  // 2. YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/ ]{11})/i);
+  if (ytMatch && ytMatch[1]) {
+    return {
+      embedUrl: `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=1&rel=0`,
+      directUrl: url,
+      platform: 'YouTube',
+      canEmbed: true,
+      isFile: false
+    };
+  }
+
+  // 3. Facebook
+  if (/facebook\.com|fb\.watch/i.test(url)) {
+    return {
+      embedUrl: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=true`,
+      directUrl: url,
+      platform: 'Facebook',
+      canEmbed: true,
+      isFile: false
+    };
+  }
+
+  // 4. Instagram
+  const igMatch = url.match(/instagram\.com\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i);
+  if (igMatch && igMatch[1]) {
+    return {
+      embedUrl: `https://www.instagram.com/reel/${igMatch[1]}/embed`,
+      directUrl: url,
+      platform: 'Instagram',
+      canEmbed: true,
+      isFile: false
+    };
+  }
+
+  // 5. Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)/i);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return {
+      embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`,
+      directUrl: url,
+      platform: 'Vimeo',
+      canEmbed: true,
+      isFile: false
+    };
+  }
+
+  const isEmbed = url.includes('/embed') || url.includes('/player') || url.includes('plugins');
+  return {
+    embedUrl: url,
+    directUrl: url,
+    platform: 'External Video',
+    canEmbed: isEmbed,
+    isFile: false
+  };
+}
+window.parseVideoUrl = parseVideoUrl;
+
 class VokalStorageManager {
   constructor() {
     this.initStorage();
@@ -378,74 +446,6 @@ class VokalStorageManager {
       return VOKAL_DEFAULT_DATA.videos;
     }
   }
-
-// Universal Video URL Parser for YouTube, Facebook, Instagram, Vimeo, and direct files
-function parseVideoUrl(rawUrl) {
-  if (!rawUrl) return { embedUrl: '', directUrl: '', platform: 'Video', canEmbed: false, isFile: false };
-  const url = String(rawUrl).trim();
-
-  // 1. Direct video file (.mp4, .webm, .ogg)
-  if (/\.(mp4|webm|ogg)($|\?)/i.test(url)) {
-    return { embedUrl: url, directUrl: url, platform: 'Video File', canEmbed: true, isFile: true };
-  }
-
-  // 2. YouTube
-  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/ ]{11})/i);
-  if (ytMatch && ytMatch[1]) {
-    return {
-      embedUrl: `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=1&rel=0`,
-      directUrl: url,
-      platform: 'YouTube',
-      canEmbed: true,
-      isFile: false
-    };
-  }
-
-  // 3. Facebook
-  if (/facebook\.com|fb\.watch/i.test(url)) {
-    return {
-      embedUrl: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=true`,
-      directUrl: url,
-      platform: 'Facebook',
-      canEmbed: true,
-      isFile: false
-    };
-  }
-
-  // 4. Instagram
-  const igMatch = url.match(/instagram\.com\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/i);
-  if (igMatch && igMatch[1]) {
-    return {
-      embedUrl: `https://www.instagram.com/reel/${igMatch[1]}/embed`,
-      directUrl: url,
-      platform: 'Instagram',
-      canEmbed: true,
-      isFile: false
-    };
-  }
-
-  // 5. Vimeo
-  const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)/i);
-  if (vimeoMatch && vimeoMatch[1]) {
-    return {
-      embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`,
-      directUrl: url,
-      platform: 'Vimeo',
-      canEmbed: true,
-      isFile: false
-    };
-  }
-
-  const isEmbed = url.includes('/embed') || url.includes('/player') || url.includes('plugins');
-  return {
-    embedUrl: url,
-    directUrl: url,
-    platform: 'External Video',
-    canEmbed: isEmbed,
-    isFile: false
-  };
-}
-window.parseVideoUrl = parseVideoUrl;
 
   async addVideo(videoItem) {
     const videos = this.getVideos();
