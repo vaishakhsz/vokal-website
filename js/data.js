@@ -65,7 +65,7 @@ const VOKAL_DEFAULT_DATA = {
       portrait: "assets/masters/amma_1.jpg?v=3.0",
       images: [
         "assets/masters/amma_1.jpg?v=3.0",
-        "assets/masters/amma_3.jpg?v=3.0",
+        "assets/masters/amma_3.jpg?v=3.1",
         "assets/masters/amma_4.jpg?v=3.0"
       ],
       photoIntervalSeconds: 10,
