@@ -29,29 +29,55 @@
   <!-- Custom CSS with Rose Pink & Lotus Theme -->
   <link rel="stylesheet" href="css/style.css?v=8.7">
 
-  <!-- Clean portrait crop for all Spiritual Masters (strips unwanted borders & trims edges) -->
+  <!-- Customized Image Adjustments for Spiritual Masters -->
   <style>
     #spiritualMastersCarousel .carousel-item {
       overflow: hidden !important;
+      background: transparent !important;
     }
 
+    /* Universal baseline: zero borders, clean container fitting */
     #spiritualMastersCarousel .carousel-item img,
     #spiritualMastersCarousel img,
     .masters-carousel img,
     .master-portrait-img,
     .master-card-img {
-      width: 100% !important;
-      height: 460px !important;
-      max-height: 460px !important;
-      object-fit: cover !important;
-      object-position: center 18% !important;
-      border: none !important;
+      border: 0 !important;
       outline: none !important;
       box-shadow: none !important;
       display: block !important;
       margin: 0 auto !important;
-      transform: scale(1.06) !important;
+      max-height: 480px !important;
+      width: 100% !important;
+    }
+
+    /* 1. Amma's 3rd image: crop unwanted baked-in frame/borders cleanly */
+    #spiritualMastersCarousel .carousel-inner .carousel-item:nth-child(3) img {
+      height: 450px !important;
+      object-fit: cover !important;
+      object-position: center 15% !important;
+      transform: scale(1.08) !important;
       transform-origin: center center !important;
+    }
+
+    /* 2. Lord Mahavira (Master 3): full uncropped image, strictly no borders */
+    #spiritualMastersCarousel .carousel-inner .carousel-item:nth-child(3) img,
+    #spiritualMastersCarousel .carousel-inner [data-master-id="mahavira"] img,
+    #spiritualMastersCarousel .carousel-inner [data-master-name*="Mahavira"] img {
+      height: 470px !important;
+      object-fit: contain !important;
+      object-position: center center !important;
+      transform: scale(1) !important;
+    }
+
+    /* 3. Prophet Muhammad / Islamic Calligraphy (Master 6): full uncropped image, strictly no borders */
+    #spiritualMastersCarousel .carousel-inner .carousel-item:nth-child(6) img,
+    #spiritualMastersCarousel .carousel-inner [data-master-id="muhammad"] img,
+    #spiritualMastersCarousel .carousel-inner [data-master-name*="Muhammad"] img {
+      height: 470px !important;
+      object-fit: contain !important;
+      object-position: center center !important;
+      transform: scale(1) !important;
     }
   </style>
 </head>
