@@ -28,6 +28,21 @@
 
   <!-- Custom CSS with Rose Pink & Lotus Theme -->
   <link rel="stylesheet" href="css/style.css?v=8.7">
+
+  <!-- Force Full View for Spiritual Masters Images -->
+  <style>
+    #spiritualMastersCarousel .carousel-item img,
+    #spiritualMastersCarousel img,
+    .masters-carousel img,
+    .master-portrait-img,
+    .master-card-img {
+      width: 100% !important;
+      max-height: 480px !important;
+      height: auto !important;
+      object-fit: contain !important;
+      object-position: center center !important;
+    }
+  </style>
 </head>
 <body>
 
@@ -730,7 +745,7 @@
           <ul class="list-unstyled" id="modalLetterDemands"></ul>
         </div>
         <div class="modal-footer bg-light">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn-secondary btn btn-sm" data-bs-dismiss="modal">Close</button>
           <a id="modalLetterDownloadBtn" href="#" class="btn btn-vokal-primary btn-sm">
             <i class="bi bi-download me-1"></i> Download Copy
           </a>
