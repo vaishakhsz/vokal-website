@@ -46,6 +46,28 @@ switch ($method) {
             sendJsonResponse(["success" => false, "error" => "Title is required"], 400);
         }
 
+        // Direct rename action
+        if (!empty($input['action']) && $input['action'] === 'rename') {
+            $targetId = !empty($input['id']) ? trim($input['id']) : trim($input['event_uid'] ?? '');
+            $title = trim($input['title']);
+            if (!$targetId) {
+                sendJsonResponse(["success" => false, "error" => "ID required for rename"], 400);
+            }
+            if (is_numeric($targetId)) {
+                $stmt = $pdo->prepare("UPDATE `events_photos` SET `title` = :title WHERE `id` = :id");
+                $stmt->execute([':title' => $title, ':id' => (int)$targetId]);
+            } else {
+                $stmt = $pdo->prepare("UPDATE `events_photos` SET `title` = :title WHERE `event_uid` = :uid");
+                $stmt->execute([':title' => $title, ':uid' => $targetId]);
+            }
+            sendJsonResponse([
+                "success" => true,
+                "message" => "Photo renamed successfully",
+                "title" => $title
+            ]);
+            break;
+        }
+
         $rawImage = !empty($input['image']) ? trim($input['image']) : 'assets/vokal_brand_header.png';
         // Auto-decode base64 and save as physical file to /uploads/photos/
         $imageUrl = processAndSaveBase64Image($rawImage, 'photos');

@@ -31,6 +31,28 @@ switch ($method) {
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) $input = $_POST;
 
+        // Direct rename action
+        if (!empty($input['action']) && $input['action'] === 'rename') {
+            $targetId = !empty($input['id']) ? trim($input['id']) : trim($input['letter_uid'] ?? '');
+            $subject = trim($input['subject'] ?? $input['title'] ?? '');
+            if (!$targetId || !$subject) {
+                sendJsonResponse(["success" => false, "error" => "ID and new subject required for rename"], 400);
+            }
+            if (is_numeric($targetId)) {
+                $stmt = $pdo->prepare("UPDATE `letters_govt` SET `subject` = :subject WHERE `id` = :id");
+                $stmt->execute([':subject' => $subject, ':id' => (int)$targetId]);
+            } else {
+                $stmt = $pdo->prepare("UPDATE `letters_govt` SET `subject` = :subject WHERE `letter_uid` = :uid OR `ref_no` = :ref");
+                $stmt->execute([':subject' => $subject, ':uid' => $targetId, ':ref' => $targetId]);
+            }
+            sendJsonResponse([
+                "success" => true,
+                "message" => "Letter renamed successfully",
+                "subject" => $subject
+            ]);
+            break;
+        }
+
         if (empty($input['subject']) || empty($input['recipient'])) {
             sendJsonResponse(["success" => false, "error" => "Subject and recipient are required"], 400);
         }

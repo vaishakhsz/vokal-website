@@ -745,6 +745,85 @@ class VokalStorageManager {
     return { success: true, id, name, type: normType };
   }
 
+  async renameItem(id, newName, type) {
+    if (!id || !newName) throw new Error("ID and new name are required");
+    const name = String(newName).trim();
+    if (!name) throw new Error("New name cannot be empty");
+
+    const normType = (type === 'photo' || type === 'event') ? 'event' : type;
+
+    if (normType === 'event') {
+      let events = this.getEvents();
+      const idx = events.findIndex(e => String(e.id) === String(id));
+      if (idx !== -1) {
+        events[idx].title = name;
+        localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
+      }
+      try {
+        await fetch(`api/events.php?api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
+          method: "POST",
+          headers: authHeaders,
+          body: JSON.stringify({
+            id: id,
+            event_uid: id,
+            title: name,
+            action: 'rename'
+          })
+        });
+      } catch (e) {
+        console.warn("Server rename error:", e);
+      }
+    } else if (normType === 'video') {
+      let videos = this.getVideos();
+      const idx = videos.findIndex(v => String(v.id) === String(id));
+      if (idx !== -1) {
+        videos[idx].title = name;
+        localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
+      }
+      try {
+        await fetch(`api/videos.php?api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
+          method: "POST",
+          headers: authHeaders,
+          body: JSON.stringify({
+            id: id,
+            video_uid: id,
+            title: name,
+            action: 'rename'
+          })
+        });
+      } catch (e) {
+        console.warn("Server rename error:", e);
+      }
+    } else if (normType === 'letter') {
+      let letters = this.getLetters();
+      const idx = letters.findIndex(l => String(l.id) === String(id));
+      if (idx !== -1) {
+        letters[idx].subject = name;
+        localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(letters));
+      }
+      try {
+        await fetch(`api/letters.php?api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
+          method: "POST",
+          headers: authHeaders,
+          body: JSON.stringify({
+            id: id,
+            letter_uid: id,
+            subject: name,
+            action: 'rename'
+          })
+        });
+      } catch (e) {
+        console.warn("Server rename error:", e);
+      }
+    }
+
+    try {
+      await this.syncWithServer();
+    } catch (e) {}
+
+    return { success: true, id, name, type: normType };
+  }
+
   async deleteFolder(id, name = null, type = null) {
     let folders = this.getFolders();
     const deleted = folders.find(f => String(f.id) === String(id)) || { id, name, type };

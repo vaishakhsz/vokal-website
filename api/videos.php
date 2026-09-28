@@ -33,6 +33,28 @@ switch ($method) {
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) $input = $_POST;
 
+        // Direct rename action
+        if (!empty($input['action']) && $input['action'] === 'rename') {
+            $targetId = !empty($input['id']) ? trim($input['id']) : trim($input['video_uid'] ?? '');
+            $title = trim($input['title'] ?? '');
+            if (!$targetId || !$title) {
+                sendJsonResponse(["success" => false, "error" => "ID and new title required for rename"], 400);
+            }
+            if (is_numeric($targetId)) {
+                $stmt = $pdo->prepare("UPDATE `videos` SET `title` = :title WHERE `id` = :id");
+                $stmt->execute([':title' => $title, ':id' => (int)$targetId]);
+            } else {
+                $stmt = $pdo->prepare("UPDATE `videos` SET `title` = :title WHERE `video_uid` = :uid");
+                $stmt->execute([':title' => $title, ':uid' => $targetId]);
+            }
+            sendJsonResponse([
+                "success" => true,
+                "message" => "Video renamed successfully",
+                "title" => $title
+            ]);
+            break;
+        }
+
         if (empty($input['title']) || empty($input['videoUrl'])) {
             sendJsonResponse(["success" => false, "error" => "Video title and video URL are required"], 400);
         }

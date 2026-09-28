@@ -407,9 +407,14 @@ function openEventFolder(dateStr) {
                     <i class="bi bi-arrows-fullscreen me-1"></i>Full Photo
                   </button>
                   ${isAdminLoggedIn() ? `
-                    <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserEvent('${event.id}')">
-                      <i class="bi bi-trash3 me-1"></i>Delete
-                    </button>
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-link text-decoration-none p-0 text-primary fw-bold small" onclick="promptRenamePublicItem('${event.id}', '${escapeHtml(event.title)}', 'event')">
+                        <i class="bi bi-pencil-square me-1"></i>Rename
+                      </button>
+                      <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserEvent('${event.id}')">
+                        <i class="bi bi-trash3 me-1"></i>Delete
+                      </button>
+                    </div>
                   ` : ''}
                 </div>
               </div>
@@ -561,13 +566,38 @@ function openVideoFolder(dateStr) {
   } else {
     bodyEl.innerHTML = `
       <div class="row g-3">
-        ${items.map(video => `
+        ${items.map(video => {
+          const parsed = (typeof parseVideoUrl === 'function')
+            ? parseVideoUrl(video.videoUrl)
+            : (window.parseVideoUrl ? window.parseVideoUrl(video.videoUrl) : { embedUrl: video.videoUrl, directUrl: video.videoUrl, platform: 'Video' });
+
+          const isFb = parsed.platform === 'Facebook';
+          const isIg = parsed.platform === 'Instagram';
+          const targetUrl = parsed.directUrl || video.videoUrl;
+
+          // Directly open external social videos on Facebook/Instagram to avoid iframe "Video unavailable" restrictions
+          const playClickAction = (isFb || isIg)
+            ? `window.open('${targetUrl}', '_blank', 'noopener,noreferrer')`
+            : `playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')`;
+
+          let watchBtn = '';
+          if (isFb) {
+            watchBtn = `<a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm fw-semibold"><i class="bi bi-facebook me-1"></i> Watch on Facebook</a>`;
+          } else if (isIg) {
+            watchBtn = `<a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-sm text-white fw-semibold" style="background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);"><i class="bi bi-instagram me-1"></i> Watch on Instagram</a>`;
+          } else {
+            watchBtn = `<button class="btn btn-vokal-outline btn-sm" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')"><i class="bi bi-play-circle-fill me-1"></i> Watch</button>`;
+          }
+
+          return `
           <div class="col-md-6">
             <div class="vk-card h-100">
-              <div class="video-card-thumb" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
+              <div class="video-card-thumb position-relative" style="cursor: pointer;" onclick="${playClickAction}">
                 <img src="${video.thumbnail}" alt="${escapeHtml(video.title)}" loading="lazy">
-                <div class="video-play-btn"><i class="bi bi-play-fill ms-1"></i></div>
+                <div class="video-play-btn"><i class="${isFb ? 'bi bi-facebook' : isIg ? 'bi bi-instagram' : 'bi bi-play-fill'} ms-1"></i></div>
                 <span class="video-duration-badge"><i class="bi bi-clock me-1"></i>${video.duration}</span>
+                ${isFb ? '<span class="badge bg-primary position-absolute top-0 start-0 m-2"><i class="bi bi-facebook me-1"></i>Facebook Video</span>' : ''}
+                ${isIg ? '<span class="badge position-absolute top-0 start-0 m-2 text-white" style="background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);"><i class="bi bi-instagram me-1"></i>Instagram</span>' : ''}
               </div>
               <div class="p-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -576,20 +606,24 @@ function openVideoFolder(dateStr) {
                 </div>
                 <h6 class="fw-bold mb-2">${escapeHtml(video.title)}</h6>
                 <p class="text-muted small mb-2">${escapeHtml(video.description)}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                  <button class="btn btn-vokal-outline btn-sm" onclick="playVideoModal('${video.videoUrl}', '${escapeHtml(video.title)}', '${escapeHtml(video.description)}')">
-                    <i class="bi bi-play-circle-fill me-1"></i> Watch
-                  </button>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  ${watchBtn}
                   ${isAdminLoggedIn() ? `
-                    <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserVideo('${video.id}')">
-                      <i class="bi bi-trash3 me-1"></i>Delete
-                    </button>
+                    <div class="d-flex gap-2 ms-auto">
+                      <button class="btn btn-link text-decoration-none p-0 text-primary fw-bold small" onclick="promptRenamePublicItem('${video.id}', '${escapeHtml(video.title)}', 'video')">
+                        <i class="bi bi-pencil-square me-1"></i>Rename
+                      </button>
+                      <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserVideo('${video.id}')">
+                        <i class="bi bi-trash3 me-1"></i>Delete
+                      </button>
+                    </div>
                   ` : ''}
                 </div>
               </div>
             </div>
           </div>
-        `).join("")}
+        `;
+        }).join("")}
       </div>
     `;
   }
@@ -628,12 +662,18 @@ function openVideoFolder(dateStr) {
 }
 
 function playVideoModal(url, title, desc) {
-  const modalEl = document.getElementById("videoPlayerModal");
-  if (!modalEl) return;
-
   const parsed = (typeof parseVideoUrl === 'function') 
     ? parseVideoUrl(url) 
     : (window.parseVideoUrl ? window.parseVideoUrl(url) : { embedUrl: url, directUrl: url, platform: 'Video', canEmbed: true, isFile: false });
+
+  // Direct open on Facebook / Instagram to prevent iframe "Video unavailable" restrictions
+  if (parsed.platform === 'Facebook' || parsed.platform === 'Instagram') {
+    window.open(parsed.directUrl || url, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  const modalEl = document.getElementById("videoPlayerModal");
+  if (!modalEl) return;
 
   const iframe = document.getElementById("videoPlayerIframe");
   const html5 = document.getElementById("videoPlayerHtml5");
@@ -724,6 +764,39 @@ function deleteUserVideo(id) {
       openVideoFolder(title);
     }
     showToast("Video link deleted. The folder remains intact.", "info");
+  }
+}
+
+async function promptRenamePublicItem(id, currentName, type) {
+  if (!isAdminLoggedIn()) {
+    showToast("Please log in via the Admin Portal to manage content.", "warning");
+    window.open("admin.html", "_blank");
+    return;
+  }
+  const typeLabel = (type === 'letter') ? 'Letter' : (type === 'video') ? 'Video' : 'Photo';
+  const newName = prompt(`Enter new title/name for this ${typeLabel}:`, currentName);
+  if (!newName || !newName.trim() || newName.trim() === currentName) return;
+
+  try {
+    await window.vokalStorage.renameItem(id, newName.trim(), type);
+    showToast(`${typeLabel} renamed to "${newName.trim()}" successfully!`, "success");
+    
+    // Refresh views & modal
+    if (type === 'event' || type === 'photo') {
+      renderEvents();
+      const titleEl = document.getElementById("folderModalTitle");
+      if (titleEl) openEventFolder(titleEl.textContent.trim());
+    } else if (type === 'video') {
+      renderVideos();
+      const titleEl = document.getElementById("folderModalTitle");
+      if (titleEl) openVideoFolder(titleEl.textContent.trim());
+    } else if (type === 'letter') {
+      renderLetters();
+      const titleEl = document.getElementById("folderModalTitle");
+      if (titleEl) openLetterFolder(titleEl.textContent.trim());
+    }
+  } catch (err) {
+    showToast("Rename failed: " + err.message, "danger");
   }
 }
 
@@ -829,9 +902,14 @@ function openLetterFolder(dateStr) {
                     </a>
                   </div>
                   ${isAdminLoggedIn() ? `
-                    <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserLetter('${letter.id}')">
-                      <i class="bi bi-trash3 me-1"></i>Delete
-                    </button>
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-link text-decoration-none p-0 text-primary fw-bold small" onclick="promptRenamePublicItem('${letter.id}', '${escapeHtml(letter.subject)}', 'letter')">
+                        <i class="bi bi-pencil-square me-1"></i>Rename
+                      </button>
+                      <button class="btn btn-link text-decoration-none p-0 text-danger fw-bold small" onclick="deleteUserLetter('${letter.id}')">
+                        <i class="bi bi-trash3 me-1"></i>Delete
+                      </button>
+                    </div>
                   ` : ''}
                 </div>
               </div>
