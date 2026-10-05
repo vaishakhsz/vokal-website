@@ -655,19 +655,38 @@
       body.innerHTML = items.map(i => `
         <div class="card border-0 shadow-sm mb-3">
           <div class="card-body">
-            <div class="d-flex justify-content-between mb-2">
-              <span class="badge bg-danger">${i.type}</span>
-              <span class="badge bg-light text-dark border">${i.district}</span>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <span class="badge bg-danger me-1">${escapeHtml(i.type || 'Cruelty Report')}</span>
+                <span class="badge bg-light text-dark border">${escapeHtml(i.district || 'Kerala')}</span>
+              </div>
+              <button class="btn btn-outline-danger btn-sm py-0 px-2 fw-semibold" onclick="adminDeleteInquiry('${i.id}');" title="Permanently delete report">
+                <i class="bi bi-trash3 me-1"></i> Delete
+              </button>
             </div>
-            <h6 class="fw-bold mb-1">${i.name}</h6>
-            <a href="mailto:${i.email || 'voiceofkerala.legit@gmail.com'}" class="text-success small mb-3 d-block">${i.email || 'No email provided'}</a>
-            <p class="mb-0 text-muted small bg-white p-3 rounded border">${i.message}</p>
+            <h6 class="fw-bold mb-1">${escapeHtml(i.name || 'Anonymous')}</h6>
+            <a href="mailto:${escapeHtml(i.email || 'voiceofkerala.legit@gmail.com')}" class="text-success small mb-2 d-block">${escapeHtml(i.email || 'No email provided')}</a>
+            <p class="mb-0 text-muted small bg-white p-3 rounded border">${escapeHtml(i.message || '')}</p>
           </div>
         </div>
       `).join('');
 
       new bootstrap.Modal(modalEl).show();
     }
+
+    async function adminDeleteInquiry(id) {
+      if (!confirm("Permanently delete this cruelty report? This cannot be undone.")) return;
+      try {
+        await window.vokalStorage.deleteInquiry(id);
+        bootstrap.Modal.getInstance(document.getElementById("viewInquiriesModal"))?.hide();
+        cleanupOrphanBackdrops();
+        loadAdminDashboard();
+        showToast("Report deleted successfully.", "success");
+      } catch (err) {
+        showToast("Failed to delete report: " + err.message, "danger");
+      }
+    }
+    window.adminDeleteInquiry = adminDeleteInquiry;
 
     function showAdminUploadModal(tab) {
       const modalEl = document.getElementById("uploadContentModal");
