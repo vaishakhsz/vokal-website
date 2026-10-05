@@ -51,6 +51,24 @@ switch ($method) {
         ], 201);
         break;
 
+    case 'DELETE':
+        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        if (!$id) {
+            $raw = file_get_contents('php://input');
+            $input = json_decode($raw, true);
+            $id = !empty($input['id']) ? intval($input['id']) : 0;
+        }
+
+        if (!$id) {
+            sendJsonResponse(["success" => false, "error" => "Inquiry ID is required"], 400);
+        }
+
+        $stmt = $pdo->prepare("DELETE FROM `citizen_inquiries` WHERE `id` = :id");
+        $stmt->execute([':id' => $id]);
+
+        sendJsonResponse(["success" => true, "message" => "Inquiry deleted successfully"]);
+        break;
+
     default:
         sendJsonResponse(["success" => false, "error" => "Method not allowed"], 405);
 }
