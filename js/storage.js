@@ -183,10 +183,37 @@ class VokalStorageManager {
           }));
           localStorage.setItem(STORAGE_KEYS.LETTERS, JSON.stringify(mapped));
           if (typeof renderLetters === "function") renderLetters();
+          if (typeof renderAdminInquiries === "function") renderAdminInquiries();
+          if (typeof updateAdminCounts === "function") updateAdminCounts();
         }
       }
     } catch (e) {
       console.log("Offline mode: using cached letters", e.message);
+    }
+
+    try {
+      // Sync Inquiries / Cruelty Reports from MySQL (Server is single source of truth)
+      const inqRes = await fetch("api/inquiries.php");
+      if (inqRes.ok) {
+        const json = await inqRes.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mappedInq = json.data.map(i => ({
+            id: i.id,
+            name: i.name,
+            email: i.email,
+            district: i.district,
+            type: i.type,
+            message: i.message,
+            status: i.status || 'new',
+            submittedAt: i.submitted_at || i.created_at || new Date().toISOString()
+          }));
+          localStorage.setItem(STORAGE_KEYS.FEEDBACK, JSON.stringify(mappedInq));
+          if (typeof renderAdminInquiries === "function") renderAdminInquiries();
+          if (typeof updateAdminCounts === "function") updateAdminCounts();
+        }
+      }
+    } catch (e) {
+      console.log("Offline mode: using cached inquiries", e.message);
     }
 
     try {
@@ -204,6 +231,8 @@ class VokalStorageManager {
           if (typeof renderEvents === "function") renderEvents();
           if (typeof renderVideos === "function") renderVideos();
           if (typeof renderLetters === "function") renderLetters();
+          if (typeof renderAdminInquiries === "function") renderAdminInquiries();
+          if (typeof updateAdminCounts === "function") updateAdminCounts();
         }
       }
     } catch (e) {
@@ -562,7 +591,14 @@ class VokalStorageManager {
       deletedList = JSON.parse(localStorage.getItem('vokal_deleted_folders') || '[]');
     } catch (e) {}
 
-    const registeredFolders = (this.getFolders() || [])
+    const allFolders = this.getFolders() || [];
+    // If a folder exists on the server/DB, remove it from the deletedList blacklist
+    if (deletedList.length > 0 && allFolders.length > 0) {
+      deletedList = deletedList.filter(name => !allFolders.some(f => f.name === name));
+      localStorage.setItem('vokal_deleted_folders', JSON.stringify(deletedList));
+    }
+
+    const registeredFolders = allFolders
       .filter(f => f.type === normType && !deletedList.includes(f.name));
 
     let allItems = [];
@@ -646,10 +682,10 @@ class VokalStorageManager {
     };
 
     try {
-      const res = await fetch("api/folders.php", {
+      const res = await fetch(`api/folders.php?api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
         method: "POST",
         headers: authHeaders,
-        body: JSON.stringify({ name, type: normType })
+        body: JSON.stringify({ name, type: normType, api_key: VOKAL_API_KEY })
       });
       const json = await res.json().catch(() => null);
       if (json && json.success) {
@@ -689,10 +725,10 @@ class VokalStorageManager {
     } catch (e) {}
 
     try {
-      const res = await fetch("api/folders.php", {
+      const res = await fetch(`api/folders.php?api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
         method: "POST",
         headers: authHeaders,
-        body: JSON.stringify({ id, name, type: normType, old_name: previousName })
+        body: JSON.stringify({ id, name, type: normType, old_name: previousName, api_key: VOKAL_API_KEY })
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || (json && !json.success)) {
@@ -912,6 +948,22 @@ class VokalStorageManager {
     } catch (e) {
       return [];
     }
+  }
+
+  async deleteInquiry(id) {
+    try {
+      await fetch(`api/inquiries.php?id=${encodeURIComponent(id)}&api_key=${encodeURIComponent(VOKAL_API_KEY)}`, {
+        method: "DELETE",
+        headers: authHeaders,
+        body: JSON.stringify({ id, api_key: VOKAL_API_KEY })
+      });
+    } catch (err) {
+      console.warn("Server deleteInquiry error:", err);
+    }
+    let inqs = this.getInquiries();
+    inqs = inqs.filter(i => String(i.id) !== String(id));
+    localStorage.setItem(STORAGE_KEYS.FEEDBACK, JSON.stringify(inqs));
+    return true;
   }
 }
 
